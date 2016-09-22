@@ -1,4 +1,4 @@
-module FPGA_BlueTooth_connection(CLK1MHZ, ybusn, ybusp)
+module FPGA_Bluetooth_connection(CLK1MHZ, ybusn, ybusp)
 	input CLK1MHZ;
 
 	output [1:0] ybusn; // 1-W22 , 0-T20

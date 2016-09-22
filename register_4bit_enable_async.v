@@ -1,7 +1,7 @@
 /*
 Anthony De Caria - September 21, 2016
 
-This module creates a 2 bit Register with a separate enable signal.
+This module creates a 4 bit Register with a separate enable signal.
 This module uses asynchronous D Flip Flops.
 */
 

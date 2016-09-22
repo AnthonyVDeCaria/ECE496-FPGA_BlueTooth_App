@@ -1,7 +1,7 @@
 /*
 Anthony De Caria - September 21, 2016
 
-This module is a nine bit adder/subtractor.
+This module is a 4 bit adder/subtractor.
 
 It will output B - A if desired.
 */

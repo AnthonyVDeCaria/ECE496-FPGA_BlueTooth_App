@@ -1,10 +1,10 @@
 /*
 Anthony De Caria - September 20, 2016
 
-This is a test module for transmitting a byte serially.
+This is a 8-bit serializer to send data.
 */
 
-module test_transmission (clock, resetn, start_transmission, finish_transmission, tx);
+module serializer_8bit_transmission (clock, resetn, start_transmission, finish_transmission, tx);
 	input clock, resetn, start_transmission;
 	output finish_transmission, tx;
 	
