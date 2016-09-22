@@ -7,7 +7,10 @@ This is a 8-bit serializer to send data.
 module serializer_8bit (clock, resetn, data, start_transmission, finish_transmission, tx);
 	input clock, resetn, start_transmission;
 	input [7:0] data;
+
 	output finish_transmission, tx;
+	assign finish_transmission = (curr == SD);
+	assign tx = q_out[7];
 	
 	wire [7:0] q_out;
 	
@@ -29,9 +32,6 @@ module serializer_8bit (clock, resetn, data, start_transmission, finish_transmis
 	adder_subtractor_4bit a_i(.a(i_out), .b(4'b0001), .want_subtract(1'b0), .c_out(), .s(a_out) );
 	
 	Shift_Register_8_Enable_Async_OneLoad test_reg(.clk(clock), .resetn(s_reset), .enable(s_enable), .select(s_load), .d(data), .q(q_out) );
-	
-	assign tx = q_out[7];
-	assign finish_transmission = (curr == SD);
 	
 	/*
 		FSM
