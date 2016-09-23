@@ -10,20 +10,19 @@ module ece496_fpga_transmission (clock, resetn, start, done, data, data_size, li
 	input clock, resetn;
 	input start;
 	input [255:0] data;
-	input reg [7:0] data_size;
+	input [5:0] data_size;
 
 	output line_out;
 	
 	output done;
-	assign done = (curr == Complete);
-
-	wire [7:0] byte;
-
-	parameter Idle = 3'b000, Initialize = 3'b001, Load_Byte = 3'b010, Byte_Transmission = 3'b011, Restart_BT = 3'b011, Complete = 3'b100;
+	
+	parameter Idle = 3'b000, Initialize = 3'b001, Load_Byte = 3'b010, Byte_Transmission = 3'b011, Restart_BT = 3'b100, Complete = 3'b101;
 	reg [2:0] curr, next;
 
+	wire [7:0] data_byte;
+
 	wire s_t_b, f_t_b;
-	assign s_t_b = (curr == Byte_Transmission)
+	assign s_t_b = (curr == Byte_Transmission);
 
 	integer i, n; 
 	always @(*)
@@ -47,9 +46,11 @@ module ece496_fpga_transmission (clock, resetn, start, done, data, data_size, li
 	assign b_reset = ~((curr == Idle) | (curr == Complete) | (curr == Restart_BT));
 	assign b_enable = (curr == Load_Byte);
 	assign b_load = (curr == Load_Byte);
-	register_8bit_enable_async r_byte(.clk(clock), .resetn(b_reset), .enable(b_enable), .select(b_load), .d(data[i * 8 +: 8]), .q(byte) );
+	register_8bit_enable_async r_byte(.clk(clock), .resetn(b_reset), .enable(b_enable), .select(b_load), .d(data[8*i +: 8]), .q(data_byte) );
 
-	serializer_8bit byte_sender(.clock(clock), .resetn(resetn), .data(byte) .start_transmission(s_t_b), .finish_transmission(f_t_b), .tx(line_out) );
+	serializer_8bit byte_sender(.clock(clock), .resetn(resetn), .data(data_byte), .start_transmission(s_t_b), .finish_transmission(f_t_b), .tx(line_out) );
+	
+	assign done = (curr == Complete);
 
 	/*
 		FSM
@@ -62,11 +63,14 @@ module ece496_fpga_transmission (clock, resetn, start, done, data, data_size, li
 			Load_Byte: next = Byte_Transmission;
 			Byte_Transmission: 
 			begin
-				if(!f_t_b) next = Initialize; 
-				if(i < n) next = Restart_BT;
+				if(!f_t_b) next = Load_Byte;
+				else next = Restart_BT;
+			end
+			Restart_BT:
+			begin
+				if(i < n) next = Load_Byte;
 				else next = Complete;
 			end
-			Restart_BT: next = Byte_Transmission;
 			Complete: if(start) next = Complete; else next = Idle;
 		endcase
 	end

@@ -9,13 +9,11 @@ module serializer_8bit (clock, resetn, data, start_transmission, finish_transmis
 	input [7:0] data;
 
 	output finish_transmission, tx;
-	assign finish_transmission = (curr == SD);
-	assign tx = q_out[7];
-	
-	wire [7:0] q_out;
 	
 	parameter S0 = 2'b00, S1 = 2'b01, S2 = 2'b10, SD = 2'b11;
 	reg [1:0] curr, next;
+	
+	wire [7:0] q_out;
 	
 	wire i_load, i_enable, i_reset;
 	wire [3:0] i_out, a_out;
@@ -32,6 +30,9 @@ module serializer_8bit (clock, resetn, data, start_transmission, finish_transmis
 	adder_subtractor_4bit a_i(.a(i_out), .b(4'b0001), .want_subtract(1'b0), .c_out(), .s(a_out) );
 	
 	Shift_Register_8_Enable_Async_OneLoad test_reg(.clk(clock), .resetn(s_reset), .enable(s_enable), .select(s_load), .d(data), .q(q_out) );
+	
+	assign finish_transmission = (curr == SD);
+	assign tx = q_out[7];
 	
 	/*
 		FSM
