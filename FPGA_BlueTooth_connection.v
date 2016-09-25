@@ -1,6 +1,12 @@
-module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, LED, 
-									CLK1MHZ, ybusn, ybusp);
-									
+module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK1MHZ, ybusn, ybusp);
+	
+	/*
+		Others
+	*/
+	input CLK1MHZ;
+	output [1:0] ybusn; // 1-W22 , 0-T20
+	output [1:0] ybusp; // 1-W20 , 0-T19
+	
 	/*
 		FSM wires
 	*/
@@ -30,7 +36,7 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	wire	[16:0]	ok2;
 	
 //	wire	[15:0]	ep01wireIn;
-	reg		[15:0]	ep20wireOut;
+	wire	[15:0]	ep20wireOut;
 	wire	[15:0]	ep40trigIn;
 	
 	//--------------------------------
@@ -69,13 +75,6 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	// wires
 //	okWireIn	ep01 (.ok1(ok1),							.ep_addr(8'h01), .ep_dataout(ep01wireIn));
 	okWireOut	ep20 (.ok1(ok1), .ok2(ok2x[ 0*17 +: 17 ]), .ep_addr(8'h20), .ep_datain(ep20wireOut));
-	
-	/*
-		Others
-	*/
-	input CLK1MHZ;
-	output [1:0] ybusn; // 1-W22 , 0-T20
-	output [1:0] ybusp; // 1-W20 , 0-T19
 	
 	/*
 		Wires
@@ -131,7 +130,7 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 		endcase
 	end
 	
-	always@(posedge clock or negedge resetn)
+	always@(posedge CLK1MHZ or negedge resetn)
 	begin
 		if(!resetn) curr <= Idle; else curr <= next;
 	end
