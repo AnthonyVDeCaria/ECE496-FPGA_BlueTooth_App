@@ -66,6 +66,7 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	wire resetn, want_at, user_ready;
 	assign resetn = ep40trigIn[0];
 //	assign want_at = ep40trigIn[1];
+	assign want_at = 1'b0;
 	assign user_ready = ep40trigIn[2];
 	
 	wire [1:0] data_select;
@@ -84,13 +85,15 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	wire bt_enable, bt_state, bt_txd, bt_rxd;
 	wire fpga_txd, fpga_rxd;
 	
-	assign bt_state = ybusp[0];
-	assign bt_enable = ybusp[1];
-	assign bt_rxd = ybusn[0];
-	assign bt_txd = ybusn[1];
+	assign ybusp[0] = bt_state;
+	assign ybusp[1] = bt_enable;
+	assign ybusn[0] =  bt_rxd;
+	assign ybusn[1] = bt_txd;
+	
+	assign bt_enable = want_at;
 
-	assign fpga_txd = bt_rxd;
-	assign fpga_rxd = bt_txd;
+	assign bt_rxd = fpga_txd;
+	assign bt_txd = fpga_rxd;
 	
 	wire sending_complete;
 	
@@ -125,7 +128,7 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	begin
 		case(curr)
 			Idle: if(user_ready) next = Send_Sensor_Data; else next = Idle;
-			Send_Sensor_Data: if(sending_complete) next = Complete; else next = Idle;
+			Send_Sensor_Data: if(sending_complete) next = Complete; else next = Send_Sensor_Data;
 			Complete: if(user_ready) next = Complete; else next = Idle;
 		endcase
 	end
