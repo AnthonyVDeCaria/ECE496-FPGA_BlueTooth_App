@@ -101,7 +101,7 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	/*
 		Sensor
 	*/
-	sensor_analog fake(.select(data_select), .d_out(sensor_data));
+	test_sensor_analog fake(.select(data_select), .d_out(sensor_data));
 	
 	/*
 		Output
