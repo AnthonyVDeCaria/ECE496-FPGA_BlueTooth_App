@@ -12,19 +12,21 @@ module register_4bit_enable_async(clk, resetn, enable, select, d, q);
 	input	resetn;
 	input	enable;
 	input	select;
-	input	[3:0] d;
-	output	[3:0] q;
+	input	[4:0] d;
+	output	[4:0] q;
 	
-	wire	[3:0]mux_out;
+	wire	[4:0]mux_out;
 	
 	mux_2_1bit m_0( .data1(d[0]), .data0(q[0]), .sel(select), .result(mux_out[0]) );
 	mux_2_1bit m_1( .data1(d[1]), .data0(q[1]), .sel(select), .result(mux_out[1]) );
 	mux_2_1bit m_2( .data1(d[2]), .data0(q[2]), .sel(select), .result(mux_out[2]) );
 	mux_2_1bit m_3( .data1(d[3]), .data0(q[3]), .sel(select), .result(mux_out[3]) );
+	mux_2_1bit m_4( .data1(d[4]), .data0(q[4]), .sel(select), .result(mux_out[4]) );
 	
 	D_FF_Enable_Async d_0( .clk(clk), .resetn(resetn), .enable(enable), .d(mux_out[0]), .q(q[0]) );
 	D_FF_Enable_Async d_1( .clk(clk), .resetn(resetn), .enable(enable), .d(mux_out[1]), .q(q[1]) );
 	D_FF_Enable_Async d_2( .clk(clk), .resetn(resetn), .enable(enable), .d(mux_out[2]), .q(q[2]) );
 	D_FF_Enable_Async d_3( .clk(clk), .resetn(resetn), .enable(enable), .d(mux_out[3]), .q(q[3]) );
+	D_FF_Enable_Async d_4( .clk(clk), .resetn(resetn), .enable(enable), .d(mux_out[4]), .q(q[4]) );
 
 endmodule
