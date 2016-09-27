@@ -1,13 +1,13 @@
 /*
-Anthony De Caria - September 24, 2016
+Anthony De Caria - September 26, 2016
 
-This module creates a 8-bit four input Mux.
+This module creates a 16-bit four input Mux.
 */
 
-module mux_4_8bit(data0, data1, data2, data3, sel, result);
-	input [7:0] data0, data1, data2, data3;
+module mux_4_16bit(data0, data1, data2, data3, sel, result);
+	input [15:0] data0, data1, data2, data3;
 	input [1:0] sel;
-	output reg [7:0] result;
+	output reg [15:0] result;
 	
 	always@(*)
 	begin
