@@ -1,20 +1,18 @@
+/*
+Anthony De Caria - September 28, 2016
+
+This module creats Opal Kelly wires for FPGA_Bluetooth_connection.
+As well as providing the FPGA pins.
+*/
+
 module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK1MHZ, ybusn, ybusp);
 	
 	/*
 		Others
 	*/
 	input CLK1MHZ;
-	output [1:0] ybusn; // 1-W22 , 0-T20
-	output [1:0] ybusp; // 1-W20 , 0-T19
-	
-	parameter n = 0, at_end = "\r\n";
-	
-	/*
-		FSM wires
-	*/
-	
-	parameter Idle = 3'b000, Load_TFIFO = 3'b001, Start_Transmission = 3'b010, Receive_AT_Response = 3'b011, Complete = 3'b100;
-	reg [2:0] curr, next;
+	inout [1:0] ybusn; // 1-W22 , 0-T20
+	inout [1:0] ybusp; // 1-W20 , 0-T19
 	
 	/*
 		Opal Kelly
@@ -64,16 +62,7 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	);
 
 	// triggers
-	okTriggerIn	ep40 (.ok1(ok1), .ep_addr(8'h40), .ep_clk(CLK1MHZ), .ep_trigger(ep40trigIn));
-
-	wire resetn, want_at, user_ready;
-	assign resetn = ep40trigIn[0];
-	assign want_at = ep40trigIn[1];
-	assign user_ready = ep40trigIn[2];
-	
-	wire [1:0] data_select;
-	assign data_select[0] = ep40trigIn[3];
-	assign data_select[1] = ep40trigIn[4];
+	okTriggerIn	ep40 (.ok1(ok1), .ep_addr(8'h40), .ep_clk(CLK1MHZ), .ep_trigger(ep40trigIn) );
 	
 	// wires
 	okWireIn ep01 (.ok1(ok1), .ep_addr(8'h01), .ep_dataout(ep01wireIn) );
@@ -82,138 +71,19 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	okWireOut ep21 (.ok1(ok1), .ok2(ok2x[ 1*17 +: 17 ]), .ep_addr(8'h21), .ep_datain(ep21wireOut) );
 	
 	/*
-		Wires
+		FPGA
 	*/
-	wire bt_enable, bt_state, bt_txd, bt_rxd;
-	wire fpga_txd, fpga_rxd;
-	
-	assign ybusp[0] = bt_state;
-	assign ybusp[1] = bt_enable;
-	assign ybusn[0] =  bt_rxd;
-	assign ybusn[1] = bt_txd;
-	
-	assign bt_enable = want_at;
-
-	assign bt_rxd = fpga_txd;
-	assign bt_txd = fpga_rxd;
-	
-	wire tx_done, rx_done;
-	
-	assign ep20wireOut[0] = bt_state;
-	assign ep20wireOut[1] = tx_done;
-	assign ep20wireOut[2] = rx_done;
-	
-	/*
-		Sensor
-	*/
-	wire [15:0]sensor_data;
-	test_sensor_analog fake(.select(data_select), .d_out(sensor_data));
-	
-	/*
-		FIFOs
-	*/
-	wire [15:0] TFIFO_in, TFIFO_out, ATRFIFO_in, ATRFIFO_out;
-	wire TFIFO_full, TFIFO_empty, ATRFIFO_full, ATRFIFO_empty;
-	assign ep21wireOut = ATRFIFO_out;
-	
-	mux_2_16bit TFIFO_input(.data0(sensor_data), .data1(ep01wireIn), .sel(want_at), .result(TFIFO_in) );
-	
-	FIFO_4096x16 TFIFO(
-	  .rst(resetn),
-	  .wr_clk(CLK1MHZ),
-	  .rd_clk(CLK1MHZ),
-	  .din(TFIFO_in),
-	  .wr_en((curr == Load_TFIFO)),
-	  .rd_en((curr == Start_Transmission)),
-	  .dout(TFIFO_out),
-	  .full(TFIFO_full),
-	  .wr_ack(),
-	  .overflow(),
-	  .empty(TFIFO_empty),
-	  .valid(),
-	  .underflow(),
-	  .rd_data_count(),
-	  .wr_data_count()
+	FPGA_Bluetooth_connection master_of_puppets(
+		.clock(CLK1MHZ),
+		.bt_state(ybusp[0]),
+		.bt_enable(ybusp[1]),
+		.fpga_txd(ybusn[0]),
+		.fpga_rxd(ybusn[1]), 
+		.ep01wireIn(ep01wireIn),
+		.ep40trigIn(ep40trigIn),
+		.ep20wireOut(ep20wireOut),
+		.ep21wireOut(ep21wireOut)
 	);
 	
-	FIFO_4096x16 ATRFIFO(
-	  .rst(resetn),
-	  .wr_clk(CLK1MHZ),
-	  .rd_clk(CLK1MHZ),
-	  .din(ATRFIFO_in),
-	  .wr_en((curr == Receive_AT_Response)),
-	  .rd_en((curr == Complete)),
-	  .dout(ATRFIFO_out),
-	  .full(ATRFIFO_full),
-	  .wr_ack(),
-	  .overflow(),
-	  .empty(ATRFIFO_empty),
-	  .valid(),
-	  .underflow(),
-	  .rd_data_count(),
-	  .wr_data_count()
-	);
-	
-	/*
-		Output
-	*/
-	serial_transmitter_16 tx(.clock(CLK1MHZ), .resetn(resetn), .start((curr == Start_Transmission)), .done(tx_done), .data(TFIFO_out), .more_data(TFIFO_empty), .line_out(fpga_txd) );
-	
-	/*
-		Input
-	*/
-	serial_receiver_16 rx(.clock(CLK1MHZ), .resetn(resetn), .start((curr == Receive_AT_Response)), .done(rx_done), .data(ATRFIFO_in), .more_data((ATRFIFO_in == at_end)), .line_in(fpga_rxd) );
-	
-	/*
-		FSM
-	*/
-	always@(*)
-	begin
-		case(curr)
-			Idle: if(user_ready) next = Load_TFIFO; else next = Idle;
-			Load_TFIFO:
-			begin
-				if(want_at)
-				begin
-					if(TFIFO_in == at_end)
-						next = Start_Transmission;
-					else
-						next = Load_TFIFO;
-				end
-				else
-				begin
-					if(TFIFO_full)
-						next = Start_Transmission;
-					else
-						next = Load_TFIFO;
-				end
-			end
-			Start_Transmission: 
-			begin
-				if(TFIFO_empty) 
-				begin
-					if(want_at)
-					begin
-						 next = Receive_AT_Response;
-					end
-					else
-					begin
-						next = Complete;
-					end
-				end
-				else 
-				begin
-					next = Start_Transmission;
-				end
-			end
-			Receive_AT_Response: if(ATRFIFO_in == at_end) next = Complete; else next = Receive_AT_Response;
-			Complete: if(user_ready) next = Complete; else next = Idle;
-		endcase
-	end
-	
-	always@(posedge CLK1MHZ or negedge resetn)
-	begin
-		if(!resetn) curr <= Idle; else curr <= next;
-	end
 	
 endmodule

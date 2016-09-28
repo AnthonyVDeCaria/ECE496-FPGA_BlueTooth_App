@@ -1,85 +1,56 @@
-module FPGA_Bluetooth_connection(CLK1MHZ, bt_state, bt_enable, fpga_txd, fpga_rxd);
+/*
+Anthony De Caria - September 28, 2016
+
+This module creates a connection between an ion sensor and a HC-05 Bluetooth module.
+It assumes input and output wires created by Opal Kelly.
+*/
+
+module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd, ep01wireIn, ep40trigIn, ep20wireOut, ep21wireOut);
 	
 	/*
-		Others
+		I/Os
 	*/
-	input CLK1MHZ;
+	input clock;
 	
-	output bt_state, bt_enable, fpga_txd, fpga_rxd;
-	wire [15:0] ep01wireIn;
-	wire [15:0] ep20wireOut;
-	wire [15:0] ep21wireOut;
-	wire [15:0] ep40trigIn;
+	input fpga_rxd, bt_state;
+	output bt_enable, fpga_txd;
+
+	input [15:0] ep01wireIn;
+	input [15:0] ep40trigIn;
+
+	output [15:0] ep20wireOut;
+	output [15:0] ep21wireOut;
 	
 	parameter n = 0, at_end = "\r\n";
+
+	/*
+		Wires 
+	*/
+	wire resetn, want_at, user_ready, tx_done, rx_done;
+	wire [1:0] data_select;
+
+	/*
+		Assignments
+	*/
+	assign resetn = ep40trigIn[0];
+	assign want_at = ep40trigIn[1];
+	assign user_ready = ep40trigIn[2];
 	
+	assign data_select[0] = ep40trigIn[3];
+	assign data_select[1] = ep40trigIn[4];
+
+	assign bt_enable = want_at;
+	
+	assign ep20wireOut[0] = bt_state;
+	assign ep20wireOut[1] = tx_done;
+	assign ep20wireOut[2] = rx_done;
+
 	/*
 		FSM wires
 	*/
 	
 	parameter Idle = 3'b000, Load_TFIFO = 3'b001, Start_Transmission = 3'b010, Receive_AT_Response = 3'b011, Complete = 3'b100;
 	reg [2:0] curr, next;
-	
-	//--------------------------------
-	// Instantiate the okHost and connect endpoints.
-	// the n in the next line should match the N parameter for the wireOR below
-	// and each 17 bits of this ok2x signal connects to a different wireOut or
-	// pipeOut 
-	wire [17*num_ok_wires_pipes-1:0] ok2x;
-	okHost okHI (
-		.hi_in(hi_in),
-		.hi_out(hi_out),
-		.hi_inout(hi_inout),
-		.hi_aa(hi_aa),
-		.ti_clk(ti_clk),
-		.ok1(ok1),
-		.ok2(ok2)
-	);
-	
-	okWireOR # (.N(num_ok_wires_pipes)) wireOR (
-		.ok2(ok2),
-		.ok2s(ok2x)
-	);
-
-	// triggers
-	okTriggerIn	ep40 (.ok1(ok1), .ep_addr(8'h40), .ep_clk(CLK1MHZ), .ep_trigger(ep40trigIn));
-
-	wire resetn, want_at, user_ready;
-	assign resetn = ep40trigIn[0];
-	assign want_at = ep40trigIn[1];
-	assign user_ready = ep40trigIn[2];
-	
-	wire [1:0] data_select;
-	assign data_select[0] = ep40trigIn[3];
-	assign data_select[1] = ep40trigIn[4];
-	
-	// wires
-	okWireIn ep01 (.ok1(ok1), .ep_addr(8'h01), .ep_dataout(ep01wireIn) );
-	
-	okWireOut ep20 (.ok1(ok1), .ok2(ok2x[ 0*17 +: 17 ]), .ep_addr(8'h20), .ep_datain(ep20wireOut) );
-	okWireOut ep21 (.ok1(ok1), .ok2(ok2x[ 1*17 +: 17 ]), .ep_addr(8'h21), .ep_datain(ep21wireOut) );
-	
-	/*
-		Wires
-	*/
-	wire bt_enable, bt_state, bt_txd, bt_rxd;
-	wire fpga_txd, fpga_rxd;
-	
-	assign ybusp[0] = bt_state;
-	assign ybusp[1] = bt_enable;
-	assign ybusn[0] =  bt_rxd;
-	assign ybusn[1] = bt_txd;
-	
-	assign bt_enable = want_at;
-
-	assign bt_rxd = fpga_txd;
-	assign bt_txd = fpga_rxd;
-	
-	wire tx_done, rx_done;
-	
-	assign ep20wireOut[0] = bt_state;
-	assign ep20wireOut[1] = tx_done;
-	assign ep20wireOut[2] = rx_done;
 	
 	/*
 		Sensor
@@ -92,14 +63,15 @@ module FPGA_Bluetooth_connection(CLK1MHZ, bt_state, bt_enable, fpga_txd, fpga_rx
 	*/
 	wire [15:0] TFIFO_in, TFIFO_out, ATRFIFO_in, ATRFIFO_out;
 	wire TFIFO_full, TFIFO_empty, ATRFIFO_full, ATRFIFO_empty;
+
 	assign ep21wireOut = ATRFIFO_out;
 	
 	mux_2_16bit TFIFO_input(.data0(sensor_data), .data1(ep01wireIn), .sel(want_at), .result(TFIFO_in) );
 	
 	FIFO_4096x16 TFIFO(
 	  .rst(resetn),
-	  .wr_clk(CLK1MHZ),
-	  .rd_clk(CLK1MHZ),
+	  .wr_clk(clock),
+	  .rd_clk(clock),
 	  .din(TFIFO_in),
 	  .wr_en((curr == Load_TFIFO)),
 	  .rd_en((curr == Start_Transmission)),
@@ -116,8 +88,8 @@ module FPGA_Bluetooth_connection(CLK1MHZ, bt_state, bt_enable, fpga_txd, fpga_rx
 	
 	FIFO_4096x16 ATRFIFO(
 	  .rst(resetn),
-	  .wr_clk(CLK1MHZ),
-	  .rd_clk(CLK1MHZ),
+	  .wr_clk(clock),
+	  .rd_clk(clock),
 	  .din(ATRFIFO_in),
 	  .wr_en((curr == Receive_AT_Response)),
 	  .rd_en((curr == Complete)),
@@ -135,12 +107,12 @@ module FPGA_Bluetooth_connection(CLK1MHZ, bt_state, bt_enable, fpga_txd, fpga_rx
 	/*
 		Output
 	*/
-	serial_transmitter_16 tx(.clock(CLK1MHZ), .resetn(resetn), .start((curr == Start_Transmission)), .done(tx_done), .data(TFIFO_out), .more_data(TFIFO_empty), .line_out(fpga_txd) );
+	serial_transmitter_16 tx(.clock(clock), .resetn(resetn), .start((curr == Start_Transmission)), .done(tx_done), .data(TFIFO_out), .more_data(~TFIFO_empty), .line_out(fpga_txd) );
 	
 	/*
 		Input
 	*/
-	serial_receiver_16 rx(.clock(CLK1MHZ), .resetn(resetn), .start((curr == Receive_AT_Response)), .done(rx_done), .data(ATRFIFO_in), .more_data((ATRFIFO_in == at_end)), .line_in(fpga_rxd) );
+	serial_receiver_16 rx(.clock(clock), .resetn(resetn), .start((curr == Receive_AT_Response)), .done(rx_done), .data(ATRFIFO_in), .more_data((ATRFIFO_in == at_end)), .line_in(fpga_rxd) );
 	
 	/*
 		FSM
@@ -189,9 +161,10 @@ module FPGA_Bluetooth_connection(CLK1MHZ, bt_state, bt_enable, fpga_txd, fpga_rx
 		endcase
 	end
 	
-	always@(posedge CLK1MHZ or negedge resetn)
+	always@(posedge clock or negedge resetn)
 	begin
 		if(!resetn) curr <= Idle; else curr <= next;
 	end
 	
 endmodule
+
