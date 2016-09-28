@@ -21,15 +21,15 @@ module serializer_16bit (clock, resetn, data, start_transmission, finish_transmi
 	assign i_enable = (curr == S2);
 	assign i_reset = ~(~resetn | (curr == S0) | (curr == SD));
 	
-	wire s_load, s_enable, s_reset;
-	assign s_load = (curr == S1);
-	assign s_enable = (curr == S1) | (curr == S2);
-	assign s_reset = ~(~resetn | (curr == S0) | (curr == SD));
+	wire t_load, t_enable, t_reset;
+	assign t_load = (curr == S1);
+	assign t_enable = (curr == S1) | (curr == S2);
+	assign t_reset = ~(~resetn | (curr == S0) | (curr == SD));
 
-	register_4bit_enable_async i(.clk(clock), .resetn(i_reset), .enable(i_enable), .select(i_load), .d(a_out), .q(i_out) );
-	adder_subtractor_4bit a_i(.a(i_out), .b(5'b00001), .want_subtract(1'b0), .c_out(), .s(a_out) );
+	register_5bit_enable_async i(.clk(clock), .resetn(i_reset), .enable(i_enable), .select(i_load), .d(a_out), .q(i_out) );
+	adder_subtractor_5bit a_i(.a(i_out), .b(5'b00001), .want_subtract(1'b0), .c_out(), .s(a_out) );
 	
-	Shift_Register_8_Enable_Async_OneLoad test_reg(.clk(clock), .resetn(s_reset), .enable(s_enable), .select(s_load), .d(data), .q(q_out) );
+	Shift_Register_16_Enable_Async_OneLoad tx_reg(.clk(clock), .resetn(t_reset), .enable(t_enable), .select(t_load), .d(data), .q(q_out) );
 	
 	assign finish_transmission = (curr == SD);
 	assign tx = q_out[15];

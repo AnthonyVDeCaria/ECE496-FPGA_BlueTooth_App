@@ -1,12 +1,12 @@
 /*
-Anthony De Caria - September 21, 2016
+Anthony De Caria - September 27, 2016
 
-This module is a 4 bit adder/subtractor.
+This module is a 5 bit adder/subtractor.
 
 It will output B - A if desired.
 */
 
-module adder_subtractor_4bit(a, b, want_subtract, c_out, s);
+module adder_subtractor_5bit(a, b, want_subtract, c_out, s);
   
   /*
    * I/Os
@@ -23,7 +23,7 @@ module adder_subtractor_4bit(a, b, want_subtract, c_out, s);
   mux_2_1bit m_1( .data0(a[1]), .data1(~a[1]), .sel(want_subtract), .result(a_adder[1]) );
   mux_2_1bit m_2( .data0(a[2]), .data1(~a[2]), .sel(want_subtract), .result(a_adder[2]) );
   mux_2_1bit m_3( .data0(a[3]), .data1(~a[3]), .sel(want_subtract), .result(a_adder[3]) );
-  mux_2_1bit m_3( .data0(a[4]), .data1(~a[4]), .sel(want_subtract), .result(a_adder[4]) );
+  mux_2_1bit m_4( .data0(a[4]), .data1(~a[4]), .sel(want_subtract), .result(a_adder[4]) );
   
   full_adder_1bit a_0( .a(a_adder[0]), .b(b[0]), .c_in(want_subtract), .c_out(c[0]), .s(s[0]) );
   full_adder_1bit a_1( .a(a_adder[1]), .b(b[1]), .c_in(c[0]), .c_out(c[1]), .s(s[1]) );

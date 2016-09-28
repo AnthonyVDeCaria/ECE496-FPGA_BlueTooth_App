@@ -1,11 +1,11 @@
 /*
-Anthony De Caria - September 21, 2016
+Anthony De Caria - September 27, 2016
 
-This module creates a 4 bit Register with a separate enable signal.
+This module creates a 5 bit Register with a separate enable signal.
 This module uses asynchronous D Flip Flops.
 */
 
-module register_4bit_enable_async(clk, resetn, enable, select, d, q);
+module register_5bit_enable_async(clk, resetn, enable, select, d, q);
 	
 	//Define the inputs and outputs
 	input	clk;

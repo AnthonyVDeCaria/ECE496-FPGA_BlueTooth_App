@@ -97,10 +97,11 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	assign bt_rxd = fpga_txd;
 	assign bt_txd = fpga_rxd;
 	
-	wire sending_complete;
+	wire tx_done, rx_done;
 	
 	assign ep20wireOut[0] = bt_state;
-	assign ep20wireOut[1] = sending_complete;
+	assign ep20wireOut[1] = tx_done;
+	assign ep20wireOut[2] = rx_done;
 	
 	/*
 		Sensor
@@ -141,7 +142,7 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	  .rd_clk(CLK1MHZ),
 	  .din(ATRFIFO_in),
 	  .wr_en((curr == Receive_AT_Response)),
-	  .rd_en((curr == Done)),
+	  .rd_en((curr == Complete)),
 	  .dout(ATRFIFO_out),
 	  .full(ATRFIFO_full),
 	  .wr_ack(),
@@ -156,13 +157,12 @@ module FPGA_Bluetooth_connection(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_sc
 	/*
 		Output
 	*/
-	wire tx_done;
 	serial_transmitter_16 tx(.clock(CLK1MHZ), .resetn(resetn), .start((curr == Start_Transmission)), .done(tx_done), .data(TFIFO_out), .more_data(TFIFO_empty), .line_out(fpga_txd) );
 	
 	/*
 		Input
 	*/
-//	Shift_Register_8_Enable_Async_OneLoad rx(.clk(CLK1MHZ), .resetn(resetn), .enable(), .select(1'b0), .d(fpga_rxd), .q() );
+	serial_receiver_16 rx(.clock(CLK1MHZ), .resetn(resetn), .start((curr == Receive_AT_Response)), .done(rx_done), .data(ATRFIFO_in), .more_data((ATRFIFO_in == at_end)), .line_in(fpga_rxd) );
 	
 	/*
 		FSM
