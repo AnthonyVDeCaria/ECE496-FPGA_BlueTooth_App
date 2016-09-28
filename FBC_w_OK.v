@@ -1,15 +1,11 @@
-module FPGA_Bluetooth_connection(CLK1MHZ, bt_state, bt_enable, fpga_txd, fpga_rxd);
+module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK1MHZ, ybusn, ybusp);
 	
 	/*
 		Others
 	*/
 	input CLK1MHZ;
-	
-	output bt_state, bt_enable, fpga_txd, fpga_rxd;
-	wire [15:0] ep01wireIn;
-	wire [15:0] ep20wireOut;
-	wire [15:0] ep21wireOut;
-	wire [15:0] ep40trigIn;
+	output [1:0] ybusn; // 1-W22 , 0-T20
+	output [1:0] ybusp; // 1-W20 , 0-T19
 	
 	parameter n = 0, at_end = "\r\n";
 	
@@ -19,6 +15,32 @@ module FPGA_Bluetooth_connection(CLK1MHZ, bt_state, bt_enable, fpga_txd, fpga_rx
 	
 	parameter Idle = 3'b000, Load_TFIFO = 3'b001, Start_Transmission = 3'b010, Receive_AT_Response = 3'b011, Complete = 3'b100;
 	reg [2:0] curr, next;
+	
+	/*
+		Opal Kelly
+	*/
+	input wire [7:0] hi_in;
+	output wire [1:0] hi_out;
+	inout wire [15:0] hi_inout;
+	inout wire hi_aa;
+
+	output wire i2c_sda;
+	output wire i2c_scl;
+	output wire hi_muxsel;
+	assign i2c_sda = 1'bz;
+	assign i2c_scl = 1'bz;
+	assign hi_muxsel = 1'b0;
+	
+	parameter num_ok_wires_pipes = 3;
+	
+	wire ti_clk;
+	wire [30:0] ok1;
+	wire [16:0] ok2;
+	
+	wire [15:0] ep01wireIn;
+	wire [15:0] ep20wireOut;
+	wire [15:0] ep21wireOut;
+	wire [15:0] ep40trigIn;
 	
 	//--------------------------------
 	// Instantiate the okHost and connect endpoints.
