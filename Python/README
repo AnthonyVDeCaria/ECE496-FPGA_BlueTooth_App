@@ -1,0 +1,9 @@
+In order to use the full functionality of the PipeTest3.py script, you must install matplotlib, which is a package for Matlab-style plotting in Python.  While you are at it, I suggest installing the scipy and numpy packages as well.
+With these packages you can largely replace Matlab, for free.
+
+To install these packages on ubuntu (assuming you are using python version 2.*):
+
+sudo apt-get install python-scipy
+sudo apt-get install python-numpy
+sudo apt-get install python-matplotlib
+
