@@ -40,29 +40,82 @@ info.GetClkInfo(pll)
 print "Configuring FPGA..."
 
 #note change to necessary file path later
-x = dev.ConfigureFPGA('../FPGA_connection.bit')
+x = dev.ConfigureFPGA('/media/ming/D/ECE496/Python/fbc_w_ok.bit')
 
 #==================== Start Operations ======================
 # reset system
-# resetn [0]
-# want_at [1]
-# user_ready [2]
-# data_select[0] [3]
+# resetn [0] 0 to reset
+# want_at [1] 1 to send
+# user_ready [2] 1 to ready
+# data_select[0] [3] 
 # data_select[1] [4]
 dev.ActivateTriggerIn( 0x40, 0 )
 
-# set design parameter values
-
 # this code necessary for wires
- dev.SetWireInValue( 0x01, 65535, 0xffff )   # number of words written to fifos
- dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x41540d0a, 0xffffffff )   # number of words written to fifos
+dev.UpdateWireIns()
+
+#start the code
+dev.ActivateTriggerIn( 0x40, 0 )
+
+dev.ActivateTriggerIn( 0x40, 7 )
+
+print "Starting ...."
 
 #reading from ep20 and ep21
+dev.UpdateWireOuts()
 ep20value = dev.GetWireOutValue( 0x20 )
 ep21value = dev.GetWireOutValue( 0x21 )
+ep22value = dev.GetWireOutValue( 0x22 )
+print "\nAT"
 print '0x20: %04x' % ep20value
 print '0x21: %04x' % ep21value
+print '0x22: %04x' % ep22value
 
+# trying AT+RESET
+dev.SetWireInValue( 0x01, 0x41542b52, 0xffffffff )   # number of words written to fifos
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x45534554, 0xffffffff )   # number of words written to fifos
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x0d0a, 0xffff )   # number of words written to fifos
+dev.UpdateWireIns()
 
+dev.ActivateTriggerIn( 0x40, 0 )
+
+dev.ActivateTriggerIn( 0x40, 7 )
+
+#reading from ep20 and ep21
+dev.UpdateWireOuts()
+ep20value = dev.GetWireOutValue( 0x20 )
+ep21value = dev.GetWireOutValue( 0x21 )
+ep22value = dev.GetWireOutValue( 0x22 )
+print "\nAT+RESET"
+print '0x20: %04x' % ep20value
+print '0x21: %04x' % ep21value
+print '0x22: %04x' % ep22value
+
+# trying AT+VERSION?
+dev.SetWireInValue( 0x01, 0x41542b56, 0xffffffff )   # number of words written to fifos
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x45525349, 0xffffffff )   # number of words written to fifos
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x4f4e3f0d, 0xffffffff )   # number of words written to fifos
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x0a, 0xff )   # number of words written to fifos
+dev.UpdateWireIns()
+
+dev.ActivateTriggerIn( 0x40, 0 )
+
+dev.ActivateTriggerIn( 0x40, 7 ) 
+
+#reading from ep20 and ep21
+dev.UpdateWireOuts()
+e20value = dev.GetWireOutValue( 0x20 )
+ep21value = dev.GetWireOutValue( 0x21 )
+ep22value = dev.GetWireOutValue( 0x22 )
+print "\nAT+VERSION?"
+print '0x20: %04x' % ep20value
+print '0x21: %04x' % ep21value
+print '0x22: %04x' % ep22value
 
 
