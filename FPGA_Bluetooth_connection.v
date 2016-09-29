@@ -5,7 +5,7 @@ This module creates a connection between an ion sensor and a HC-05 Bluetooth mod
 It assumes input and output wires created by Opal Kelly.
 */
 
-module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd, ep01wireIn, ep40trigIn, ep20wireOut, ep21wireOut);
+module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd, ep01wireIn, ep40trigIn, ep20wireOut, ep21wireOut, ep22wireOut);
 	
 	/*
 		I/Os
@@ -18,16 +18,23 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	input [15:0] ep01wireIn;
 	input [15:0] ep40trigIn;
 
-	output [15:0] ep20wireOut;
-	output [15:0] ep21wireOut;
+	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut;
 	
-	parameter n = 0, at_end = "\r\n";
+	parameter at_end = "\r\n";
 
 	/*
 		Wires 
 	*/
-	wire resetn, want_at, user_ready, tx_done, rx_done;
+	wire resetn, want_at, user_ready, tx_done, rx_done, recieve_at;
 	wire [1:0] data_select;
+	
+	/*
+		FSM wires
+	*/
+	
+	parameter Idle = 3'b000, Load_TFIFO = 3'b001, Start_Transmission = 3'b010, T_Breather = 3'b011; 
+	parameter Receive_AT_Response = 3'b100, R_Breather = 3'b101, Complete = 3'b110;
+	reg [2:0] curr, next;
 
 	/*
 		Assignments
@@ -35,22 +42,27 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	assign resetn = ep40trigIn[0];
 	assign want_at = ep40trigIn[1];
 	assign user_ready = ep40trigIn[2];
+	assign recieve_at = ep40trigIn[3];
 	
-	assign data_select[0] = ep40trigIn[3];
-	assign data_select[1] = ep40trigIn[4];
-
+	assign data_select[0] = ep40trigIn[4];
+	assign data_select[1] = ep40trigIn[5];
+	
 	assign bt_enable = want_at;
 	
 	assign ep20wireOut[0] = bt_state;
 	assign ep20wireOut[1] = tx_done;
 	assign ep20wireOut[2] = rx_done;
-
-	/*
-		FSM wires
-	*/
-	
-	parameter Idle = 3'b000, Load_TFIFO = 3'b001, Start_Transmission = 3'b010, Receive_AT_Response = 3'b011, Complete = 3'b100;
-	reg [2:0] curr, next;
+	assign ep20wireOut[3] = curr[0];
+	assign ep20wireOut[4] = curr[1];
+	assign ep20wireOut[5] = curr[2];
+	assign ep20wireOut[6] = next[0];
+	assign ep20wireOut[7] = next[1];
+	assign ep20wireOut[8] = next[2];
+	assign ep20wireOut[9] = bt_enable;
+	assign ep20wireOut[10] = fpga_txd;
+	assign ep20wireOut[11] = fpga_rxd;
+	assign ep20wireOut[12] = want_at;
+	assign ep20wireOut[13] = 1'b1;
 	
 	/*
 		Sensor
@@ -65,6 +77,7 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	wire TFIFO_full, TFIFO_empty, ATRFIFO_full, ATRFIFO_empty;
 
 	assign ep21wireOut = ATRFIFO_out;
+	assign ep22wireOut = TFIFO_out;
 	
 	mux_2_16bit TFIFO_input(.data0(sensor_data), .data1(ep01wireIn), .sel(want_at), .result(TFIFO_in) );
 	
@@ -107,12 +120,28 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	/*
 		Output
 	*/
-	serial_transmitter_16 tx(.clock(clock), .resetn(resetn), .start((curr == Start_Transmission)), .done(tx_done), .data(TFIFO_out), .more_data(~TFIFO_empty), .line_out(fpga_txd) );
+	serial_transmitter_16 tx(
+		.clock(clock), 
+		.resetn(resetn), 
+		.start((curr == Start_Transmission)), 
+		.done(tx_done), 
+		.data(TFIFO_out), 
+		.more_data(~TFIFO_empty), 
+		.line_out(fpga_txd)
+	);
 	
 	/*
 		Input
 	*/
-	serial_receiver_16 rx(.clock(clock), .resetn(resetn), .start((curr == Receive_AT_Response)), .done(rx_done), .data(ATRFIFO_in), .more_data((ATRFIFO_in == at_end)), .line_in(fpga_rxd) );
+	serial_receiver_16 rx(
+		.clock(clock), 
+		.resetn(resetn), 
+		.start((curr == Receive_AT_Response)), 
+		.done(rx_done), 
+		.data(ATRFIFO_in), 
+		.more_data((ATRFIFO_in == at_end)), 
+		.line_in(fpga_rxd) 
+	);
 	
 	/*
 		FSM
@@ -138,7 +167,8 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 						next = Load_TFIFO;
 				end
 			end
-			Start_Transmission: 
+			Start_Transmission: if(tx_done) next = T_Breather; else next = Start_Transmission;
+			T_Breather:
 			begin
 				if(TFIFO_empty) 
 				begin
@@ -156,7 +186,8 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 					next = Start_Transmission;
 				end
 			end
-			Receive_AT_Response: if(ATRFIFO_in == at_end) next = Complete; else next = Receive_AT_Response;
+			Receive_AT_Response: if(rx_done) next = R_Breather; else next = Receive_AT_Response;
+			R_Breather: if (ATRFIFO_in == at_end) next = Complete; else next = Receive_AT_Response;
 			Complete: if(user_ready) next = Complete; else next = Idle;
 		endcase
 	end
