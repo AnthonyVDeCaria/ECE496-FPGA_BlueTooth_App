@@ -25,15 +25,15 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	/*
 		Wires 
 	*/
-	wire resetn, want_at, user_ready, tx_done, rx_done, recieve_at;
+	wire resetn, want_at, user_ready, at_ready, tx_done, rx_done;
 	wire [1:0] data_select;
 	
 	/*
 		FSM wires
 	*/
 	
-	parameter Idle = 3'b000, Load_TFIFO = 3'b001, Start_Transmission = 3'b010, T_Breather = 3'b011; 
-	parameter Receive_AT_Response = 3'b100, R_Breather = 3'b101, Complete = 3'b110;
+	parameter Idle = 3'b000, Load_TFIFO = 3'b001, FIFO_Breather = 3'b010, Start_Transmission = 3'b011; 
+	parameter Receive_AT_Response = 3'b100, Complete = 3'b110;
 	reg [2:0] curr, next;
 
 	/*
@@ -42,7 +42,7 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	assign resetn = ep40trigIn[0];
 	assign want_at = ep40trigIn[1];
 	assign user_ready = ep40trigIn[2];
-	assign recieve_at = ep40trigIn[3];
+	assign at_ready = ep40trigIn[3];
 	
 	assign data_select[0] = ep40trigIn[4];
 	assign data_select[1] = ep40trigIn[5];
@@ -154,11 +154,12 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	begin
 		case(curr)
 			Idle: if(user_ready) next = Load_TFIFO; else next = Idle;
-			Load_TFIFO:
+			Load_TFIFO: next = FIFO_Breather;
+			FIFO_Breather:
 			begin
 				if(want_at)
 				begin
-					if(TFIFO_in == at_end)
+					if(at_ready)
 						next = Start_Transmission;
 					else
 						next = Load_TFIFO;
@@ -171,10 +172,9 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 						next = Load_TFIFO;
 				end
 			end
-			Start_Transmission: if(tx_done) next = T_Breather; else next = Start_Transmission;
-			T_Breather:
+			Start_Transmission:
 			begin
-				if(TFIFO_empty) 
+				if(tx_done) 
 				begin
 					if(want_at)
 					begin
@@ -190,8 +190,7 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 					next = Start_Transmission;
 				end
 			end
-			Receive_AT_Response: if(rx_done) next = R_Breather; else next = Receive_AT_Response;
-			R_Breather: if (ATRFIFO_in == at_end) next = Complete; else next = Receive_AT_Response;
+			Receive_AT_Response: if(rx_done) next = Complete; else next = Receive_AT_Response;
 			Complete: if(user_ready) next = Complete; else next = Idle;
 		endcase
 	end
