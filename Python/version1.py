@@ -4,6 +4,7 @@ import ok
 import BoardInfo as info
 import struct
 import matplotlib.pyplot as plt
+import sys 
 
 dev = ok.FrontPanel()
 pll = ok.PLL22393()
