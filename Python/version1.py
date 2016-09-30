@@ -58,7 +58,7 @@ dev.ActivateTriggerIn( 0x40, 0 )
 # this code necessary for wires
 dev.SetWireInValue( 0x01, 0x4154, 0xffff )
 dev.UpdateWireIns()
-dev.SetWireInValue( 0x01, 0d0a, 0xffff )   # number of words written to fifos
+dev.SetWireInValue( 0x01, 0x0d0a, 0xffff )   # number of words written to fifos
 dev.UpdateWireIns()
 
 #start the code
