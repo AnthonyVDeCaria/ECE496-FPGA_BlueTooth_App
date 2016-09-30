@@ -5,7 +5,7 @@ This module creates a connection between an ion sensor and a HC-05 Bluetooth mod
 It assumes input and output wires created by Opal Kelly.
 */
 
-module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd, ep01wireIn, ep40trigIn, ep20wireOut, ep21wireOut, ep22wireOut);
+module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd, ep01wireIn, ep40trigIn, ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut);
 	
 	/*
 		I/Os
@@ -18,7 +18,7 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	input [15:0] ep01wireIn;
 	input [15:0] ep40trigIn;
 
-	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut;
+	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut;
 	
 	parameter at_end = "\r\n";
 
@@ -49,6 +49,8 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	
 	assign bt_enable = want_at;
 	
+	assign ep23wireOut = ep01wireIn;
+	
 	assign ep20wireOut[0] = bt_state;
 	assign ep20wireOut[1] = tx_done;
 	assign ep20wireOut[2] = rx_done;
@@ -63,6 +65,8 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	assign ep20wireOut[11] = fpga_rxd;
 	assign ep20wireOut[12] = want_at;
 	assign ep20wireOut[13] = 1'b1;
+	assign ep20wireOut[14] = TFIFO_full;
+	assign ep20wireOut[15] = TFIFO_empty;
 	
 	/*
 		Sensor
@@ -77,12 +81,12 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	wire TFIFO_full, TFIFO_empty, ATRFIFO_full, ATRFIFO_empty;
 
 	assign ep21wireOut = ATRFIFO_out;
-	assign ep22wireOut = TFIFO_out;
+	assign ep22wireOut = TFIFO_in;
 	
 	mux_2_16bit TFIFO_input(.data0(sensor_data), .data1(ep01wireIn), .sel(want_at), .result(TFIFO_in) );
 	
 	FIFO_4096x16 TFIFO(
-	  .rst(resetn),
+	  .rst(~resetn),
 	  .wr_clk(clock),
 	  .rd_clk(clock),
 	  .din(TFIFO_in),
@@ -160,7 +164,7 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 						next = Load_TFIFO;
 				end
 				else
-				begin
+				begin 
 					if(TFIFO_full)
 						next = Start_Transmission;
 					else
