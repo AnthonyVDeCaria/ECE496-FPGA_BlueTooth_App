@@ -19,8 +19,6 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	input [15:0] ep40trigIn;
 
 	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut;
-	
-	parameter at_end = "\r\n";
 
 	/*
 		Wires 
@@ -49,7 +47,7 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	
 	assign bt_enable = want_at;
 	
-	assign ep23wireOut = ep01wireIn;
+	register_16bit_enable_async triggers(.clk(clock), .resetn(resetn), .enable((curr == Idle)), .select((curr == Idle)), .d(ep40trigIn), .q(ep23wireOut) );
 	
 	assign ep20wireOut[0] = bt_state;
 	assign ep20wireOut[1] = tx_done;
