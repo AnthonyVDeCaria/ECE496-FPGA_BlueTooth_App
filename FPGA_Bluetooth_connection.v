@@ -25,6 +25,7 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	*/
 	wire resetn, want_at, user_ready, at_ready, tx_done, rx_done;
 	wire [1:0] data_select;
+	wire [15:0] calmed_ep40trigIn;
 	
 	/*
 		FSM wires
@@ -37,17 +38,17 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	/*
 		Assignments
 	*/
-	assign resetn = ep40trigIn[0];
-	assign want_at = ep40trigIn[1];
-	assign user_ready = ep40trigIn[2];
-	assign at_ready = ep40trigIn[3];
+	edge_detector_16bit triggers(.clk(clock), .d(ep40trigIn), .q(calmed_ep40trigIn) );
 	
-	assign data_select[0] = ep40trigIn[4];
-	assign data_select[1] = ep40trigIn[5];
+	assign resetn = calmed_ep40trigIn[0];
+	assign want_at = calmed_ep40trigIn[1];
+	assign user_ready = calmed_ep40trigIn[2];
+	assign at_ready = calmed_ep40trigIn[3];
+	
+	assign data_select[0] = calmed_ep40trigIn[4];
+	assign data_select[1] = calmed_ep40trigIn[5];
 	
 	assign bt_enable = want_at;
-	
-	register_16bit_enable_async triggers(.clk(clock), .resetn(resetn), .enable((curr == Idle)), .select((curr == Idle)), .d(ep40trigIn), .q(ep23wireOut) );
 	
 	assign ep20wireOut[0] = bt_state;
 	assign ep20wireOut[1] = tx_done;
@@ -65,6 +66,8 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	assign ep20wireOut[13] = 1'b1;
 	assign ep20wireOut[14] = TFIFO_full;
 	assign ep20wireOut[15] = TFIFO_empty;
+	
+	assign ep23wireOut = calmed_ep40trigIn;
 	
 	/*
 		Sensor
