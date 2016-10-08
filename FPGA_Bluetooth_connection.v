@@ -34,7 +34,7 @@ module FPGA_Bluetooth_connection(
 	wire [1:0] data_select;
 	wire [15:0] calmed_ep40trigIn;
 	
-	parameter AT_end = 16'hFFFF;//"\r\n";
+	parameter AT_end = "\r\n";
 	
 	/*
 		FSM wires
