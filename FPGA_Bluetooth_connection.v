@@ -5,7 +5,12 @@ This module creates a connection between an ion sensor and a HC-05 Bluetooth mod
 It assumes input and output wires created by Opal Kelly.
 */
 
-module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd, ep01wireIn, ep40trigIn, ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut);
+module FPGA_Bluetooth_connection(
+		clock, 
+		bt_state, bt_enable, fpga_txd, fpga_rxd, 
+		ep01wireIn, ep02wireIn, ep40trigIn, ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, 
+		ep24wireOut, ep25wireOut, ep26wireOut, ep27wireOut
+	);
 	
 	/*
 		I/Os
@@ -15,57 +20,68 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	input fpga_rxd, bt_state;
 	output bt_enable, fpga_txd;
 
-	input [15:0] ep01wireIn;
+	input [15:0] ep01wireIn, ep02wireIn;
 	input [15:0] ep40trigIn;
 
-	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut;
+	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, ep25wireOut, ep26wireOut, ep27wireOut;
 
 	/*
 		Wires 
 	*/
-	wire resetn, want_at, user_ready, at_ready, tx_done, rx_done;
+	wire reset, user_data_loaded, user_data_done, AT_FIFO_access, finished_with_AT_FIFO; 
+	wire start_tx, start_rx, tx_done, rx_done;
+	wire begin_connection, want_at;
 	wire [1:0] data_select;
 	wire [15:0] calmed_ep40trigIn;
+	
+	parameter AT_end = 16'hFFFF;//"\r\n";
 	
 	/*
 		FSM wires
 	*/
-	
-	parameter Idle = 3'b000, Load_TFIFO = 3'b001, FIFO_Breather = 3'b010, Start_Transmission = 3'b011; 
-	parameter Receive_AT_Response = 3'b100, Complete = 3'b110;
-	reg [2:0] curr, next;
+	parameter Idle = 4'b0000, Done = 4'b1111;
+	parameter Wait_for_User_Data = 4'b0001, Load_T_WA = 4'b0010, Rest_T_WA = 4'b0011;
+	parameter Load_T = 4'b0100;
+	parameter Load_Transmission = 4'b0101, Begin_Transmission = 4'b0111, Rest_Transmission = 4'b1000;
+	parameter Receive_AT_Response = 4'b1001, Load_AT_FIFO = 4'b1010, Rest_AT_FIFO = 4'b1011;
+	parameter Wait_for_User_Demand = 4'b1100, Read_AT_FIFO = 4'b1110, Rest_AT_User = 4'b1111;
+	reg [3:0] curr, next;
 
 	/*
 		Assignments
 	*/
 	edge_detector_16bit triggers(.clk(clock), .d(ep40trigIn), .q(calmed_ep40trigIn) );
 	
-	assign resetn = calmed_ep40trigIn[0];
-	assign want_at = calmed_ep40trigIn[1];
-	assign user_ready = calmed_ep40trigIn[2];
-	assign at_ready = calmed_ep40trigIn[3];
+	assign reset = calmed_ep40trigIn[0];
+	assign user_data_loaded = calmed_ep40trigIn[1];
+	assign user_data_done = calmed_ep40trigIn[2];
+	assign AT_FIFO_access = calmed_ep40trigIn[3];
+	assign finished_with_AT_FIFO = calmed_ep40trigIn[4];
 	
-	assign data_select[0] = calmed_ep40trigIn[4];
-	assign data_select[1] = calmed_ep40trigIn[5];
+	assign data_select[0] = calmed_ep40trigIn[5];
+	assign data_select[1] = calmed_ep40trigIn[6];
+	
+	assign want_at = ep02wireIn[0];
+	assign begin_connection = ep02wireIn[1];
 	
 	assign bt_enable = want_at;
 	
-	assign ep20wireOut[0] = bt_state;
-	assign ep20wireOut[1] = tx_done;
-	assign ep20wireOut[2] = rx_done;
-	assign ep20wireOut[3] = curr[0];
-	assign ep20wireOut[4] = curr[1];
-	assign ep20wireOut[5] = curr[2];
-	assign ep20wireOut[6] = next[0];
-	assign ep20wireOut[7] = next[1];
-	assign ep20wireOut[8] = next[2];
-	assign ep20wireOut[9] = bt_enable;
-	assign ep20wireOut[10] = fpga_txd;
-	assign ep20wireOut[11] = fpga_rxd;
-	assign ep20wireOut[12] = want_at;
-	assign ep20wireOut[13] = 1'b1;
-	assign ep20wireOut[14] = TFIFO_full;
-	assign ep20wireOut[15] = TFIFO_empty;
+	assign ep20wireOut[0] = curr[0];
+	assign ep20wireOut[1] = curr[1];
+	assign ep20wireOut[2] = curr[2];
+	assign ep20wireOut[3] = curr[3];
+	assign ep20wireOut[4] = next[0];
+	assign ep20wireOut[5] = next[1];
+	assign ep20wireOut[6] = next[2];
+	assign ep20wireOut[7] = next[3];
+	assign ep20wireOut[8] = tx_done;
+	assign ep20wireOut[9] = rx_done;
+	assign ep20wireOut[10] = TFIFO_full;
+	assign ep20wireOut[11] = TFIFO_empty;
+	assign ep20wireOut[12] = TFIFO_wr_en;
+	assign ep20wireOut[13] = TFIFO_rd_en;
+	assign ep20wireOut[14] = AT_FIFO_wr_en;
+	assign ep20wireOut[15] = AT_FIFO_rd_en;
 	
 	assign ep23wireOut = calmed_ep40trigIn;
 	
@@ -78,74 +94,114 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	/*
 		FIFOs
 	*/
-	wire [15:0] TFIFO_in, TFIFO_out, ATRFIFO_in, ATRFIFO_out;
-	wire TFIFO_full, TFIFO_empty, ATRFIFO_full, ATRFIFO_empty;
+	wire [15:0] TFIFO_in, TFIFO_out, AT_FIFO_in, AT_FIFO_out;
+	wire [11:0] TFIFO_rd_count, TFIFO_wr_count, AT_FIFO_rd_count, AT_FIFO_wr_count;
+	wire TFIFO_full, TFIFO_empty, TFIFO_wr_en, TFIFO_rd_en;
+	wire AT_FIFO_full, AT_FIFO_empty, AT_FIFO_wr_en, AT_FIFO_rd_en;
 
-	assign ep21wireOut = ATRFIFO_out;
-	assign ep22wireOut = TFIFO_in;
+	assign ep21wireOut = AT_FIFO_in;
+	assign ep22wireOut = TFIFO_out;
+	assign ep24wireOut = TFIFO_rd_count;
+	assign ep25wireOut = TFIFO_wr_count;
+	assign ep26wireOut = AT_FIFO_rd_count;
+	assign ep27wireOut = AT_FIFO_wr_count;
 	
 	mux_2_16bit TFIFO_input(.data0(sensor_data), .data1(ep01wireIn), .sel(want_at), .result(TFIFO_in) );
 	
+	assign TFIFO_wr_en = (curr == Load_T_WA) || (curr == Load_T);
+	assign TFIFO_rd_en = (curr == Load_Transmission);
+	assign AT_FIFO_wr_en = (curr == Load_AT_FIFO);
+	assign AT_FIFO_rd_en = (curr == Read_AT_FIFO);
+	
 	FIFO_4096x16 TFIFO(
-	  .rst(~resetn),
-	  .wr_clk(clock),
-	  .rd_clk(clock),
-	  .din(TFIFO_in),
-	  .wr_en((curr == Load_TFIFO)),
-	  .rd_en((curr == Start_Transmission)),
-	  .dout(TFIFO_out),
-	  .full(TFIFO_full),
-	  .wr_ack(),
-	  .overflow(),
-	  .empty(TFIFO_empty),
-	  .valid(),
-	  .underflow(),
-	  .rd_data_count(),
-	  .wr_data_count()
+		.rst(reset),
+
+		.wr_clk(clock),
+		.rd_clk(clock),
+
+		.wr_en(TFIFO_wr_en),
+		.rd_en(TFIFO_rd_en),
+
+		.din(TFIFO_in),
+		.dout(TFIFO_out),
+
+		.full(TFIFO_full),
+		.empty(TFIFO_empty),
+
+		.wr_ack(),
+		.overflow(),
+
+		.valid(),
+		.underflow(),
+
+		.rd_data_count(TFIFO_rd_count),
+		.wr_data_count(TFIFO_wr_count)
 	);
 	
-	FIFO_4096x16 ATRFIFO(
-	  .rst(resetn),
-	  .wr_clk(clock),
-	  .rd_clk(clock),
-	  .din(ATRFIFO_in),
-	  .wr_en((curr == Receive_AT_Response)),
-	  .rd_en((curr == Complete)),
-	  .dout(ATRFIFO_out),
-	  .full(ATRFIFO_full),
-	  .wr_ack(),
-	  .overflow(),
-	  .empty(ATRFIFO_empty),
-	  .valid(),
-	  .underflow(),
-	  .rd_data_count(),
-	  .wr_data_count()
+	FIFO_4096x16 AT_FIFO(
+		.rst(reset),
+
+		.wr_clk(clock),
+		.rd_clk(clock),
+
+		.wr_en(AT_FIFO_wr_en),
+		.rd_en(AT_FIFO_rd_en),
+
+		.din(AT_FIFO_in),
+		.dout(AT_FIFO_out),
+
+		.full(AT_FIFO_full),
+		.empty(AT_FIFO_empty),
+
+		.wr_ack(),
+		.overflow(),
+
+		.valid(),
+		.underflow(),
+
+		.rd_data_count(AT_FIFO_rd_count),
+		.wr_data_count(AT_FIFO_wr_count)
+	);
+	
+	wire [15:0] last_stored;
+	wire l_s_e;
+	assign l_s_e = (curr == Load_AT_FIFO);
+	
+	register_16bit_enable_async r_last_stored(
+		.clk(clock), 
+		.resetn(~reset), 
+		.enable(l_s_e), 
+		.select(l_s_e), 
+		.d(AT_FIFO_in), 
+		.q(last_stored)
 	);
 	
 	/*
 		Output
 	*/
-	serial_transmitter_16 tx(
+	assign start_tx = (curr == Begin_Transmission);
+	
+	serializer_16bit tx(
 		.clock(clock), 
-		.resetn(resetn), 
-		.start((curr == Start_Transmission)), 
-		.done(tx_done), 
+		.resetn(~reset), 
 		.data(TFIFO_out), 
-		.more_data(~TFIFO_empty), 
-		.line_out(fpga_txd)
+		.start_transmission(start_tx), 
+		.finish_transmission(tx_done), 
+		.tx(fpga_txd) 
 	);
 	
 	/*
 		Input
 	*/
-	serial_receiver_16 rx(
+	assign start_rx = (curr == Receive_AT_Response);
+	
+	deserializer_16bit rx(
 		.clock(clock), 
-		.resetn(resetn), 
-		.start((curr == Receive_AT_Response)), 
-		.done(rx_done), 
-		.data(ATRFIFO_in), 
-		.more_data((ATRFIFO_in == at_end)), 
-		.line_in(fpga_rxd) 
+		.resetn(~reset), 
+		.line_in(fpga_rxd), 
+		.start_receiving(start_rx), 
+		.finish_receiving(rx_done), 
+		.data_out(AT_FIFO_in)
 	);
 	
 	/*
@@ -154,51 +210,129 @@ module FPGA_Bluetooth_connection(clock, bt_state, bt_enable, fpga_txd, fpga_rxd,
 	always@(*)
 	begin
 		case(curr)
-			Idle: if(user_ready) next = Load_TFIFO; else next = Idle;
-			Load_TFIFO: next = FIFO_Breather;
-			FIFO_Breather:
+			Idle: 
 			begin
-				if(want_at)
-				begin
-					if(at_ready)
-						next = Start_Transmission;
-					else
-						next = Load_TFIFO;
-				end
+				if(begin_connection)
+					begin
+						if(want_at)
+							next = Wait_for_User_Data; 
+						else
+							next = Load_T;
+					end
 				else
-				begin 
-					if(TFIFO_full)
-						next = Start_Transmission;
-					else
-						next = Load_TFIFO;
-				end
+					next = Idle;
 			end
-			Start_Transmission:
+			
+			Wait_for_User_Data: 
 			begin
-				if(tx_done) 
+				if(user_data_loaded)
+					next = Load_T_WA;
+				else
+					next = Wait_for_User_Data;
+			end
+			
+			Load_T_WA:
+			begin
+				next = Rest_T_WA;
+			end
+			
+			Rest_T_WA:
+			begin
+				if(user_data_done)
+					next = Load_Transmission;
+				else
+					next = Wait_for_User_Data;
+			end
+			
+			Load_T:
+			begin
+				if(TFIFO_full)
+					next = Load_Transmission;
+				else
+					next = Load_T;
+			end
+			
+			Load_Transmission:
+			begin
+				next = Begin_Transmission;
+			end
+			
+			Begin_Transmission:
+			begin
+				if(tx_done)
+					next = Rest_Transmission;
+				else
+					next = Begin_Transmission;
+			end
+			
+			Rest_Transmission:
+			begin
+				if(TFIFO_empty)
 				begin
 					if(want_at)
-					begin
-						 next = Receive_AT_Response;
-					end
+						next = Receive_AT_Response;
 					else
-					begin
-						next = Complete;
-					end
+						next = Done;
 				end
-				else 
-				begin
-					next = Start_Transmission;
-				end
+				else
+					next = Load_Transmission;
 			end
-			Receive_AT_Response: if(rx_done) next = Complete; else next = Receive_AT_Response;
-			Complete: if(user_ready) next = Complete; else next = Idle;
+			
+			Receive_AT_Response:
+			begin
+				if(rx_done)
+					next = Load_AT_FIFO;
+				else
+					next = Receive_AT_Response;
+			end
+			
+			Load_AT_FIFO:
+			begin
+				next = Rest_AT_FIFO;
+			end
+			
+			Rest_AT_FIFO:
+			begin
+				if( (last_stored == AT_end) ? 1'b0: 1'b1)
+					next = Receive_AT_Response;
+				else
+					next = Wait_for_User_Demand;
+			end
+			
+			Wait_for_User_Demand:
+			begin
+				if(AT_FIFO_access)
+					next = Read_AT_FIFO;
+				else
+					next = Wait_for_User_Demand;
+			end
+			
+			Read_AT_FIFO:
+			begin
+				next = Rest_AT_User;
+			end
+			
+			Rest_AT_User:
+			begin
+				if(finished_with_AT_FIFO)
+					next = Done;
+				else
+					next = Wait_for_User_Demand;
+			end
+			
+			Done:
+			begin
+				if(begin_connection)
+					next = Done;
+				else
+					next = Idle;
+			end
 		endcase
 	end
 	
-	always@(posedge clock or negedge resetn)
+	always@(posedge clock or posedge reset)
 	begin
-		if(!resetn) curr <= Idle; else curr <= next;
+		if(reset) curr <= Idle; else curr <= next;
 	end
 	
 endmodule

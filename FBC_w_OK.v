@@ -15,10 +15,8 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	output HC_05_ENABLE, HC_05_RXD; // 1-W20 , 0-T19
 	output [7:0] LED;
 	
-	assign LED[0] = ~ep20wireOut[13];
-	assign LED[1] = ep20wireOut[13];
-	assign LED[4:2] = ~ep20wireOut[5:3];
-	assign LED[7:5] = ~ep20wireOut[8:6];
+	assign LED[3:0] = ~ep20wireOut[3:0];
+	assign LED[7:4] = ~ep20wireOut[7:4];
 	
 	/*
 		Opal Kelly
@@ -35,13 +33,14 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	assign i2c_scl = 1'bz;
 	assign hi_muxsel = 1'b0;
 	
-	parameter num_ok_outs = 4;
+	parameter num_ok_outs = 8;
 	
 	wire ti_clk;
 	wire [30:0] ok1;
 	wire [16:0] ok2;
 	
 	wire [15:0] ep01wireIn;
+	wire [15:0] ep02wireIn;
 	wire [15:0] ep20wireOut;
 	wire [15:0] ep21wireOut;
 	wire [15:0] ep22wireOut;
@@ -74,11 +73,17 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	
 	// wires
 	okWireIn ep01 (.ok1(ok1), .ep_addr(8'h01), .ep_dataout(ep01wireIn) );
+	okWireIn ep02 (.ok1(ok1), .ep_addr(8'h02), .ep_dataout(ep02wireIn) );
 	
 	okWireOut ep20 (.ok1(ok1), .ok2(ok2x[ 0*17 +: 17 ]), .ep_addr(8'h20), .ep_datain(ep20wireOut) );
 	okWireOut ep21 (.ok1(ok1), .ok2(ok2x[ 1*17 +: 17 ]), .ep_addr(8'h21), .ep_datain(ep21wireOut) );
 	okWireOut ep22 (.ok1(ok1), .ok2(ok2x[ 2*17 +: 17 ]), .ep_addr(8'h22), .ep_datain(ep22wireOut) );
 	okWireOut ep23 (.ok1(ok1), .ok2(ok2x[ 3*17 +: 17 ]), .ep_addr(8'h23), .ep_datain(ep23wireOut) );
+	
+	okWireOut ep24 (.ok1(ok1), .ok2(ok2x[ 4*17 +: 17 ]), .ep_addr(8'h24), .ep_datain(ep24wireOut) );
+	okWireOut ep25 (.ok1(ok1), .ok2(ok2x[ 5*17 +: 17 ]), .ep_addr(8'h25), .ep_datain(ep25wireOut) );
+	okWireOut ep26 (.ok1(ok1), .ok2(ok2x[ 6*17 +: 17 ]), .ep_addr(8'h26), .ep_datain(ep26wireOut) );
+	okWireOut ep27 (.ok1(ok1), .ok2(ok2x[ 7*17 +: 17 ]), .ep_addr(8'h27), .ep_datain(ep27wireOut) );
 	
 	/*
 		FPGA
@@ -90,11 +95,16 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		.fpga_txd(HC_05_RXD),
 		.fpga_rxd(HC_05_TXD), 
 		.ep01wireIn(ep01wireIn),
+		.ep02wireIn(ep02wireIn),
 		.ep40trigIn(ep40trigIn),
 		.ep20wireOut(ep20wireOut),
 		.ep21wireOut(ep21wireOut),
 		.ep22wireOut(ep22wireOut),
-		.ep23wireOut(ep23wireOut)
+		.ep23wireOut(ep23wireOut),
+		.ep24wireOut(ep24wireOut),
+		.ep25wireOut(ep25wireOut),
+		.ep26wireOut(ep26wireOut),
+		.ep27wireOut(ep27wireOut)
 	);
 	
 	
