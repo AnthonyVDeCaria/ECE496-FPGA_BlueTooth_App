@@ -41,16 +41,18 @@ module FPGA_Bluetooth_connection(
 	*/
 	parameter Idle = 4'b0000, Done = 4'b1111;
 	parameter Wait_for_User_Data = 4'b0001, Load_T_WA = 4'b0010, Rest_T_WA = 4'b0011;
-	parameter Load_T = 4'b0100;
-	parameter Load_Transmission = 4'b0101, Begin_Transmission = 4'b0111, Rest_Transmission = 4'b1000;
+	parameter Load_T = 4'b0100, Rest_T = 4'b0101;
+	parameter Load_Transmission = 4'b0110, Begin_Transmission = 4'b0111, Rest_Transmission = 4'b1000;
 	parameter Receive_AT_Response = 4'b1001, Load_AT_FIFO = 4'b1010, Rest_AT_FIFO = 4'b1011;
-	parameter Wait_for_User_Demand = 4'b1100, Read_AT_FIFO = 4'b1110, Rest_AT_User = 4'b1111;
+	parameter Wait_for_User_Demand = 4'b1100, Read_AT_FIFO = 4'b1101, Rest_AT_User = 4'b1110;
 	reg [3:0] curr, next;
 
 	/*
 		Assignments
 	*/
-	edge_detector_16bit triggers(.clk(clock), .d(ep40trigIn), .q(calmed_ep40trigIn) );
+	wire edge_start;
+	assign edge_start = (curr == Idle) | (curr == Wait_for_User_Data) | (curr == Rest_T_WA) | (curr == Wait_for_User_Demand) | (curr == Rest_AT_User);
+	edge_detector_16bit triggers(.clk(clock), .e(edge_start) .d(ep40trigIn), .q(calmed_ep40trigIn) );
 	
 	assign reset = calmed_ep40trigIn[0];
 	assign user_data_loaded = calmed_ep40trigIn[1];
@@ -245,6 +247,11 @@ module FPGA_Bluetooth_connection(
 			end
 			
 			Load_T:
+			begin
+				next = Rest_T;
+			end
+
+			Rest_T:
 			begin
 				if(TFIFO_full)
 					next = Load_Transmission;
