@@ -52,7 +52,7 @@ module FPGA_Bluetooth_connection(
 	*/
 	wire edge_start;
 	assign edge_start = (curr == Idle) | (curr == Wait_for_User_Data) | (curr == Rest_T_WA) | (curr == Wait_for_User_Demand) | (curr == Rest_AT_User);
-	edge_detector_16bit triggers(.clk(clock), .e(edge_start) .d(ep40trigIn), .q(calmed_ep40trigIn) );
+	edge_detector_16bit triggers(.clk(clock), .e(edge_start) .d(ep40trigIn), .q(calmed_ep40trigIn), .rise(), .fall() );
 	
 	assign reset = calmed_ep40trigIn[0];
 	assign user_data_loaded = calmed_ep40trigIn[1];
