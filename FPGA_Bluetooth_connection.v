@@ -32,7 +32,7 @@ module FPGA_Bluetooth_connection(
 	wire start_tx, start_rx, tx_done, rx_done;
 	wire begin_connection, want_at;
 	wire [1:0] data_select;
-	wire [15:0] calmed_ep40trigIn;
+//	wire [15:0] calmed_ep40trigIn;
 	
 	parameter AT_end = "\r\n";
 	
@@ -50,21 +50,19 @@ module FPGA_Bluetooth_connection(
 	/*
 		Assignments
 	*/
-	wire edge_start;
-	assign edge_start = (curr == Idle) | (curr == Wait_for_User_Data) | (curr == Rest_T_WA) | (curr == Wait_for_User_Demand) | (curr == Rest_AT_User);
-	edge_detector_16bit triggers(.clk(clock), .e(edge_start) .d(ep40trigIn), .q(calmed_ep40trigIn), .rise(), .fall() );
+//	wire edge_start;
+//	assign edge_start = (curr == Idle) | (curr == Wait_for_User_Data) | (curr == Rest_T_WA) | (curr == Wait_for_User_Demand) | (curr == Rest_AT_User);
+//	edge_detector_16bit triggers(.clk(clock), .e(edge_start), .d(ep40trigIn), .q(calmed_ep40trigIn), .rise(), .fall() );
 	
-	assign reset = calmed_ep40trigIn[0];
-	assign user_data_loaded = calmed_ep40trigIn[1];
-	assign user_data_done = calmed_ep40trigIn[2];
-	assign AT_FIFO_access = calmed_ep40trigIn[3];
-	assign finished_with_AT_FIFO = calmed_ep40trigIn[4];
-	
-	assign data_select[0] = calmed_ep40trigIn[5];
-	assign data_select[1] = calmed_ep40trigIn[6];
-	
-	assign want_at = ep02wireIn[0];
-	assign begin_connection = ep02wireIn[1];
+	assign reset = ep02wireIn[0];
+	assign want_at = ep02wireIn[1];
+	assign begin_connection = ep02wireIn[2];
+	assign user_data_loaded = ep02wireIn[3];
+	assign user_data_done = ep02wireIn[4];
+	assign AT_FIFO_access = ep02wireIn[5];
+	assign finished_with_AT_FIFO = ep02wireIn[6];
+	assign data_select[0] = ep02wireIn[7];
+	assign data_select[1] = ep02wireIn[8];
 	
 	assign bt_enable = want_at;
 	
@@ -85,7 +83,7 @@ module FPGA_Bluetooth_connection(
 	assign ep20wireOut[14] = AT_FIFO_wr_en;
 	assign ep20wireOut[15] = AT_FIFO_rd_en;
 	
-	assign ep23wireOut = calmed_ep40trigIn;
+//	assign ep23wireOut = calmed_ep40trigIn;
 	
 	/*
 		Sensor
