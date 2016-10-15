@@ -8,7 +8,7 @@ It assumes input and output wires created by Opal Kelly.
 module FPGA_Bluetooth_connection(
 		clock, 
 		bt_state, bt_enable, fpga_txd, fpga_rxd, 
-		ep01wireIn, ep02wireIn, ep40trigIn, ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, 
+		ep01wireIn, ep02wireIn, ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, 
 		ep24wireOut, ep25wireOut, ep26wireOut, ep27wireOut
 	);
 	
@@ -21,7 +21,6 @@ module FPGA_Bluetooth_connection(
 	output bt_enable, fpga_txd;
 
 	input [15:0] ep01wireIn, ep02wireIn;
-	input [15:0] ep40trigIn;
 
 	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, ep25wireOut, ep26wireOut, ep27wireOut;
 
@@ -32,9 +31,9 @@ module FPGA_Bluetooth_connection(
 	wire start_tx, start_rx, tx_done, rx_done;
 	wire begin_connection, want_at;
 	wire [1:0] data_select;
-//	wire [15:0] calmed_ep40trigIn;
 	
 	parameter AT_end = "\r\n";
+	parameter TFIFO_end = 16'h000A;
 	
 	/*
 		FSM wires
@@ -50,10 +49,6 @@ module FPGA_Bluetooth_connection(
 	/*
 		Assignments
 	*/
-//	wire edge_start;
-//	assign edge_start = (curr == Idle) | (curr == Wait_for_User_Data) | (curr == Rest_T_WA) | (curr == Wait_for_User_Demand) | (curr == Rest_AT_User);
-//	edge_detector_16bit triggers(.clk(clock), .e(edge_start), .d(ep40trigIn), .q(calmed_ep40trigIn), .rise(), .fall() );
-	
 	assign reset = ep02wireIn[0];
 	assign want_at = ep02wireIn[1];
 	assign begin_connection = ep02wireIn[2];
@@ -61,30 +56,14 @@ module FPGA_Bluetooth_connection(
 	assign user_data_done = ep02wireIn[4];
 	assign AT_FIFO_access = ep02wireIn[5];
 	assign finished_with_AT_FIFO = ep02wireIn[6];
-	assign data_select[0] = ep02wireIn[7];
-	assign data_select[1] = ep02wireIn[8];
+//	assign data_select[0] = ep02wireIn[7];
+//	assign data_select[1] = ep02wireIn[8];
+
+	assign data_select[0] = 1'b1;
+	assign data_select[1] = 1'b1;
 	
-	assign bt_enable = want_at;
-	
-	assign ep20wireOut[0] = curr[0];
-	assign ep20wireOut[1] = curr[1];
-	assign ep20wireOut[2] = curr[2];
-	assign ep20wireOut[3] = curr[3];
-	assign ep20wireOut[4] = next[0];
-	assign ep20wireOut[5] = next[1];
-	assign ep20wireOut[6] = next[2];
-	assign ep20wireOut[7] = next[3];
-	assign ep20wireOut[8] = tx_done;
-	assign ep20wireOut[9] = rx_done;
-	assign ep20wireOut[10] = TFIFO_full;
-	assign ep20wireOut[11] = TFIFO_empty;
-	assign ep20wireOut[12] = TFIFO_wr_en;
-	assign ep20wireOut[13] = TFIFO_rd_en;
-	assign ep20wireOut[14] = AT_FIFO_wr_en;
-	assign ep20wireOut[15] = AT_FIFO_rd_en;
-	
-//	assign ep23wireOut = calmed_ep40trigIn;
-	
+	assign bt_enable = ~want_at;
+		
 	/*
 		Sensor
 	*/
@@ -98,13 +77,6 @@ module FPGA_Bluetooth_connection(
 	wire [11:0] TFIFO_rd_count, TFIFO_wr_count, AT_FIFO_rd_count, AT_FIFO_wr_count;
 	wire TFIFO_full, TFIFO_empty, TFIFO_wr_en, TFIFO_rd_en;
 	wire AT_FIFO_full, AT_FIFO_empty, AT_FIFO_wr_en, AT_FIFO_rd_en;
-
-	assign ep21wireOut = AT_FIFO_in;
-	assign ep22wireOut = TFIFO_out;
-	assign ep24wireOut = TFIFO_rd_count;
-	assign ep25wireOut = TFIFO_wr_count;
-	assign ep26wireOut = AT_FIFO_rd_count;
-	assign ep27wireOut = AT_FIFO_wr_count;
 	
 	mux_2_16bit TFIFO_input(.data0(sensor_data), .data1(ep01wireIn), .sel(want_at), .result(TFIFO_in) );
 	
@@ -251,7 +223,7 @@ module FPGA_Bluetooth_connection(
 
 			Rest_T:
 			begin
-				if(TFIFO_full)
+				if((TFIFO_wr_count == TFIFO_end) ? 1'b0: 1'b1)
 					next = Load_Transmission;
 				else
 					next = Load_T;
@@ -339,6 +311,37 @@ module FPGA_Bluetooth_connection(
 	begin
 		if(reset) curr <= Idle; else curr <= next;
 	end
+	
+		/*
+		Check Assignments
+	*/
+	
+	assign ep20wireOut[0] = curr[0];
+	assign ep20wireOut[1] = curr[1];
+	assign ep20wireOut[2] = curr[2];
+	assign ep20wireOut[3] = curr[3];
+	assign ep20wireOut[4] = next[0];
+	assign ep20wireOut[5] = next[1];
+	assign ep20wireOut[6] = next[2];
+	assign ep20wireOut[7] = next[3];
+	assign ep20wireOut[8] = tx_done;
+	assign ep20wireOut[9] = rx_done;
+	assign ep20wireOut[10] = TFIFO_full;
+	assign ep20wireOut[11] = TFIFO_empty;
+	assign ep20wireOut[12] = TFIFO_wr_en;
+	assign ep20wireOut[13] = TFIFO_rd_en;
+	assign ep20wireOut[14] = fpga_txd;
+	assign ep20wireOut[15] = fpga_rxd;
+	
+	assign ep21wireOut = AT_FIFO_in;
+	assign ep22wireOut = TFIFO_out;
+	
+	assign ep23wireOut = ep02wireIn;
+	
+	assign ep24wireOut = TFIFO_rd_count;
+	assign ep25wireOut = TFIFO_wr_count;
+	assign ep26wireOut = AT_FIFO_rd_count;
+	assign ep27wireOut = AT_FIFO_wr_count;
 	
 endmodule
 

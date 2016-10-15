@@ -96,7 +96,6 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		.fpga_rxd(HC_05_TXD), 
 		.ep01wireIn(ep01wireIn),
 		.ep02wireIn(ep02wireIn),
-		.ep40trigIn(ep40trigIn),
 		.ep20wireOut(ep20wireOut),
 		.ep21wireOut(ep21wireOut),
 		.ep22wireOut(ep22wireOut),
