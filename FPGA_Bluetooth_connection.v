@@ -185,12 +185,12 @@ module FPGA_Bluetooth_connection(
 			Idle: 
 			begin
 				if(begin_connection)
-					begin
-						if(want_at)
-							next = Wait_for_User_Data; 
-						else
-							next = Load_T;
-					end
+				begin
+					if(want_at)
+						next = Wait_for_User_Data; 
+					else
+						next = Load_T;
+				end
 				else
 					next = Idle;
 			end
@@ -223,7 +223,7 @@ module FPGA_Bluetooth_connection(
 
 			Rest_T:
 			begin
-				if((TFIFO_wr_count == TFIFO_end) ? 1'b0: 1'b1)
+				if((TFIFO_wr_count == TFIFO_end) ? 1'b1: 1'b0)
 					next = Load_Transmission;
 				else
 					next = Load_T;
@@ -270,7 +270,7 @@ module FPGA_Bluetooth_connection(
 			
 			Rest_AT_FIFO:
 			begin
-				if( (last_stored == AT_end) ? 1'b0: 1'b1)
+				if( (last_stored == AT_end) ? 1'b1: 1'b0)
 					next = Receive_AT_Response;
 				else
 					next = Wait_for_User_Demand;
@@ -312,7 +312,7 @@ module FPGA_Bluetooth_connection(
 		if(reset) curr <= Idle; else curr <= next;
 	end
 	
-		/*
+	/*
 		Check Assignments
 	*/
 	
