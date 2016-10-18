@@ -8,8 +8,12 @@ It assumes input and output wires created by Opal Kelly.
 module FPGA_Bluetooth_connection(
 		clock, 
 		bt_state, bt_enable, fpga_txd, fpga_rxd, 
-		ep01wireIn, ep02wireIn, ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, 
-		ep24wireOut, ep25wireOut, ep26wireOut, ep27wireOut
+		ep01wireIn, ep02wireIn, 
+		ep20wireOut, 
+		ep21wireOut, 
+		ep22wireOut, ep23wireOut, 
+		ep24wireOut, ep25wireOut, ep26wireOut, 
+		ep27wireOut, ep28wireOut, ep29wireOut
 	);
 	
 	/*
@@ -22,17 +26,22 @@ module FPGA_Bluetooth_connection(
 
 	input [15:0] ep01wireIn, ep02wireIn;
 
-	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, ep25wireOut, ep26wireOut, ep27wireOut;
+	output [15:0] ep20wireOut; 
+	output [15:0] ep21wireOut;
+	output [15:0] ep22wireOut, ep23wireOut; 
+	output [15:0] ep24wireOut, ep25wireOut, ep26wireOut; 
+	output [15:0] ep27wireOut, ep28wireOut, ep29wireOut;
 
 	/*
 		Wires 
 	*/
-	wire reset, want_at, begin_connection, user_data_loaded, user_data_done, RFIFO_access, finished_with_RFIFO; 
+	wire reset, want_at, begin_connection;
+	wire user_data_loaded, user_knows_stored, user_data_done;
+	wire RFIFO_access, user_received_data, finished_with_RFIFO; 
 	wire start_tx, start_rx, tx_done, rx_done;
 	wire [1:0] data_select;
 	
-	parameter AT_end = "\r\n";
-	parameter TFIFO_end = 16'h000A;
+	parameter TFIFO_end = 13'h000A;
 	
 	parameter clock_speed = 20'd1000000, baud_rate = 16'd38400;
 	wire [9:0] cpd;
@@ -44,16 +53,16 @@ module FPGA_Bluetooth_connection(
 	assign want_at = ep02wireIn[1];
 	assign begin_connection = ep02wireIn[2];
 	assign user_data_loaded = ep02wireIn[3];
-	assign user_data_done = ep02wireIn[4];
-	assign access_RFIFO = ep02wireIn[5];
-	assign finished_with_RFIFO = ep02wireIn[6];
-//	assign data_select[0] = ep02wireIn[7];
-//	assign data_select[1] = ep02wireIn[8];
+	assign user_knows_stored = ep02wireIn[4];
+	assign user_data_done = ep02wireIn[5];
+	assign access_RFIFO = ep02wireIn[6];
+	assign user_received_data = ep02wireIn[7];
+	assign finished_with_RFIFO = ep02wireIn[8];
 
-	assign data_select[0] = 1'b1;
-	assign data_select[1] = 1'b1;
+	assign data_select[0] = 1'b0;
+	assign data_select[1] = 1'b0;
 	
-	assign bt_enable = ~want_at;
+	assign bt_enable = 1'b1;
 	
 	assign cpd = clock_speed / baud_rate;
 	
@@ -186,6 +195,10 @@ module FPGA_Bluetooth_connection(
 	assign is_it_r = (temp == "\r") ? 1'b1: 1'b0;
 	assign is_it_n = (temp == "\n") ? 1'b1: 1'b0;
 	
+	wire data_stored_for_user, data_ready_for_user;
+	assign data_stored_for_user = (curr == Rest_TFIFO);
+	assign data_ready_for_user = (curr == Check_With_User);
+	
 	always@(*)
 	begin
 		case(curr)
@@ -212,10 +225,15 @@ module FPGA_Bluetooth_connection(
 			
 			Rest_TFIFO:
 			begin
-				if(data_complete)
-					next = Load_Transmission;
+				if(user_knows_stored)
+				begin
+					if(data_complete)
+						next = Load_Transmission;
+					else
+						next = Wait_for_Data;
+				end
 				else
-					next = Wait_for_Data;
+					next = Rest_TFIFO;
 			end
 			
 			Load_Transmission:
@@ -280,10 +298,15 @@ module FPGA_Bluetooth_connection(
 			
 			Check_With_User:
 			begin
-				if(finished_with_RFIFO)
-					next = Done;
+				if(user_received_data)
+				begin
+					if(finished_with_RFIFO)
+						next = Done;
+					else
+						next = Wait_for_User_Demand;
+				end
 				else
-					next = Wait_for_User_Demand;
+					next = Check_With_User;
 			end
 			
 			Done:
@@ -332,33 +355,34 @@ module FPGA_Bluetooth_connection(
 	/*
 		Check Assignments
 	*/
+	assign ep20wireOut = RFIFO_out;
 	
-	assign ep20wireOut[0] = curr[0];
-	assign ep20wireOut[1] = curr[1];
-	assign ep20wireOut[2] = curr[2];
-	assign ep20wireOut[3] = curr[3];
-	assign ep20wireOut[4] = next[0];
-	assign ep20wireOut[5] = next[1];
-	assign ep20wireOut[6] = next[2];
-	assign ep20wireOut[7] = next[3];
-	assign ep20wireOut[8] = tx_done;
-	assign ep20wireOut[9] = rx_done;
-	assign ep20wireOut[10] = TFIFO_full;
-	assign ep20wireOut[11] = TFIFO_empty;
-	assign ep20wireOut[12] = TFIFO_wr_en;
-	assign ep20wireOut[13] = TFIFO_rd_en;
-	assign ep20wireOut[14] = data_ready;
-	assign ep20wireOut[15] = data_complete;
+	assign ep21wireOut[0] = curr[0];
+	assign ep21wireOut[1] = curr[1];
+	assign ep21wireOut[2] = curr[2];
+	assign ep21wireOut[3] = curr[3];
+	assign ep21wireOut[4] = next[0];
+	assign ep21wireOut[5] = next[1];
+	assign ep21wireOut[6] = next[2];
+	assign ep21wireOut[7] = next[3];
+	assign ep21wireOut[8] = data_ready_for_user;
+	assign ep21wireOut[9] = rx_done;
+	assign ep21wireOut[10] = TFIFO_full;
+	assign ep21wireOut[11] = TFIFO_empty;
+	assign ep21wireOut[12] = TFIFO_wr_en;
+	assign ep21wireOut[13] = TFIFO_rd_en;
+	assign ep21wireOut[14] = data_ready;
+	assign ep21wireOut[15] = data_complete;
 	
-	assign ep21wireOut = RFIFO_in;
-	assign ep22wireOut = TFIFO_out;
-	
+	assign ep22wireOut = ep01wireIn;
 	assign ep23wireOut = ep02wireIn;
 	
-	assign ep24wireOut = TFIFO_rd_count;
-	assign ep25wireOut = TFIFO_wr_count;
-	assign ep26wireOut = RFIFO_rd_count;
-	assign ep27wireOut = RFIFO_wr_count;
+	assign ep24wireOut = TFIFO_out;
+	assign ep25wireOut = TFIFO_rd_count;
+	assign ep26wireOut = TFIFO_wr_count;
 	
+	assign ep27wireOut = RFIFO_in;
+	assign ep28wireOut = RFIFO_rd_count;
+	assign ep29wireOut = RFIFO_wr_count;
 endmodule
 

@@ -15,8 +15,8 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	output HC_05_ENABLE, HC_05_RXD; // 1-W20 , 0-T19
 	output [7:0] LED;
 	
-	assign LED[3:0] = ~ep20wireOut[3:0];
-	assign LED[7:4] = ~ep20wireOut[7:4];
+	assign LED[3:0] = ~ep21wireOut[3:0];
+	assign LED[7:4] = ~ep21wireOut[7:4];
 	
 	/*
 		Opal Kelly
@@ -33,7 +33,7 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	assign i2c_scl = 1'bz;
 	assign hi_muxsel = 1'b0;
 	
-	parameter num_ok_outs = 8;
+	parameter num_ok_outs = 10;
 	
 	wire ti_clk;
 	wire [30:0] ok1;
@@ -41,11 +41,17 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	
 	wire [15:0] ep01wireIn;
 	wire [15:0] ep02wireIn;
+	
 	wire [15:0] ep20wireOut;
 	wire [15:0] ep21wireOut;
 	wire [15:0] ep22wireOut;
 	wire [15:0] ep23wireOut;
-	wire [15:0] ep40trigIn;
+	wire [15:0] ep24wireOut;
+	wire [15:0] ep25wireOut;
+	wire [15:0] ep26wireOut;
+	wire [15:0] ep27wireOut;
+	wire [15:0] ep28wireOut;
+	wire [15:0] ep29wireOut;
 	
 	//--------------------------------
 	// Instantiate the okHost and connect endpoints.
@@ -68,9 +74,6 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		.ok2s(ok2x)
 	);
 
-	// triggers
-	okTriggerIn ep40 (.ok1(ok1), .ep_addr(8'h40), .ep_clk(CLK1MHZ), .ep_trigger(ep40trigIn) );
-	
 	// wires
 	okWireIn ep01 (.ok1(ok1), .ep_addr(8'h01), .ep_dataout(ep01wireIn) );
 	okWireIn ep02 (.ok1(ok1), .ep_addr(8'h02), .ep_dataout(ep02wireIn) );
@@ -84,6 +87,9 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	okWireOut ep25 (.ok1(ok1), .ok2(ok2x[ 5*17 +: 17 ]), .ep_addr(8'h25), .ep_datain(ep25wireOut) );
 	okWireOut ep26 (.ok1(ok1), .ok2(ok2x[ 6*17 +: 17 ]), .ep_addr(8'h26), .ep_datain(ep26wireOut) );
 	okWireOut ep27 (.ok1(ok1), .ok2(ok2x[ 7*17 +: 17 ]), .ep_addr(8'h27), .ep_datain(ep27wireOut) );
+	
+	okWireOut ep28 (.ok1(ok1), .ok2(ok2x[ 8*17 +: 17 ]), .ep_addr(8'h28), .ep_datain(ep28wireOut) );
+	okWireOut ep29 (.ok1(ok1), .ok2(ok2x[ 9*17 +: 17 ]), .ep_addr(8'h29), .ep_datain(ep29wireOut) );
 	
 	/*
 		FPGA
@@ -103,7 +109,9 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		.ep24wireOut(ep24wireOut),
 		.ep25wireOut(ep25wireOut),
 		.ep26wireOut(ep26wireOut),
-		.ep27wireOut(ep27wireOut)
+		.ep27wireOut(ep27wireOut),
+		.ep28wireOut(ep28wireOut),
+		.ep29wireOut(ep29wireOut)
 	);
 	
 	
