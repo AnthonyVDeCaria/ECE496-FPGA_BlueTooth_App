@@ -25,8 +25,8 @@
 *     (c) Copyright 1995-2016 Xilinx, Inc.                                     *
 *     All rights reserved.                                                     *
 *******************************************************************************/
-// You must compile the wrapper file FIFO_8196wds_8bit.v when simulating
-// the core, FIFO_8196wds_8bit. When compiling the wrapper file, be sure to
+// You must compile the wrapper file FIFO_8192_16in_8out.v when simulating
+// the core, FIFO_8192_16in_8out. When compiling the wrapper file, be sure to
 // reference the XilinxCoreLib Verilog simulation library. For detailed
 // instructions, please refer to the "CORE Generator Help".
 
@@ -36,7 +36,7 @@
 
 `timescale 1ns/1ps
 
-module FIFO_8196wds_8bit(
+module FIFO_8192_16in_8out(
   rst,
   wr_clk,
   rd_clk,
@@ -45,9 +45,7 @@ module FIFO_8196wds_8bit(
   rd_en,
   dout,
   full,
-  wr_ack,
   empty,
-  valid,
   rd_data_count,
   wr_data_count
 );
@@ -60,9 +58,7 @@ input wr_en;
 input rd_en;
 output [7 : 0] dout;
 output full;
-output wr_ack;
 output empty;
-output valid;
 output [13 : 0] rd_data_count;
 output [12 : 0] wr_data_count;
 
@@ -157,8 +153,8 @@ output [12 : 0] wr_data_count;
     .C_HAS_SLAVE_CE(0),
     .C_HAS_SRST(0),
     .C_HAS_UNDERFLOW(0),
-    .C_HAS_VALID(1),
-    .C_HAS_WR_ACK(1),
+    .C_HAS_VALID(0),
+    .C_HAS_WR_ACK(0),
     .C_HAS_WR_DATA_COUNT(1),
     .C_HAS_WR_RST(0),
     .C_IMPLEMENTATION_TYPE(2),
@@ -268,9 +264,7 @@ output [12 : 0] wr_data_count;
     .RD_EN(rd_en),
     .DOUT(dout),
     .FULL(full),
-    .WR_ACK(wr_ack),
     .EMPTY(empty),
-    .VALID(valid),
     .RD_DATA_COUNT(rd_data_count),
     .WR_DATA_COUNT(wr_data_count),
     .BACKUP(),
@@ -289,8 +283,10 @@ output [12 : 0] wr_data_count;
     .INJECTDBITERR(),
     .INJECTSBITERR(),
     .ALMOST_FULL(),
+    .WR_ACK(),
     .OVERFLOW(),
     .ALMOST_EMPTY(),
+    .VALID(),
     .UNDERFLOW(),
     .DATA_COUNT(),
     .PROG_FULL(),

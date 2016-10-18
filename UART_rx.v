@@ -18,7 +18,7 @@ module UART_rx(clk, resetn, start, cycles_per_databit, rx_line, rx_data, rx_data
 	/*
 		FSM
 	*/
-	reg [2:0] curr, next;
+	reg [2:0] prev, curr, next;
 	parameter Idle = 3'b000, Double_Check = 3'b001, Collect_Data = 3'b010, Add_i = 3'b011, Done = 3'b100;
 	
 	/*
@@ -29,7 +29,7 @@ module UART_rx(clk, resetn, start, cycles_per_databit, rx_line, rx_data, rx_data
 	wire at_halftime, at_cpd;
 	
 	assign l_r_timer = ((curr == Double_Check) & (~at_halftime)) | ((curr == Collect_Data) & (~at_cpd));
-	assign r_r_timer = ~(~resetn | (curr == Idle) | ( (curr == Double_Check) & (next == Collect_Data) ) | (curr == Add_i) ) ;
+	assign r_r_timer = ~(~resetn | (curr == Idle) | ( (prev == Double_Check) & (curr == Collect_Data)) | (curr == Add_i) ) ;
 	
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clk), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
@@ -78,12 +78,21 @@ module UART_rx(clk, resetn, start, cycles_per_databit, rx_line, rx_data, rx_data
 				if(start)
 				begin
 					if(!rx_line)
-						next = Double_Check; 
+					begin
+						prev = Idle;
+						next = Double_Check;
+					end
 					else
+					begin
+						prev = Idle;
 						next = Idle;
+					end
 				end
 				else
+				begin
+					prev = Idle;
 					next = Idle;
+				end
 			end
 			
 			Double_Check:
@@ -91,38 +100,63 @@ module UART_rx(clk, resetn, start, cycles_per_databit, rx_line, rx_data, rx_data
 				if(at_halftime)
 				begin
 					if(!rx_line)
-						next = Collect_Data; 
+					begin
+						prev = Double_Check;
+						next = Collect_Data;
+					end
 					else
+					begin
+						prev = Double_Check;
 						next = Idle;
+					end
 				end
 				else
+				begin
+					prev = Double_Check;
 					next = Double_Check;
+				end
 			end
 			
 			Collect_Data:
 			begin
 				if(!at_cpd)
+				begin
+					prev = Collect_Data;
 					next = Collect_Data;
+				end
 				else
 				begin
 					if(i[3] == 0)
+					begin
+						prev = Collect_Data;
 						next = Add_i;
+					end
 					else
+					begin
+						prev = Collect_Data;
 						next = Done;
+					end
 				end
 			end
 			
 			Add_i:
 			begin
+				prev = Add_i;
 				next = Collect_Data;
 			end
 			
 			Done:
 			begin
 				if(start)
+				begin
+					prev = Done;
 					next = Done;
+				end
 				else
+				begin
+					prev = Done;
 					next = Idle;
+				end
 			end
 		endcase
 	end
