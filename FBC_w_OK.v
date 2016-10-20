@@ -15,8 +15,15 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	output HC_05_ENABLE, HC_05_RXD; // 1-W20 , 0-T19
 	output [7:0] LED;
 	
-	assign LED[3:0] = ~ep21wireOut[3:0];
-	assign LED[7:4] = ~ep21wireOut[7:4];
+//	assign LED[3:0] = ~ep21wireOut[3:0];
+//	assign LED[7:4] = ~ep21wireOut[7:4];
+
+	assign LED[0] = ~HC_05_STATE;
+	assign LED[1] = ~HC_05_TXD;
+	assign LED[2] = ~HC_05_ENABLE;
+	assign LED[3] = ~HC_05_RXD;
+	
+	assign LED[7:4] = ~curr[3:0];
 	
 	/*
 		Opal Kelly
@@ -93,7 +100,7 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	
 	/*
 		FPGA
-	*/
+	*/	
 	FPGA_Bluetooth_connection master_of_puppets(
 		.clock(CLK1MHZ),
 		.bt_state(HC_05_STATE),
@@ -114,5 +121,5 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		.ep29wireOut(ep29wireOut)
 	);
 	
-	
 endmodule
+

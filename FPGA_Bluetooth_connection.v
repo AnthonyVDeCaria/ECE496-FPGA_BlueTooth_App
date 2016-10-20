@@ -277,7 +277,7 @@ module FPGA_Bluetooth_connection(
 			
 			Rest_RFIFO:
 			begin
-				if (c == End)
+				if(c == End)
 					next = Wait_for_User_Demand;
 				else
 					next = Receive_AT_Response;
