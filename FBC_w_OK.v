@@ -15,15 +15,8 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	output HC_05_ENABLE, HC_05_RXD; // 1-W20 , 0-T19
 	output [7:0] LED;
 	
-//	assign LED[3:0] = ~ep21wireOut[3:0];
-//	assign LED[7:4] = ~ep21wireOut[7:4];
-
-	assign LED[0] = ~HC_05_STATE;
-	assign LED[1] = ~HC_05_TXD;
-	assign LED[2] = ~HC_05_ENABLE;
-	assign LED[3] = ~HC_05_RXD;
-	
-	assign LED[7:4] = ~curr[3:0];
+	assign LED[3:0] = ~ep21wireOut[3:0];
+	assign LED[7:4] = ~ep21wireOut[7:4];
 	
 	/*
 		Opal Kelly
@@ -40,7 +33,7 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	assign i2c_scl = 1'bz;
 	assign hi_muxsel = 1'b0;
 	
-	parameter num_ok_outs = 10;
+	parameter num_ok_outs = 11;
 	
 	wire ti_clk;
 	wire [30:0] ok1;
@@ -59,6 +52,7 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	wire [15:0] ep27wireOut;
 	wire [15:0] ep28wireOut;
 	wire [15:0] ep29wireOut;
+	wire [15:0] ep30wireOut;
 	
 	//--------------------------------
 	// Instantiate the okHost and connect endpoints.
@@ -93,10 +87,12 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	okWireOut ep24 (.ok1(ok1), .ok2(ok2x[ 4*17 +: 17 ]), .ep_addr(8'h24), .ep_datain(ep24wireOut) );
 	okWireOut ep25 (.ok1(ok1), .ok2(ok2x[ 5*17 +: 17 ]), .ep_addr(8'h25), .ep_datain(ep25wireOut) );
 	okWireOut ep26 (.ok1(ok1), .ok2(ok2x[ 6*17 +: 17 ]), .ep_addr(8'h26), .ep_datain(ep26wireOut) );
-	okWireOut ep27 (.ok1(ok1), .ok2(ok2x[ 7*17 +: 17 ]), .ep_addr(8'h27), .ep_datain(ep27wireOut) );
 	
+	okWireOut ep27 (.ok1(ok1), .ok2(ok2x[ 7*17 +: 17 ]), .ep_addr(8'h27), .ep_datain(ep27wireOut) );
 	okWireOut ep28 (.ok1(ok1), .ok2(ok2x[ 8*17 +: 17 ]), .ep_addr(8'h28), .ep_datain(ep28wireOut) );
 	okWireOut ep29 (.ok1(ok1), .ok2(ok2x[ 9*17 +: 17 ]), .ep_addr(8'h29), .ep_datain(ep29wireOut) );
+	
+	okWireOut ep30 (.ok1(ok1), .ok2(ok2x[ 10*17 +: 17 ]), .ep_addr(8'h30), .ep_datain(ep30wireOut) );
 	
 	/*
 		FPGA
@@ -118,7 +114,8 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		.ep26wireOut(ep26wireOut),
 		.ep27wireOut(ep27wireOut),
 		.ep28wireOut(ep28wireOut),
-		.ep29wireOut(ep29wireOut)
+		.ep29wireOut(ep29wireOut),
+		.ep30wireOut(ep30wireOut)
 	);
 	
 endmodule

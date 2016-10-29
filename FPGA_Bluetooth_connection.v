@@ -13,7 +13,8 @@ module FPGA_Bluetooth_connection(
 		ep21wireOut, 
 		ep22wireOut, ep23wireOut, 
 		ep24wireOut, ep25wireOut, ep26wireOut, 
-		ep27wireOut, ep28wireOut, ep29wireOut
+		ep27wireOut, ep28wireOut, ep29wireOut,
+		ep30wireOut
 	);
 	
 	/*
@@ -31,6 +32,7 @@ module FPGA_Bluetooth_connection(
 	output [15:0] ep22wireOut, ep23wireOut; 
 	output [15:0] ep24wireOut, ep25wireOut, ep26wireOut; 
 	output [15:0] ep27wireOut, ep28wireOut, ep29wireOut;
+	output [15:0] ep30wireOut;
 
 	/*
 		Wires 
@@ -62,7 +64,7 @@ module FPGA_Bluetooth_connection(
 	assign data_select[0] = 1'b0;
 	assign data_select[1] = 1'b0;
 	
-	assign bt_enable = 1'b1;
+	assign bt_enable = ~((curr == Idle ) | (curr == Done));
 	
 	assign cpd = clock_speed / baud_rate;
 	
@@ -74,7 +76,7 @@ module FPGA_Bluetooth_connection(
 	parameter Load_Transmission = 4'b0100, Begin_Transmission = 4'b0101, Rest_Transmission = 4'b0110;
 	parameter Receive_AT_Response = 4'b0111, Load_RFIFO = 4'b1000, Rest_RFIFO = 4'b1001;
 	parameter Wait_for_User_Demand = 4'b1010, Read_RFIFO = 4'b1011, Check_With_User = 4'b1100;
-	reg [4:0] curr, next;
+	reg [3:0] curr, next;
 	
 	parameter Beginning = 2'b00, Found_r = 2'b01, End = 2'b10;
 	reg [1:0] c, n;
@@ -141,17 +143,39 @@ module FPGA_Bluetooth_connection(
 		.wr_data_count(RFIFO_wr_count)
 	);
 	
-	wire [7:0] temp;
-	wire l_t, r_t;
+	wire [7:0] check;
+	wire l_c, r_c;
 	
-	assign l_t = (curr == Load_RFIFO);
-	assign r_t = ~reset;
+	assign l_c = (curr == Load_RFIFO);
+	assign r_c = ~reset;
 	
-	register_8bit_enable_async r_temp(.clk(clock), .resetn(r_t), .enable(l_t), .select(l_t), .d(RFIFO_in), .q(temp) );
+	register_8bit_enable_async r_check(
+		.clk(clock), 
+		.resetn(r_c), 
+		.enable(l_c), 
+		.select(l_c), 
+		.d(RFIFO_in), 
+		.q(check) 
+	);
 	
 	/*
 		Output
 	*/
+	wire [15:0] temp;
+	wire l_t, r_t;
+	
+	assign l_t = (curr == Load_Transmission);
+	assign r_t = ~reset;
+	
+	register_16bit_enable_async r_temp(
+		.clk(clock), 
+		.resetn(r_t), 
+		.enable(l_t), 
+		.select(l_t), 
+		.d(TFIFO_out), 
+		.q(temp) 
+	);
+	
 	assign start_tx = (curr == Begin_Transmission);
 	
 	UART_tx tx(
@@ -160,7 +184,7 @@ module FPGA_Bluetooth_connection(
 		.start(start_tx), 
 		.cycles_per_databit(cpd), 
 		.tx_line(fpga_txd), 
-		.tx_data(TFIFO_out), 
+		.tx_data(temp), 
 		.tx_done(tx_done)
 	);
 	
@@ -192,8 +216,8 @@ module FPGA_Bluetooth_connection(
 	mux_2_1bit m_dc(.data0(sensor_data_done), .data1(user_data_done), .sel(want_at), .result(data_complete) );
 	
 	wire is_it_r, is_it_n;
-	assign is_it_r = (temp == "\r") ? 1'b1: 1'b0;
-	assign is_it_n = (temp == "\n") ? 1'b1: 1'b0;
+	assign is_it_r = (check == "\r") ? 1'b1: 1'b0;
+	assign is_it_n = (check == "\n") ? 1'b1: 1'b0;
 	
 	wire data_stored_for_user, data_ready_for_user;
 	assign data_stored_for_user = (curr == Rest_TFIFO);
@@ -384,5 +408,17 @@ module FPGA_Bluetooth_connection(
 	assign ep27wireOut = RFIFO_in;
 	assign ep28wireOut = RFIFO_rd_count;
 	assign ep29wireOut = RFIFO_wr_count;
+	
+	wire [9:0] timer, n_timer;
+	wire l_r_timer, r_r_timer;
+	
+	assign l_r_timer = (curr == Rest_Transmission);
+	assign r_r_timer = ~reset;
+	
+	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
+	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
+	
+	assign ep30wireOut = timer;
+	
 endmodule
 
