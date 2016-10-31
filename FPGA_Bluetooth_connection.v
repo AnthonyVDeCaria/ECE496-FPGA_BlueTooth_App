@@ -1,8 +1,8 @@
 /*
-Anthony De Caria - September 28, 2016
+	Anthony De Caria - September 28, 2016
 
-This module creates a connection between an ion sensor and a HC-05 Bluetooth module.
-It assumes input and output wires created by Opal Kelly.
+	This module creates a connection between an ion sensor and a HC-05 Bluetooth module.
+	It assumes input and output wires created by Opal Kelly.
 */
 
 module FPGA_Bluetooth_connection(
@@ -73,9 +73,9 @@ module FPGA_Bluetooth_connection(
 	*/
 	parameter Idle = 4'b0000, Done = 4'b1111;
 	parameter Wait_for_Data = 4'b0001, Load_TFIFO = 4'b0010, Rest_TFIFO = 4'b0011;
-	parameter Load_Transmission = 4'b0100, Begin_Transmission = 4'b0101, Rest_Transmission = 4'b0110;
-	parameter Receive_AT_Response = 4'b0111, Load_RFIFO = 4'b1000, Rest_RFIFO = 4'b1001;
-	parameter Wait_for_User_Demand = 4'b1010, Read_RFIFO = 4'b1011, Check_With_User = 4'b1100;
+	parameter Load_Transmission = 4'b0100, Wait_for_Connection = 4'b0101, Begin_Transmission = 4'b0110, Rest_Transmission = 4'b0111;
+	parameter Receive_AT_Response = 4'b1000, Load_RFIFO = 4'b1001, Rest_RFIFO = 4'b1010;
+	parameter Wait_for_User_Demand = 4'b1011, Read_RFIFO = 4'b1100, Check_With_User = 4'b1101;
 	reg [3:0] curr, next;
 	
 	parameter Beginning = 2'b00, Found_r = 2'b01, End = 2'b10;
@@ -161,13 +161,13 @@ module FPGA_Bluetooth_connection(
 	/*
 		Output
 	*/
-	wire [15:0] temp;
+	wire [7:0] temp;
 	wire l_t, r_t;
 	
 	assign l_t = (curr == Load_Transmission);
 	assign r_t = ~reset;
 	
-	register_16bit_enable_async r_temp(
+	register_8bit_enable_async r_temp(
 		.clk(clock), 
 		.resetn(r_t), 
 		.enable(l_t), 
@@ -211,7 +211,7 @@ module FPGA_Bluetooth_connection(
 	mux_2_1bit m_dr(.data0(1'b1), .data1(user_data_loaded), .sel(want_at), .result(data_ready) );
 	
 	wire sensor_data_done;
-	assign sensor_data_done = (TFIFO_wr_count == TFIFO_end) ? 1'b1: 1'b0;
+	assign sensor_data_done = (TFIFO_wr_count >= TFIFO_end) ? 1'b1: 1'b0;
 	
 	mux_2_1bit m_dc(.data0(sensor_data_done), .data1(user_data_done), .sel(want_at), .result(data_complete) );
 	
@@ -249,20 +249,38 @@ module FPGA_Bluetooth_connection(
 			
 			Rest_TFIFO:
 			begin
-				if(user_knows_stored)
+				if(want_at)
+				begin
+					if(user_knows_stored)
+					begin
+						if(data_complete)
+							next = Load_Transmission;
+						else
+							next = Wait_for_Data;
+					end
+					else
+						next = Rest_TFIFO;
+				end
+				else
 				begin
 					if(data_complete)
 						next = Load_Transmission;
 					else
 						next = Wait_for_Data;
 				end
-				else
-					next = Rest_TFIFO;
 			end
 			
 			Load_Transmission:
 			begin
-				next = Begin_Transmission;
+				next = Wait_for_Connection;
+			end
+			
+			Wait_for_Connection:
+			begin
+				if(bt_state)
+					next = Begin_Transmission;
+				else
+					next = Wait_for_Connection;
 			end
 			
 			Begin_Transmission:

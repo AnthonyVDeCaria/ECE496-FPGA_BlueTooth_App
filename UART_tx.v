@@ -102,7 +102,7 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 			
 			Add_i:
 			begin
-				if(i[3] == 1)
+				if(i[3] == 1'b1)
 					next = Done;
 				else
 					next = Send_Data;
