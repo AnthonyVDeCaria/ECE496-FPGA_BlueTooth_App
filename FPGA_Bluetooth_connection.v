@@ -407,14 +407,14 @@ module FPGA_Bluetooth_connection(
 	assign ep21wireOut[5] = next[1];
 	assign ep21wireOut[6] = next[2];
 	assign ep21wireOut[7] = next[3];
-	assign ep21wireOut[8] = data_ready_for_user;
-	assign ep21wireOut[9] = rx_done;
-	assign ep21wireOut[10] = TFIFO_full;
-	assign ep21wireOut[11] = TFIFO_empty;
-	assign ep21wireOut[12] = TFIFO_wr_en;
-	assign ep21wireOut[13] = TFIFO_rd_en;
-	assign ep21wireOut[14] = data_ready;
-	assign ep21wireOut[15] = data_complete;
+	assign ep21wireOut[8] = data_stored_for_user;
+	assign ep21wireOut[9] = data_ready_for_user;
+	assign ep21wireOut[10] = data_ready;
+	assign ep21wireOut[11] = data_complete;
+	assign ep21wireOut[12] = TFIFO_full;
+	assign ep21wireOut[13] = TFIFO_empty;
+	assign ep21wireOut[14] = TFIFO_wr_en;
+	assign ep21wireOut[15] = TFIFO_rd_en;
 	
 	assign ep22wireOut = ep01wireIn;
 	assign ep23wireOut = ep02wireIn;
