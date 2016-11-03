@@ -5,6 +5,7 @@ import BoardInfo as info
 import struct
 import matplotlib.pyplot as plt
 import sys 
+import time
 
 dev = ok.FrontPanel()
 pll = ok.PLL22393()
@@ -54,9 +55,9 @@ if (x != 0):
 # user_ready [2] 1 to ready
 # data_select[0] [3] 
 # data_select[1] [4]
-y = dev.ActivateTriggerIn( 0x40, 0 )
-if (y != 0):
-	sys.exit ('Activate Failed')
+time.sleep (1)
+dev.ActivateTriggerIn( 0x40, 0 )
+
 
 dev.UpdateWireOuts()
 ep23value = dev.GetWireOutValue( 0x23 )
@@ -71,19 +72,9 @@ dev.UpdateWireIns()
 
 #start the code
 
-dev.UpdateWireOuts()
-ep23value = dev.GetWireOutValue( 0x23 )
-print '0x23: %04x' % ep23value
-
-y = dev.ActivateTriggerIn( 0x40, 0 )
-if (y != 0):
-	sys.exit ('Activate Failed')
-y = dev.ActivateTriggerIn( 0x40, 1 )
-if (y != 0):
-	sys.exit ('Activate Failed')
-y = dev.ActivateTriggerIn( 0x40, 2 )
-if (y != 0):
-	sys.exit ('Activate Failed')
+dev.ActivateTriggerIn( 0x40, 0 )
+dev.ActivateTriggerIn( 0x40, 1 )
+dev.ActivateTriggerIn( 0x40, 2 )
 
 print "Starting ...."
 
@@ -98,7 +89,7 @@ print '0x20: %04x' % ep20value
 print '0x21: %04x' % ep21value
 print '0x22: %04x' % ep22value
 print '0x23: %04x' % ep23value
-'''
+
 # trying AT+RESET
 dev.SetWireInValue( 0x01, 0x4154, 0xffff )
 dev.UpdateWireIns()
@@ -139,8 +130,6 @@ dev.UpdateWireIns()
 dev.SetWireInValue( 0x01, 0x0a, 0xff )   # number of words written to fifos
 dev.UpdateWireIns()
 
-
-
 #reading from ep20 and ep21
 dev.UpdateWireOuts()
 e20value = dev.GetWireOutValue( 0x20 )
@@ -153,4 +142,29 @@ print '0x21: %04x' % ep21value
 print '0x22: %04x' % ep22value
 print '0x23: %04x' % ep23value
 
-'''
+# setting to Master AT+ROLE=1
+dev.SetWireInValue( 0x01, 0x4154, 0xffff )
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x2b52, 0xffff )   # number of words written to fifos
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x4f4c, 0xffff )
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x453d, 0xffff )   # number of words written to fifos
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x310d, 0xffff )
+dev.UpdateWireIns()
+dev.SetWireInValue( 0x01, 0x0a, 0xff )   # number of words written to fifos
+dev.UpdateWireIns()
+
+#reading from ep20 and ep21
+dev.UpdateWireOuts()
+e20value = dev.GetWireOutValue( 0x20 )
+ep21value = dev.GetWireOutValue( 0x21 )
+ep22value = dev.GetWireOutValue( 0x22 )
+ep23value = dev.GetWireOutValue( 0x23 )
+print "\nAT+ROLE=1"
+print '0x20: %04x' % ep20value
+print '0x21: %04x' % ep21value
+print '0x22: %04x' % ep22value
+print '0x23: %04x' % ep23value
+
