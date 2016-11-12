@@ -20,19 +20,6 @@ To load a piece of data: 000 001 110 -> 016 -> 0 0000 1110 -> 00E
 To add a new piece of data: 000 010 110 -> 026 -> 0 0001 0110 -> 016
 To move on when you finished sending your AT commands: 000 110 110 -> 066 -> 0 0011 0110 -> 036
 
-ep21wireOut[0] = curr[0];
-ep21wireOut[1] = curr[1];
-ep21wireOut[2] = curr[2];
-ep21wireOut[3] = curr[3];
-ep21wireOut[4] = next[0];
-ep21wireOut[5] = next[1];
-ep21wireOut[6] = next[2];
-ep21wireOut[7] = next[3];
-ep21wireOut[8] = data_stored_for_user;
-ep21wireOut[9] = data_ready_for_user;
-ep21wireOut[10] = data_ready;
-ep21wireOut[11] = data_complete;
-ep21wireOut[12] = TFIFO_full;
-ep21wireOut[13] = TFIFO_empty;
-ep21wireOut[14] = TFIFO_wr_en;
-ep21wireOut[15] = TFIFO_rd_en;
+To accees RFIFO: 001 000 110 -> 106 -> 0 0100 0110 -> 016
+To receive a new piece of data: 011 000 110 -> 306 -> 0 1100 0110 -> 0C6
+To stop receiving data: 110 000 110 -> 606 -> 1 1000 0110 -> 186

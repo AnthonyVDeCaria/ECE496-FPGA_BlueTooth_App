@@ -230,8 +230,8 @@ module FPGA_Bluetooth_connection(
 	
 	// Rest_RFIFO Signals
 	wire is_it_r, is_it_n;
-	assign is_it_r = (check == "\r") ? 1'b1: 1'b0;
-	assign is_it_n = (check == "\n") ? 1'b1: 1'b0;
+	assign is_it_r = (check == 16'h00e0) ? 1'b1: 1'b0;
+	assign is_it_n = (check == 16'h00e0) ? 1'b1: 1'b0;
 	
 	// Reading RFIFO Signals
 	wire data_stored_for_user, data_ready_for_user;
@@ -425,14 +425,14 @@ module FPGA_Bluetooth_connection(
 	assign ep21wireOut[5] = next[1];
 	assign ep21wireOut[6] = next[2];
 	assign ep21wireOut[7] = next[3];
-	assign ep21wireOut[8] = data_stored_for_user;
-	assign ep21wireOut[9] = data_ready_for_user;
-	assign ep21wireOut[10] = data_ready;
-	assign ep21wireOut[11] = data_complete;
-	assign ep21wireOut[12] = TFIFO_full;
-	assign ep21wireOut[13] = TFIFO_empty;
-	assign ep21wireOut[14] = TFIFO_wr_en;
-	assign ep21wireOut[15] = TFIFO_rd_en;
+	assign ep21wireOut[8] = c[0];
+	assign ep21wireOut[9] = c[1];
+	assign ep21wireOut[10] = n[0];
+	assign ep21wireOut[11] = n[1];
+	assign ep21wireOut[12] = RFIFO_full;
+	assign ep21wireOut[13] = RFIFO_empty;
+	assign ep21wireOut[14] = RFIFO_wr_en;
+	assign ep21wireOut[15] = RFIFO_rd_en;
 	
 	assign ep22wireOut = ep01wireIn;
 	assign ep23wireOut = ep02wireIn;
