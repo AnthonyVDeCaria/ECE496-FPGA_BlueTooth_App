@@ -86,7 +86,6 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 					next = Idle;
 				end
 			end
-			end
 			
 			Double_Check:
 			begin
@@ -140,16 +139,8 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 			
 			Done:
 			begin
-				if(start)
-				begin
-					prev = Done;
-					next = Done;
-				end
-				else
-				begin
-					prev = Done;
-					next = Idle;
-				end
+				prev = Done;
+				next = Idle;
 			end
 		endcase
 	end
