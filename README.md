@@ -15,10 +15,10 @@ ep02wireIn[8] = finished_with_RFIFO;
 To access constant datastream: 000 000 100 -> 004 -> 0 0000 0100 -> 004
 
 AT
-To access AT datastream: 000 000 110
-To load a piece of data: 000 001 110
-To add a new piece of data: 000 010 110
-To move on when you finished sending your AT commands: 000 110 110
+To access AT datastream: 000 000 110 -> 006 -> 0 0000 0110 -> 006
+To load a piece of data: 000 001 110 -> 016 -> 0 0000 1110 -> 00E
+To add a new piece of data: 000 010 110 -> 026 -> 0 0001 0110 -> 016
+To move on when you finished sending your AT commands: 000 110 110 -> 066 -> 0 0011 0110 -> 036
 
 ep21wireOut[0] = curr[0];
 ep21wireOut[1] = curr[1];

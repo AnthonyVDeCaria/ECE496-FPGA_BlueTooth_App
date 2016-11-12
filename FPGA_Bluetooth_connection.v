@@ -206,6 +206,8 @@ module FPGA_Bluetooth_connection(
 	/*
 		FSM
 	*/
+	
+	// Loading TFIFO Signals
 	wire data_ready, data_complete;
 	
 	mux_2_1bit m_dr(.data0(1'b1), .data1(user_data_loaded), .sel(want_at), .result(data_ready) );
@@ -215,10 +217,23 @@ module FPGA_Bluetooth_connection(
 	
 	mux_2_1bit m_dc(.data0(sensor_data_done), .data1(user_data_done), .sel(want_at), .result(data_complete) );
 	
+	// Rest_Transmission Signals
+	wire i, n_i, all_data_sent, l_r_i, r_r_i;
+	
+	assign l_r_i = (curr == Rest_Transmission && TFIFO_empty);
+	assign r_r_i = ~reset;
+	
+	full_adder_1bit a_i(.a(i), .b(1'b1), .c_in(1'b0), .c_out(), .s(n_i)); 
+	D_FF_Enable_Async r_i(.clk(clock), .resetn(r_r_i), .enable(l_r_i), .d(n_i), .q(i) );
+	
+	assign all_data_sent = TFIFO_empty & i;
+	
+	// Rest_RFIFO Signals
 	wire is_it_r, is_it_n;
 	assign is_it_r = (check == "\r") ? 1'b1: 1'b0;
 	assign is_it_n = (check == "\n") ? 1'b1: 1'b0;
 	
+	// Reading RFIFO Signals
 	wire data_stored_for_user, data_ready_for_user;
 	assign data_stored_for_user = (curr == Rest_TFIFO);
 	assign data_ready_for_user = (curr == Check_With_User);
@@ -272,7 +287,10 @@ module FPGA_Bluetooth_connection(
 			
 			Load_Transmission:
 			begin
-				next = Wait_for_Connection;
+				if(want_at)
+					next = Begin_Transmission;
+				else
+					next = Wait_for_Connection;
 			end
 			
 			Wait_for_Connection:
@@ -293,7 +311,7 @@ module FPGA_Bluetooth_connection(
 			
 			Rest_Transmission:
 			begin
-				if(TFIFO_empty)
+				if(all_data_sent)
 				begin
 					if(want_at)
 						next = Receive_AT_Response; 

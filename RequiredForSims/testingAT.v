@@ -22,7 +22,7 @@
 // 
 ////////////////////////////////////////////////////////////////////////////////
 
-module t1;
+module testingAT;
 
 	// Inputs
 	reg clock;
@@ -85,9 +85,18 @@ module t1;
         
 		// Add stimulus here
 		#0 ep02wireIn = 16'h0001;
+		
+		#50 ep02wireIn = 16'h0006;
+		
 		#100 ep01wireIn = "AT";
-		#100 ep02wireIn = 16'h0004;
-		#300 bt_state = 1;
+		#100 ep02wireIn = 16'h000E;
+		
+		#150 ep02wireIn = 16'h0016;
+		
+		#200 ep01wireIn = "\r\n";
+		#200 ep02wireIn = 16'h000E;
+		
+		#275 ep02wireIn = 16'h0036;
 	end
 	
 endmodule
