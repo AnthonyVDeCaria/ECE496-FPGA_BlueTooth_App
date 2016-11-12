@@ -78,8 +78,8 @@ module FPGA_Bluetooth_connection(
 	parameter Wait_for_User_Demand = 4'b1011, Read_RFIFO = 4'b1100, Check_With_User = 4'b1101;
 	reg [3:0] curr, next;
 	
-	parameter Beginning = 2'b00, Found_r = 2'b01, End = 2'b10;
-	reg [1:0] c, n;
+	parameter Beginning = 3'b000, Search_r = 3'b001, Found_r = 3'b010, Search_n = 3'b011, End = 3'b100;
+	reg [2:0] c, n;
 		
 	/*
 		Sensor
@@ -190,13 +190,10 @@ module FPGA_Bluetooth_connection(
 	
 	/*
 		Input
-	*/
-	assign start_rx = (curr == Receive_AT_Response);
-	
+	*/	
 	UART_rx rx(
 		.clk(clock), 
 		.resetn(~reset), 
-		.start(start_rx), 
 		.cycles_per_databit(cpd), 
 		.rx_line(fpga_rxd), 
 		.rx_data(RFIFO_in), 
@@ -231,7 +228,11 @@ module FPGA_Bluetooth_connection(
 	// Rest_RFIFO Signals
 	wire is_it_r, is_it_n;
 	assign is_it_r = (check == 16'h00e0) ? 1'b1: 1'b0;
-	assign is_it_n = (check == 16'h00e0) ? 1'b1: 1'b0;
+	assign is_it_n = (check == 16'h0000) ? 1'b1: 1'b0;
+	
+	wire [1:0] is_at_done;
+	parameter No = 2'b00, Wait = 2'b01, Yes = 2'b10; 
+	mux_8_2bit m_iad(.data0(No), .data1(No), .data2(No), .data3(Wait), .data4(Yes), .data5(No), .data6(No), .data7(No), .sel(c), .result(is_at_done) );
 	
 	// Reading RFIFO Signals
 	wire data_stored_for_user, data_ready_for_user;
@@ -337,10 +338,15 @@ module FPGA_Bluetooth_connection(
 			
 			Rest_RFIFO:
 			begin
-				if(c == End)
+				if(is_at_done == Yes)
 					next = Wait_for_User_Demand;
 				else
-					next = Receive_AT_Response;
+				begin
+					if(is_at_done == Wait)
+						next = Rest_RFIFO;
+					else
+						next = Receive_AT_Response;
+				end
 			end
 			
 			Wait_for_User_Demand:
@@ -384,12 +390,26 @@ module FPGA_Bluetooth_connection(
 		case(c)
 			Beginning:
 			begin
+				if(curr == Rest_RFIFO)
+					n = Search_r;
+				else
+					n = Beginning;
+			end
+			Search_r:
+			begin
 				if(is_it_r)
 					n = Found_r;
 				else
 					n = Beginning;
 			end
 			Found_r:
+			begin
+				if(curr == Rest_RFIFO)
+					n = Search_n;
+				else
+					n = Found_r;
+			end
+			Search_n:
 			begin
 				if(is_it_n)
 					n = End;
@@ -427,10 +447,10 @@ module FPGA_Bluetooth_connection(
 	assign ep21wireOut[7] = next[3];
 	assign ep21wireOut[8] = c[0];
 	assign ep21wireOut[9] = c[1];
-	assign ep21wireOut[10] = n[0];
-	assign ep21wireOut[11] = n[1];
-	assign ep21wireOut[12] = RFIFO_full;
-	assign ep21wireOut[13] = RFIFO_empty;
+	assign ep21wireOut[10] = c[2];
+	assign ep21wireOut[11] = n[0];
+	assign ep21wireOut[12] = n[1];
+	assign ep21wireOut[13] = n[2];
 	assign ep21wireOut[14] = RFIFO_wr_en;
 	assign ep21wireOut[15] = RFIFO_rd_en;
 	

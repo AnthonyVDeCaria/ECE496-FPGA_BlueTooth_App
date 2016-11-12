@@ -99,14 +99,13 @@ module testingAT;
 		#275 ep02wireIn = 16'h0036;
 		
 		#2000 fpga_rxd = 1'b0;
-		#2001 fpga_rxd = 1'b1;
-		#2002 fpga_rxd = 1'b0;
 		#2003 fpga_rxd = 1'b1;
-		#2005 fpga_rxd = 1'b0;
-		#2009 fpga_rxd = 1'b1;
+		#2010 fpga_rxd = 1'b0;
+		#2017 fpga_rxd = 1'b1;
 		
-		#3000 ep02wireIn = 16'h0016;
-		#3010 ep02wireIn = 16'h00C6;
+		#3000 ep02wireIn = 16'h0046;
+		#3010 ep02wireIn = 16'h0086;
+		#3050 ep02wireIn = 16'h0046;
 		#3100 ep02wireIn = 16'h0186;
 	end
 	

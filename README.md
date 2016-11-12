@@ -20,6 +20,6 @@ To load a piece of data: 000 001 110 -> 016 -> 0 0000 1110 -> 00E
 To add a new piece of data: 000 010 110 -> 026 -> 0 0001 0110 -> 016
 To move on when you finished sending your AT commands: 000 110 110 -> 066 -> 0 0011 0110 -> 036
 
-To accees RFIFO: 001 000 110 -> 106 -> 0 0100 0110 -> 016
-To receive a new piece of data: 011 000 110 -> 306 -> 0 1100 0110 -> 0C6
+To accees RFIFO: 001 000 110 -> 106 -> 0 0100 0110 -> 046
+To say you've received data: 010 000 110 -> 206 -> 0 1000 0110 -> 086
 To stop receiving data: 110 000 110 -> 606 -> 1 1000 0110 -> 186

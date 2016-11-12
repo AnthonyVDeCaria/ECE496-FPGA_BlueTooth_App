@@ -4,11 +4,11 @@
 	This module creates a UART receiver.
 */
 
-module UART_rx(clk, resetn, start, cycles_per_databit, rx_line, rx_data, rx_data_valid);
+module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid);
 	/*
 		I/Os
 	*/
-	input clk, resetn, start;	
+	input clk, resetn;	
 	input [9:0] cycles_per_databit; //Allows for 1024 cycles between each databit
 	input rx_line;
 
@@ -75,24 +75,17 @@ module UART_rx(clk, resetn, start, cycles_per_databit, rx_line, rx_data, rx_data
 		case(curr)
 			Idle: 
 			begin
-				if(start)
+				if(!rx_line)
 				begin
-					if(!rx_line)
-					begin
-						prev = Idle;
-						next = Double_Check;
-					end
-					else
-					begin
-						prev = Idle;
-						next = Idle;
-					end
+					prev = Idle;
+					next = Double_Check;
 				end
 				else
 				begin
 					prev = Idle;
 					next = Idle;
 				end
+			end
 			end
 			
 			Double_Check:
