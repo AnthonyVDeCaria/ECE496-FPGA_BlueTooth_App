@@ -51,15 +51,18 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	/*
 		Sending Data
 	*/
-	wire [8:0] din, dout;
+	wire [9:0] din, dout;
+//	wire [8:0] din, dout;
 	wire l_r_safety;
 	
+	assign din[9] = 1'b1;
 	assign din[8:1] = tx_data[7:0];
 	assign din[0] = 1'b0;
 	
 	assign l_r_safety = (curr == Prepare_Data);
 	
-	register_9bit_enable_async r_safety(.clk(clk), .resetn(resetn), .enable(l_r_safety), .select(l_r_safety), .d(din), .q(dout) );
+//	register_9bit_enable_async r_safety(.clk(clk), .resetn(resetn), .enable(l_r_safety), .select(l_r_safety), .d(din), .q(dout) );
+	register_10bit_enable_async r_safety(.clk(clk), .resetn(resetn), .enable(l_r_safety), .select(l_r_safety), .d(din), .q(dout) );
 	
 	reg current_dout;
 	always@(*)
@@ -102,7 +105,7 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 			
 			Add_i:
 			begin
-				if(i[3] == 1'b1)
+				if(i[3] == 1'b1 && i[0] == 1'b1)
 					next = Done;
 				else
 					next = Send_Data;
