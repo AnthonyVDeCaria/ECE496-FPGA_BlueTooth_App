@@ -322,10 +322,10 @@ module FPGA_Bluetooth_connection(
 			
 			Receive_AT_Response:
 			begin
-				if(did_at_finish)
+//				if(did_at_finish)
 					next = Wait_for_User_Demand;
-				else
-					next = Receive_AT_Response;
+//				else
+//					next = Receive_AT_Response;
 			end
 			
 			Wait_for_User_Demand:
