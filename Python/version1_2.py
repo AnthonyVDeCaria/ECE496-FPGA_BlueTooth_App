@@ -43,7 +43,7 @@ info.GetClkInfo(pll)
 print("Configuring FPGA...")
 
 #note change to necessary file path later
-x = dev.ConfigureFPGA('/media/ming/D/ECE496/Python/fbc_w_ok.bit')
+x = dev.ConfigureFPGA('../Python/fbc_w_ok.bit')
 
 #checking configuration
 if (x != 0):
@@ -88,7 +88,7 @@ command = ''
 while (exit == 0):
 	#polling for AT command
 	while (command == ""):
-		command = raw_input('Enter command: ')
+		command = input('Enter command: ')
 		print('Command:', command)
 		#write in certain AT command
 		if (command == 'AT'):
