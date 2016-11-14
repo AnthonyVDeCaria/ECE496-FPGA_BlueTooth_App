@@ -225,11 +225,13 @@ module FPGA_Bluetooth_connection(
 	assign all_data_sent = TFIFO_empty & i;
 	
 	// Rest_RFIFO Signals
-	wire is_it_r, is_it_n, at_finished, did_at_finish;
-	assign is_it_r = (data_previously_received == 8'h0d) ? 1'b1: 1'b0;
-	assign is_it_n = (data_just_received == 8'h0a) ? 1'b1: 1'b0;
-	assign at_finished = is_it_r & is_it_n;
-	D_FF_Enable_Async r_datf(.clk(clock), .resetn(~reset), .enable(at_finished), .d(1'b1), .q(did_at_finish));
+	wire did_at_finish;
+//	wire is_it_r, is_it_n, at_finished, did_at_finish;
+//	assign is_it_r = (data_previously_received == 8'h0d) ? 1'b1: 1'b0;
+//	assign is_it_n = (data_just_received == 8'h0a) ? 1'b1: 1'b0;
+//	assign at_finished = is_it_r & is_it_n;
+//	D_FF_Enable_Async r_datf(.clk(clock), .resetn(~reset), .enable(at_finished), .d(1'b1), .q(did_at_finish));
+	assign did_at_finish = (RFIFO_wr_count >= TFIFO_end) ? 1'b1: 1'b0;
 	
 	// Reading RFIFO Signals
 	wire data_stored_for_user, data_ready_for_user;
@@ -322,10 +324,10 @@ module FPGA_Bluetooth_connection(
 			
 			Receive_AT_Response:
 			begin
-//				if(did_at_finish)
+				if(did_at_finish)
 					next = Wait_for_User_Demand;
-//				else
-//					next = Receive_AT_Response;
+				else
+					next = Receive_AT_Response;
 			end
 			
 			Wait_for_User_Demand:
