@@ -43,7 +43,7 @@ module FPGA_Bluetooth_connection(
 	wire start_tx, start_rx, tx_done, rx_done;
 	wire [1:0] data_select;
 	
-	parameter TFIFO_end = 13'h000A;
+	parameter TFIFO_end = 13'h000A, RFIFO_end = 13'h0002;
 	
 	parameter clock_speed = 20'd1000000, baud_rate = 16'd38400;
 	wire [9:0] cpd;
@@ -231,7 +231,7 @@ module FPGA_Bluetooth_connection(
 //	assign is_it_n = (data_just_received == 8'h0a) ? 1'b1: 1'b0;
 //	assign at_finished = is_it_r & is_it_n;
 //	D_FF_Enable_Async r_datf(.clk(clock), .resetn(~reset), .enable(at_finished), .d(1'b1), .q(did_at_finish));
-	assign did_at_finish = (RFIFO_wr_count >= TFIFO_end) ? 1'b1: 1'b0;
+	assign did_at_finish = (RFIFO_wr_count >= RFIFO_end) ? 1'b1: 1'b0;
 	
 	// Reading RFIFO Signals
 	wire data_stored_for_user, data_ready_for_user;

@@ -137,9 +137,12 @@ while (exit == 0):
 		#ep20 for reading values out
 		out = 0
 		dev.UpdateWireOuts()
+		state = dev.GetWireOutValue( 0x21 ) & 0x000F
 		ep29 = dev.GetWireOutValue( 0x29 )
+		print('We are in state %x.' % state)
 		print('The RFIFO was written %04x times.' % ep29)
-		ep29 *= 2
+		if (ep29 > 1):
+			ep29 >> 1
 		print('We should read %04x pieces of data.' % ep29)
 		while (ep29 > 0):
 			#forward
