@@ -23,7 +23,7 @@ dev.OpenBySerial('')
 info.GetDeviceInfo(dev)
 
 #==================== PLL Configuration ======================
-print 'Setting clocks...'
+print('Setting clocks...')
 clkA = 0.5
 
 dividerA = int(50.0/float(clkA))
@@ -40,7 +40,7 @@ info.GetClkInfo(pll)
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 #==================== FPGA Configuration ======================
-print "Configuring FPGA..."
+print("Configuring FPGA...")
 
 #note change to necessary file path later
 x = dev.ConfigureFPGA('/media/ming/D/ECE496/Python/fbc_w_ok.bit')
@@ -70,7 +70,7 @@ dev.UpdateWireIns()
 #reading current state #
 dev.UpdateWireOuts()
 ep21value = dev.GetWireOutValue( 0x21 )
-print 'Before start 0x21: %04x' % ep21value
+print('Before start 0x21: %04x' % ep21value)
 
 #list of AT commands
 ATO = [0x4154, 0x2b4f, 0x5247, 0x4c0d, 0x0a]
@@ -105,7 +105,7 @@ while (exit == 0):
 	if (write == 1):
 		# sending in AT command
 		while (count < len(AT)):
-			print 'Loading: %04x' % AT[count]
+			print('Loading: %04x' % AT[count])
 			#sending in part of AT command
 			dev.SetWireInValue(0x02, 0x000e, 0xffff)
 			dev.UpdateWireIns()
@@ -123,7 +123,7 @@ while (exit == 0):
 
 			count += 1
 
-		print "done reading continue"
+		print("done reading continue")
 
 		timer = 0
 		while (timer < 50000000):
@@ -132,7 +132,7 @@ while (exit == 0):
 		#reading current state #
 		dev.UpdateWireOuts()
 		ep21value = dev.GetWireOutValue( 0x21 )
-		print 'After done loading all data 0x21: %04x' % ep21value
+		print('After done loading all data 0x21: %04x' % ep21value)
 	
 		#ep20 for reading values out
 		out = 0
@@ -143,7 +143,7 @@ while (exit == 0):
 	
 			dev.UpdateWireOuts()
 			out = dev.GetWireOutValue( 0x20 )
-			print 'reading out: %04x' % out
+			print('reading out: %04x' % out)
 			#finished reading segment
 			if (out != 0x0d0a):
 				dev.SetWireInValue( 0x02, 0x0086, 0xffff )
@@ -153,21 +153,21 @@ while (exit == 0):
 				dev.SetWireInValue( 0x02, 0x0186, 0xffff )
 				dev.UpdateWireIns()
 
-		print "done reading continue"
+		print("done reading continue")
 
 		dev.UpdateWireOuts()
 		ep20value = dev.GetWireOutValue( 0x21 )
-		print "\nAfter done with AT"
-		print '0x21: %04x' % ep20value
+		print("\nAfter done with AT")
+		print('0x21: %04x' % ep20value)
 
 		dev.UpdateWireOuts()
 		ep30value = dev.GetWireOutValue( 0x30 )
-		print '0x30: %04x' % ep30value
+		print('0x30: %04x' % ep30value)
 
 	elif (read == 1):
 		dev.UpdateWireOuts()
 		out = dev.GetWireOutValue( 0x20 )	
-		print 'reading out: %04x' % out
+		print('reading out: %04x' % out)
 	#resetting all flags and counters
 	init_flag = 0
 	count = 0
@@ -181,7 +181,7 @@ dev.UpdateWireIns()
 
 dev.UpdateWireOuts()
 ep21value = dev.GetWireOutValue( 0x21 )
-print "\nAfter reset at the end"
-print '0x21: %04x' % ep21value
+print("\nAfter reset at the end")
+print('0x21: %04x' % ep21value)
 	
 
