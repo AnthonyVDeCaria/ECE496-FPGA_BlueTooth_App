@@ -73,7 +73,7 @@ ep21value = dev.GetWireOutValue( 0x21 )
 print('Before start 0x21: %04x' % ep21value)
 
 #list of AT commands
-ATO = [0x4154, 0x2b4f, 0x5247, 0x4c0d, 0x0a]
+ATO = [0x4154, 0x2b4f, 0x5247, 0x4c0d, 0x0a00]
 
 AT= [0x4154, 0x0d0a]
 
@@ -136,7 +136,12 @@ while (exit == 0):
 	
 		#ep20 for reading values out
 		out = 0
-		while (out != 0x0d0a):
+		dev.UpdateWireOuts()
+		ep29 = dev.GetWireOutValue( 0x29 )
+		print('The RFIFO was written %04x times.' % ep29)
+		ep29 *= 2
+		print('We should read %04x pieces of data.' % ep29)
+		while (ep29 > 0):
 			#forward
 			dev.SetWireInValue( 0x02, 0x0046, 0xffff )
 			dev.UpdateWireIns()
@@ -145,9 +150,10 @@ while (exit == 0):
 			out = dev.GetWireOutValue( 0x20 )
 			print('reading out: %04x' % out)
 			#finished reading segment
-			if (out != 0x0d0a):
+			if (ep29 > 0):
 				dev.SetWireInValue( 0x02, 0x0086, 0xffff )
 				dev.UpdateWireIns()
+				ep29 -= 1
 			else:
 				#finished with AT_FIFO
 				dev.SetWireInValue( 0x02, 0x0186, 0xffff )
