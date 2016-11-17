@@ -121,6 +121,7 @@ while (exit == 0):
 			print('Read', command)
 
 	if (write > 0):
+		print ("write: ", write)
 		# sending in AT command
 		while (count < len(at)):
 			print('Loading: %04x' % at[count])
