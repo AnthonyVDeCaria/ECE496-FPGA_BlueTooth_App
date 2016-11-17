@@ -64,7 +64,7 @@ module FPGA_Bluetooth_connection(
 	assign data_select[0] = 1'b0;
 	assign data_select[1] = 1'b0;
 	
-	assign bt_enable = ~((curr == Idle ) | (curr == Done));
+	assign bt_enable = 1'b1;
 	
 	assign cpd = clock_speed / baud_rate;
 	
