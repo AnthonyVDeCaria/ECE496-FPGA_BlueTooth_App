@@ -42,7 +42,7 @@ info.GetClkInfo(pll)
 print "Configuring FPGA..."
 
 #note change to necessary file path later
-x = dev.ConfigureFPGA('/media/ming/D/ECE496/Python/FBC_w_OK.bit')
+x = dev.ConfigureFPGA('/media/ming/D/ECE496/Python/fbc_w_ok.bit')
 
 #checking configuration
 if (x != 0):

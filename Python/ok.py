@@ -67,129 +67,6 @@ except AttributeError:
     _newclass = 0
 
 
-class SwigPyIterator(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, SwigPyIterator, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, SwigPyIterator, name)
-    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined - class is abstract")
-    __repr__ = _swig_repr
-    __swig_destroy__ = _ok.delete_SwigPyIterator
-    __del__ = lambda self : None;
-    def value(self): return _ok.SwigPyIterator_value(self)
-    def incr(self, n=1): return _ok.SwigPyIterator_incr(self, n)
-    def decr(self, n=1): return _ok.SwigPyIterator_decr(self, n)
-    def distance(self, *args): return _ok.SwigPyIterator_distance(self, *args)
-    def equal(self, *args): return _ok.SwigPyIterator_equal(self, *args)
-    def copy(self): return _ok.SwigPyIterator_copy(self)
-    def next(self): return _ok.SwigPyIterator_next(self)
-    def __next__(self): return _ok.SwigPyIterator___next__(self)
-    def previous(self): return _ok.SwigPyIterator_previous(self)
-    def advance(self, *args): return _ok.SwigPyIterator_advance(self, *args)
-    def __eq__(self, *args): return _ok.SwigPyIterator___eq__(self, *args)
-    def __ne__(self, *args): return _ok.SwigPyIterator___ne__(self, *args)
-    def __iadd__(self, *args): return _ok.SwigPyIterator___iadd__(self, *args)
-    def __isub__(self, *args): return _ok.SwigPyIterator___isub__(self, *args)
-    def __add__(self, *args): return _ok.SwigPyIterator___add__(self, *args)
-    def __sub__(self, *args): return _ok.SwigPyIterator___sub__(self, *args)
-    def __iter__(self): return self
-SwigPyIterator_swigregister = _ok.SwigPyIterator_swigregister
-SwigPyIterator_swigregister(SwigPyIterator)
-
-class okStrings(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okStrings, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okStrings, name)
-    __repr__ = _swig_repr
-    def iterator(self): return _ok.okStrings_iterator(self)
-    def __iter__(self): return self.iterator()
-    def __nonzero__(self): return _ok.okStrings___nonzero__(self)
-    def __bool__(self): return _ok.okStrings___bool__(self)
-    def __len__(self): return _ok.okStrings___len__(self)
-    def pop(self): return _ok.okStrings_pop(self)
-    def __getslice__(self, *args): return _ok.okStrings___getslice__(self, *args)
-    def __setslice__(self, *args): return _ok.okStrings___setslice__(self, *args)
-    def __delslice__(self, *args): return _ok.okStrings___delslice__(self, *args)
-    def __delitem__(self, *args): return _ok.okStrings___delitem__(self, *args)
-    def __getitem__(self, *args): return _ok.okStrings___getitem__(self, *args)
-    def __setitem__(self, *args): return _ok.okStrings___setitem__(self, *args)
-    def append(self, *args): return _ok.okStrings_append(self, *args)
-    def empty(self): return _ok.okStrings_empty(self)
-    def size(self): return _ok.okStrings_size(self)
-    def clear(self): return _ok.okStrings_clear(self)
-    def swap(self, *args): return _ok.okStrings_swap(self, *args)
-    def get_allocator(self): return _ok.okStrings_get_allocator(self)
-    def begin(self): return _ok.okStrings_begin(self)
-    def end(self): return _ok.okStrings_end(self)
-    def rbegin(self): return _ok.okStrings_rbegin(self)
-    def rend(self): return _ok.okStrings_rend(self)
-    def pop_back(self): return _ok.okStrings_pop_back(self)
-    def erase(self, *args): return _ok.okStrings_erase(self, *args)
-    def __init__(self, *args): 
-        this = _ok.new_okStrings(*args)
-        try: self.this.append(this)
-        except: self.this = this
-    def push_back(self, *args): return _ok.okStrings_push_back(self, *args)
-    def front(self): return _ok.okStrings_front(self)
-    def back(self): return _ok.okStrings_back(self)
-    def assign(self, *args): return _ok.okStrings_assign(self, *args)
-    def resize(self, *args): return _ok.okStrings_resize(self, *args)
-    def insert(self, *args): return _ok.okStrings_insert(self, *args)
-    def reserve(self, *args): return _ok.okStrings_reserve(self, *args)
-    def capacity(self): return _ok.okStrings_capacity(self)
-    __swig_destroy__ = _ok.delete_okStrings
-    __del__ = lambda self : None;
-okStrings_swigregister = _ok.okStrings_swigregister
-okStrings_swigregister(okStrings)
-
-class okTRegisterEntries(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okTRegisterEntries, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okTRegisterEntries, name)
-    __repr__ = _swig_repr
-    def iterator(self): return _ok.okTRegisterEntries_iterator(self)
-    def __iter__(self): return self.iterator()
-    def __nonzero__(self): return _ok.okTRegisterEntries___nonzero__(self)
-    def __bool__(self): return _ok.okTRegisterEntries___bool__(self)
-    def __len__(self): return _ok.okTRegisterEntries___len__(self)
-    def pop(self): return _ok.okTRegisterEntries_pop(self)
-    def __getslice__(self, *args): return _ok.okTRegisterEntries___getslice__(self, *args)
-    def __setslice__(self, *args): return _ok.okTRegisterEntries___setslice__(self, *args)
-    def __delslice__(self, *args): return _ok.okTRegisterEntries___delslice__(self, *args)
-    def __delitem__(self, *args): return _ok.okTRegisterEntries___delitem__(self, *args)
-    def __getitem__(self, *args): return _ok.okTRegisterEntries___getitem__(self, *args)
-    def __setitem__(self, *args): return _ok.okTRegisterEntries___setitem__(self, *args)
-    def append(self, *args): return _ok.okTRegisterEntries_append(self, *args)
-    def empty(self): return _ok.okTRegisterEntries_empty(self)
-    def size(self): return _ok.okTRegisterEntries_size(self)
-    def clear(self): return _ok.okTRegisterEntries_clear(self)
-    def swap(self, *args): return _ok.okTRegisterEntries_swap(self, *args)
-    def get_allocator(self): return _ok.okTRegisterEntries_get_allocator(self)
-    def begin(self): return _ok.okTRegisterEntries_begin(self)
-    def end(self): return _ok.okTRegisterEntries_end(self)
-    def rbegin(self): return _ok.okTRegisterEntries_rbegin(self)
-    def rend(self): return _ok.okTRegisterEntries_rend(self)
-    def pop_back(self): return _ok.okTRegisterEntries_pop_back(self)
-    def erase(self, *args): return _ok.okTRegisterEntries_erase(self, *args)
-    def __init__(self, *args): 
-        this = _ok.new_okTRegisterEntries(*args)
-        try: self.this.append(this)
-        except: self.this = this
-    def push_back(self, *args): return _ok.okTRegisterEntries_push_back(self, *args)
-    def front(self): return _ok.okTRegisterEntries_front(self)
-    def back(self): return _ok.okTRegisterEntries_back(self)
-    def assign(self, *args): return _ok.okTRegisterEntries_assign(self, *args)
-    def resize(self, *args): return _ok.okTRegisterEntries_resize(self, *args)
-    def insert(self, *args): return _ok.okTRegisterEntries_insert(self, *args)
-    def reserve(self, *args): return _ok.okTRegisterEntries_reserve(self, *args)
-    def capacity(self): return _ok.okTRegisterEntries_capacity(self)
-    __swig_destroy__ = _ok.delete_okTRegisterEntries
-    __del__ = lambda self : None;
-okTRegisterEntries_swigregister = _ok.okTRegisterEntries_swigregister
-okTRegisterEntries_swigregister(okTRegisterEntries)
-
 OK_MAX_DEVICEID_LENGTH = _ok.OK_MAX_DEVICEID_LENGTH
 OK_MAX_SERIALNUMBER_LENGTH = _ok.OK_MAX_SERIALNUMBER_LENGTH
 OK_MAX_PRODUCT_NAME_LENGTH = _ok.OK_MAX_PRODUCT_NAME_LENGTH
@@ -209,55 +86,6 @@ okDEVICEINTERFACE_UNKNOWN = _ok.okDEVICEINTERFACE_UNKNOWN
 okDEVICEINTERFACE_USB2 = _ok.okDEVICEINTERFACE_USB2
 okDEVICEINTERFACE_PCIE = _ok.okDEVICEINTERFACE_PCIE
 okDEVICEINTERFACE_USB3 = _ok.okDEVICEINTERFACE_USB3
-okDEVICESENSOR_INVALID = _ok.okDEVICESENSOR_INVALID
-okDEVICESENSOR_BOOL = _ok.okDEVICESENSOR_BOOL
-okDEVICESENSOR_INTEGER = _ok.okDEVICESENSOR_INTEGER
-okDEVICESENSOR_FLOAT = _ok.okDEVICESENSOR_FLOAT
-okDEVICESENSOR_VOLTAGE = _ok.okDEVICESENSOR_VOLTAGE
-okDEVICESENSOR_CURRENT = _ok.okDEVICESENSOR_CURRENT
-okDEVICESENSOR_TEMPERATURE = _ok.okDEVICESENSOR_TEMPERATURE
-okDEVICESENSOR_FAN_RPM = _ok.okDEVICESENSOR_FAN_RPM
-OK_MAX_DEVICE_SENSOR_NAME_LENGTH = _ok.OK_MAX_DEVICE_SENSOR_NAME_LENGTH
-OK_MAX_DEVICE_SENSOR_DESCRIPTION_LENGTH = _ok.OK_MAX_DEVICE_SENSOR_DESCRIPTION_LENGTH
-class okTDeviceSensor(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okTDeviceSensor, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okTDeviceSensor, name)
-    __repr__ = _swig_repr
-    __swig_setmethods__["id"] = _ok.okTDeviceSensor_id_set
-    __swig_getmethods__["id"] = _ok.okTDeviceSensor_id_get
-    if _newclass:id = _swig_property(_ok.okTDeviceSensor_id_get, _ok.okTDeviceSensor_id_set)
-    __swig_setmethods__["type"] = _ok.okTDeviceSensor_type_set
-    __swig_getmethods__["type"] = _ok.okTDeviceSensor_type_get
-    if _newclass:type = _swig_property(_ok.okTDeviceSensor_type_get, _ok.okTDeviceSensor_type_set)
-    __swig_setmethods__["name"] = _ok.okTDeviceSensor_name_set
-    __swig_getmethods__["name"] = _ok.okTDeviceSensor_name_get
-    if _newclass:name = _swig_property(_ok.okTDeviceSensor_name_get, _ok.okTDeviceSensor_name_set)
-    __swig_setmethods__["description"] = _ok.okTDeviceSensor_description_set
-    __swig_getmethods__["description"] = _ok.okTDeviceSensor_description_get
-    if _newclass:description = _swig_property(_ok.okTDeviceSensor_description_get, _ok.okTDeviceSensor_description_set)
-    __swig_setmethods__["min"] = _ok.okTDeviceSensor_min_set
-    __swig_getmethods__["min"] = _ok.okTDeviceSensor_min_get
-    if _newclass:min = _swig_property(_ok.okTDeviceSensor_min_get, _ok.okTDeviceSensor_min_set)
-    __swig_setmethods__["max"] = _ok.okTDeviceSensor_max_set
-    __swig_getmethods__["max"] = _ok.okTDeviceSensor_max_get
-    if _newclass:max = _swig_property(_ok.okTDeviceSensor_max_get, _ok.okTDeviceSensor_max_set)
-    __swig_setmethods__["step"] = _ok.okTDeviceSensor_step_set
-    __swig_getmethods__["step"] = _ok.okTDeviceSensor_step_get
-    if _newclass:step = _swig_property(_ok.okTDeviceSensor_step_get, _ok.okTDeviceSensor_step_set)
-    __swig_setmethods__["value"] = _ok.okTDeviceSensor_value_set
-    __swig_getmethods__["value"] = _ok.okTDeviceSensor_value_get
-    if _newclass:value = _swig_property(_ok.okTDeviceSensor_value_get, _ok.okTDeviceSensor_value_set)
-    def __init__(self): 
-        this = _ok.new_okTDeviceSensor()
-        try: self.this.append(this)
-        except: self.this = this
-    __swig_destroy__ = _ok.delete_okTDeviceSensor
-    __del__ = lambda self : None;
-okTDeviceSensor_swigregister = _ok.okTDeviceSensor_swigregister
-okTDeviceSensor_swigregister(okTDeviceSensor)
-
 OK_PRODUCT_UNKNOWN = _ok.OK_PRODUCT_UNKNOWN
 OK_PRODUCT_XEM3001V1 = _ok.OK_PRODUCT_XEM3001V1
 OK_PRODUCT_XEM3001V2 = _ok.OK_PRODUCT_XEM3001V2
@@ -286,17 +114,6 @@ OK_PRODUCT_XEM6110V2LX150 = _ok.OK_PRODUCT_XEM6110V2LX150
 OK_PRODUCT_XEM6002LX9 = _ok.OK_PRODUCT_XEM6002LX9
 OK_PRODUCT_XEM6310MTLX45T = _ok.OK_PRODUCT_XEM6310MTLX45T
 OK_PRODUCT_XEM6320LX130T = _ok.OK_PRODUCT_XEM6320LX130T
-OK_PRODUCT_XEM7350K70T = _ok.OK_PRODUCT_XEM7350K70T
-OK_PRODUCT_XEM7350K160T = _ok.OK_PRODUCT_XEM7350K160T
-OK_PRODUCT_XEM7350K410T = _ok.OK_PRODUCT_XEM7350K410T
-OK_PRODUCT_XEM6310MTLX150T = _ok.OK_PRODUCT_XEM6310MTLX150T
-OK_PRODUCT_ZEM5305A2 = _ok.OK_PRODUCT_ZEM5305A2
-OK_PRODUCT_ZEM5305A7 = _ok.OK_PRODUCT_ZEM5305A7
-OK_PRODUCT_XEM7001A15 = _ok.OK_PRODUCT_XEM7001A15
-OK_PRODUCT_XEM7001A35 = _ok.OK_PRODUCT_XEM7001A35
-OK_PRODUCT_XEM7360K160T = _ok.OK_PRODUCT_XEM7360K160T
-OK_PRODUCT_XEM7360K410T = _ok.OK_PRODUCT_XEM7360K410T
-OK_PRODUCT_OEM_START = _ok.OK_PRODUCT_OEM_START
 okPRODUCT_UNKNOWN = _ok.okPRODUCT_UNKNOWN
 okPRODUCT_XEM3001V1 = _ok.okPRODUCT_XEM3001V1
 okPRODUCT_XEM3001V2 = _ok.okPRODUCT_XEM3001V2
@@ -325,17 +142,7 @@ okPRODUCT_XEM6110V2LX150 = _ok.okPRODUCT_XEM6110V2LX150
 okPRODUCT_XEM6002LX9 = _ok.okPRODUCT_XEM6002LX9
 okPRODUCT_XEM6310MTLX45T = _ok.okPRODUCT_XEM6310MTLX45T
 okPRODUCT_XEM6320LX130T = _ok.okPRODUCT_XEM6320LX130T
-okPRODUCT_XEM7350K70T = _ok.okPRODUCT_XEM7350K70T
-okPRODUCT_XEM7350K160T = _ok.okPRODUCT_XEM7350K160T
-okPRODUCT_XEM7350K410T = _ok.okPRODUCT_XEM7350K410T
-okPRODUCT_XEM6310MTLX150T = _ok.okPRODUCT_XEM6310MTLX150T
-okPRODUCT_ZEM5305A2 = _ok.okPRODUCT_ZEM5305A2
-okPRODUCT_ZEM5305A7 = _ok.okPRODUCT_ZEM5305A7
-okPRODUCT_XEM7001A15 = _ok.okPRODUCT_XEM7001A15
-okPRODUCT_XEM7001A35 = _ok.okPRODUCT_XEM7001A35
-okPRODUCT_XEM7360K160T = _ok.okPRODUCT_XEM7360K160T
-okPRODUCT_XEM7360K410T = _ok.okPRODUCT_XEM7360K410T
-okPRODUCT_OEM_START = _ok.okPRODUCT_OEM_START
+okREGISTER_SET_ENTRIES = _ok.okREGISTER_SET_ENTRIES
 class okTRegisterEntry(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, okTRegisterEntry, name, value)
@@ -356,6 +163,27 @@ class okTRegisterEntry(_object):
     __del__ = lambda self : None;
 okTRegisterEntry_swigregister = _ok.okTRegisterEntry_swigregister
 okTRegisterEntry_swigregister(okTRegisterEntry)
+
+class okTRegisterSet(_object):
+    __swig_setmethods__ = {}
+    __setattr__ = lambda self, name, value: _swig_setattr(self, okTRegisterSet, name, value)
+    __swig_getmethods__ = {}
+    __getattr__ = lambda self, name: _swig_getattr(self, okTRegisterSet, name)
+    __repr__ = _swig_repr
+    __swig_setmethods__["count"] = _ok.okTRegisterSet_count_set
+    __swig_getmethods__["count"] = _ok.okTRegisterSet_count_get
+    if _newclass:count = _swig_property(_ok.okTRegisterSet_count_get, _ok.okTRegisterSet_count_set)
+    __swig_setmethods__["entries"] = _ok.okTRegisterSet_entries_set
+    __swig_getmethods__["entries"] = _ok.okTRegisterSet_entries_get
+    if _newclass:entries = _swig_property(_ok.okTRegisterSet_entries_get, _ok.okTRegisterSet_entries_set)
+    def __init__(self): 
+        this = _ok.new_okTRegisterSet()
+        try: self.this.append(this)
+        except: self.this = this
+    __swig_destroy__ = _ok.delete_okTRegisterSet
+    __del__ = lambda self : None;
+okTRegisterSet_swigregister = _ok.okTRegisterSet_swigregister
+okTRegisterSet_swigregister(okTRegisterSet)
 
 class okTTriggerEntry(_object):
     __swig_setmethods__ = {}
@@ -378,10 +206,6 @@ class okTTriggerEntry(_object):
 okTTriggerEntry_swigregister = _ok.okTTriggerEntry_swigregister
 okTTriggerEntry_swigregister(okTTriggerEntry)
 
-OK_FPGACONFIGURATIONMETHOD_NVRAM = _ok.OK_FPGACONFIGURATIONMETHOD_NVRAM
-OK_FPGACONFIGURATIONMETHOD_JTAG = _ok.OK_FPGACONFIGURATIONMETHOD_JTAG
-okFPGACONFIGURATIONMETHOD_NVRAM = _ok.okFPGACONFIGURATIONMETHOD_NVRAM
-okFPGACONFIGURATIONMETHOD_JTAG = _ok.okFPGACONFIGURATIONMETHOD_JTAG
 okFPGARESETPROFILE_MAGIC = _ok.okFPGARESETPROFILE_MAGIC
 class okTFPGAResetProfile(_object):
     __swig_setmethods__ = {}
@@ -566,12 +390,6 @@ class okTDeviceInfo(_object):
     __swig_setmethods__["flashFPGA"] = _ok.okTDeviceInfo_flashFPGA_set
     __swig_getmethods__["flashFPGA"] = _ok.okTDeviceInfo_flashFPGA_get
     if _newclass:flashFPGA = _swig_property(_ok.okTDeviceInfo_flashFPGA_get, _ok.okTDeviceInfo_flashFPGA_set)
-    __swig_setmethods__["hasFMCEEPROM"] = _ok.okTDeviceInfo_hasFMCEEPROM_set
-    __swig_getmethods__["hasFMCEEPROM"] = _ok.okTDeviceInfo_hasFMCEEPROM_get
-    if _newclass:hasFMCEEPROM = _swig_property(_ok.okTDeviceInfo_hasFMCEEPROM_get, _ok.okTDeviceInfo_hasFMCEEPROM_set)
-    __swig_setmethods__["hasResetProfiles"] = _ok.okTDeviceInfo_hasResetProfiles_set
-    __swig_getmethods__["hasResetProfiles"] = _ok.okTDeviceInfo_hasResetProfiles_get
-    if _newclass:hasResetProfiles = _swig_property(_ok.okTDeviceInfo_hasResetProfiles_get, _ok.okTDeviceInfo_hasResetProfiles_set)
     def __init__(self): 
         this = _ok.new_okTDeviceInfo()
         try: self.this.append(this)
@@ -580,53 +398,6 @@ class okTDeviceInfo(_object):
     __del__ = lambda self : None;
 okTDeviceInfo_swigregister = _ok.okTDeviceInfo_swigregister
 okTDeviceInfo_swigregister(okTDeviceInfo)
-
-class okDeviceSensors(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okDeviceSensors, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okDeviceSensors, name)
-    __repr__ = _swig_repr
-    def iterator(self): return _ok.okDeviceSensors_iterator(self)
-    def __iter__(self): return self.iterator()
-    def __nonzero__(self): return _ok.okDeviceSensors___nonzero__(self)
-    def __bool__(self): return _ok.okDeviceSensors___bool__(self)
-    def __len__(self): return _ok.okDeviceSensors___len__(self)
-    def pop(self): return _ok.okDeviceSensors_pop(self)
-    def __getslice__(self, *args): return _ok.okDeviceSensors___getslice__(self, *args)
-    def __setslice__(self, *args): return _ok.okDeviceSensors___setslice__(self, *args)
-    def __delslice__(self, *args): return _ok.okDeviceSensors___delslice__(self, *args)
-    def __delitem__(self, *args): return _ok.okDeviceSensors___delitem__(self, *args)
-    def __getitem__(self, *args): return _ok.okDeviceSensors___getitem__(self, *args)
-    def __setitem__(self, *args): return _ok.okDeviceSensors___setitem__(self, *args)
-    def append(self, *args): return _ok.okDeviceSensors_append(self, *args)
-    def empty(self): return _ok.okDeviceSensors_empty(self)
-    def size(self): return _ok.okDeviceSensors_size(self)
-    def clear(self): return _ok.okDeviceSensors_clear(self)
-    def swap(self, *args): return _ok.okDeviceSensors_swap(self, *args)
-    def get_allocator(self): return _ok.okDeviceSensors_get_allocator(self)
-    def begin(self): return _ok.okDeviceSensors_begin(self)
-    def end(self): return _ok.okDeviceSensors_end(self)
-    def rbegin(self): return _ok.okDeviceSensors_rbegin(self)
-    def rend(self): return _ok.okDeviceSensors_rend(self)
-    def pop_back(self): return _ok.okDeviceSensors_pop_back(self)
-    def erase(self, *args): return _ok.okDeviceSensors_erase(self, *args)
-    def __init__(self, *args): 
-        this = _ok.new_okDeviceSensors(*args)
-        try: self.this.append(this)
-        except: self.this = this
-    def push_back(self, *args): return _ok.okDeviceSensors_push_back(self, *args)
-    def front(self): return _ok.okDeviceSensors_front(self)
-    def back(self): return _ok.okDeviceSensors_back(self)
-    def assign(self, *args): return _ok.okDeviceSensors_assign(self, *args)
-    def resize(self, *args): return _ok.okDeviceSensors_resize(self, *args)
-    def insert(self, *args): return _ok.okDeviceSensors_insert(self, *args)
-    def reserve(self, *args): return _ok.okDeviceSensors_reserve(self, *args)
-    def capacity(self): return _ok.okDeviceSensors_capacity(self)
-    __swig_destroy__ = _ok.delete_okDeviceSensors
-    __del__ = lambda self : None;
-okDeviceSensors_swigregister = _ok.okDeviceSensors_swigregister
-okDeviceSensors_swigregister(okDeviceSensors)
 
 class okCPLL22150(_object):
     __swig_setmethods__ = {}
@@ -708,59 +479,6 @@ class okCPLL22393(_object):
 okCPLL22393_swigregister = _ok.okCPLL22393_swigregister
 okCPLL22393_swigregister(okCPLL22393)
 
-class okCDeviceSettings(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okCDeviceSettings, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okCDeviceSettings, name)
-    __repr__ = _swig_repr
-    def __init__(self): 
-        this = _ok.new_okCDeviceSettings()
-        try: self.this.append(this)
-        except: self.this = this
-    def GetString(self, *args): return _ok.okCDeviceSettings_GetString(self, *args)
-    def GetInt(self, *args): return _ok.okCDeviceSettings_GetInt(self, *args)
-    def SetString(self, *args): return _ok.okCDeviceSettings_SetString(self, *args)
-    def SetInt(self, *args): return _ok.okCDeviceSettings_SetInt(self, *args)
-    def List(self): return _ok.okCDeviceSettings_List(self)
-    def Delete(self, *args): return _ok.okCDeviceSettings_Delete(self, *args)
-    def Save(self): return _ok.okCDeviceSettings_Save(self)
-    __swig_destroy__ = _ok.delete_okCDeviceSettings
-    __del__ = lambda self : None;
-okCDeviceSettings_swigregister = _ok.okCDeviceSettings_swigregister
-okCDeviceSettings_swigregister(okCDeviceSettings)
-
-class okCFirmware(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okCFirmware, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okCFirmware, name)
-    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined")
-    __repr__ = _swig_repr
-    def PerformTasks(self, *args): return _ok.okCFirmware_PerformTasks(self, *args)
-    __swig_destroy__ = _ok.delete_okCFirmware
-    __del__ = lambda self : None;
-okCFirmware_swigregister = _ok.okCFirmware_swigregister
-okCFirmware_swigregister(okCFirmware)
-
-class okCFirmwarePackage(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okCFirmwarePackage, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okCFirmwarePackage, name)
-    __repr__ = _swig_repr
-    def __init__(self): 
-        this = _ok.new_okCFirmwarePackage()
-        try: self.this.append(this)
-        except: self.this = this
-    def Load(self, *args): return _ok.okCFirmwarePackage_Load(self, *args)
-    def GetFirmwareCount(self): return _ok.okCFirmwarePackage_GetFirmwareCount(self)
-    def GetFirmware(self, num=0): return _ok.okCFirmwarePackage_GetFirmware(self, num)
-    __swig_destroy__ = _ok.delete_okCFirmwarePackage
-    __del__ = lambda self : None;
-okCFirmwarePackage_swigregister = _ok.okCFirmwarePackage_swigregister
-okCFirmwarePackage_swigregister(okCFirmwarePackage)
-
 class okCFrontPanel(_object):
     __swig_setmethods__ = {}
     __setattr__ = lambda self, name, value: _swig_setattr(self, okCFrontPanel, name, value)
@@ -795,10 +513,6 @@ class okCFrontPanel(_object):
     brdXEM6002LX9 = _ok.okCFrontPanel_brdXEM6002LX9
     brdXEM6310MTLX45T = _ok.okCFrontPanel_brdXEM6310MTLX45T
     brdXEM6320LX130T = _ok.okCFrontPanel_brdXEM6320LX130T
-    brdXEM7350K70T = _ok.okCFrontPanel_brdXEM7350K70T
-    brdXEM7350K160T = _ok.okCFrontPanel_brdXEM7350K160T
-    brdXEM7350K410T = _ok.okCFrontPanel_brdXEM7350K410T
-    brdXEM6310MTLX150T = _ok.okCFrontPanel_brdXEM6310MTLX150T
     NoError = _ok.okCFrontPanel_NoError
     Failed = _ok.okCFrontPanel_Failed
     Timeout = _ok.okCFrontPanel_Timeout
@@ -826,36 +540,28 @@ class okCFrontPanel(_object):
         except: self.this = this
     __swig_destroy__ = _ok.delete_okCFrontPanel
     __del__ = lambda self : None;
-    def Close(self): return _ok.okCFrontPanel_Close(self)
-    __swig_getmethods__["GetErrorString"] = lambda x: _ok.okCFrontPanel_GetErrorString
-    if _newclass:GetErrorString = staticmethod(_ok.okCFrontPanel_GetErrorString)
     def ActivateTriggerIn(self, *args): return _ok.okCFrontPanel_ActivateTriggerIn(self, *args)
-    __swig_getmethods__["AddCustomDevice"] = lambda x: _ok.okCFrontPanel_AddCustomDevice
-    if _newclass:AddCustomDevice = staticmethod(_ok.okCFrontPanel_AddCustomDevice)
-    __swig_getmethods__["RemoveCustomDevice"] = lambda x: _ok.okCFrontPanel_RemoveCustomDevice
-    if _newclass:RemoveCustomDevice = staticmethod(_ok.okCFrontPanel_RemoveCustomDevice)
     def ConfigureFPGA(self, *args): return _ok.okCFrontPanel_ConfigureFPGA(self, *args)
     def EnableAsynchronousTransfers(self, *args): return _ok.okCFrontPanel_EnableAsynchronousTransfers(self, *args)
     def GetBoardModel(self): return _ok.okCFrontPanel_GetBoardModel(self)
-    __swig_getmethods__["GetBoardModelString"] = lambda x: _ok.okCFrontPanel_GetBoardModelString
-    if _newclass:GetBoardModelString = staticmethod(_ok.okCFrontPanel_GetBoardModelString)
+    def GetBoardModelString(self, *args): return _ok.okCFrontPanel_GetBoardModelString(self, *args)
     def GetDeviceCount(self): return _ok.okCFrontPanel_GetDeviceCount(self)
     def GetDeviceInfo(self, *args): return _ok.okCFrontPanel_GetDeviceInfo(self, *args)
-    def GetFPGAResetProfile(self, *args): return _ok.okCFrontPanel_GetFPGAResetProfile(self, *args)
-    def SetFPGAResetProfile(self, *args): return _ok.okCFrontPanel_SetFPGAResetProfile(self, *args)
+    def GetFPGABootResetProfile(self, *args): return _ok.okCFrontPanel_GetFPGABootResetProfile(self, *args)
+    def GetFPGAJTAGResetProfile(self, *args): return _ok.okCFrontPanel_GetFPGAJTAGResetProfile(self, *args)
+    def SetFPGABootResetProfile(self, *args): return _ok.okCFrontPanel_SetFPGABootResetProfile(self, *args)
+    def SetFPGAJTAGResetProfile(self, *args): return _ok.okCFrontPanel_SetFPGAJTAGResetProfile(self, *args)
     def FlashEraseSector(self, *args): return _ok.okCFrontPanel_FlashEraseSector(self, *args)
-    def GetWireInValue(self, *args): return _ok.okCFrontPanel_GetWireInValue(self, *args)
     def ReadRegister(self, *args): return _ok.okCFrontPanel_ReadRegister(self, *args)
-    def ReadRegisters(self, *args): return _ok.okCFrontPanel_ReadRegisters(self, *args)
+    def ReadRegisterSet(self, *args): return _ok.okCFrontPanel_ReadRegisterSet(self, *args)
     def WriteRegister(self, *args): return _ok.okCFrontPanel_WriteRegister(self, *args)
-    def WriteRegisters(self, *args): return _ok.okCFrontPanel_WriteRegisters(self, *args)
+    def WriteRegisterSet(self, *args): return _ok.okCFrontPanel_WriteRegisterSet(self, *args)
+    def GetWireInValue(self, *args): return _ok.okCFrontPanel_GetWireInValue(self, *args)
     def GetDeviceID(self): return _ok.okCFrontPanel_GetDeviceID(self)
     def GetDeviceListModel(self, *args): return _ok.okCFrontPanel_GetDeviceListModel(self, *args)
     def GetDeviceListSerial(self, *args): return _ok.okCFrontPanel_GetDeviceListSerial(self, *args)
     def GetDeviceMajorVersion(self): return _ok.okCFrontPanel_GetDeviceMajorVersion(self)
     def GetDeviceMinorVersion(self): return _ok.okCFrontPanel_GetDeviceMinorVersion(self)
-    def GetDeviceSensors(self): return _ok.okCFrontPanel_GetDeviceSensors(self)
-    def GetDeviceSettings(self, *args): return _ok.okCFrontPanel_GetDeviceSettings(self, *args)
     def GetEepromPLL22150Configuration(self, *args): return _ok.okCFrontPanel_GetEepromPLL22150Configuration(self, *args)
     def GetEepromPLL22393Configuration(self, *args): return _ok.okCFrontPanel_GetEepromPLL22393Configuration(self, *args)
     def GetPLL22150Configuration(self, *args): return _ok.okCFrontPanel_GetPLL22150Configuration(self, *args)
@@ -896,22 +602,6 @@ class okCFrontPanel(_object):
     def WriteI2C(self, *args): return _ok.okCFrontPanel_WriteI2C(self, *args)
 okCFrontPanel_swigregister = _ok.okCFrontPanel_swigregister
 okCFrontPanel_swigregister(okCFrontPanel)
-
-def okCFrontPanel_GetErrorString(*args):
-  return _ok.okCFrontPanel_GetErrorString(*args)
-okCFrontPanel_GetErrorString = _ok.okCFrontPanel_GetErrorString
-
-def okCFrontPanel_AddCustomDevice(*args):
-  return _ok.okCFrontPanel_AddCustomDevice(*args)
-okCFrontPanel_AddCustomDevice = _ok.okCFrontPanel_AddCustomDevice
-
-def okCFrontPanel_RemoveCustomDevice(*args):
-  return _ok.okCFrontPanel_RemoveCustomDevice(*args)
-okCFrontPanel_RemoveCustomDevice = _ok.okCFrontPanel_RemoveCustomDevice
-
-def okCFrontPanel_GetBoardModelString(*args):
-  return _ok.okCFrontPanel_GetBoardModelString(*args)
-okCFrontPanel_GetBoardModelString = _ok.okCFrontPanel_GetBoardModelString
 
 class FrontPanel(okCFrontPanel):
     __swig_setmethods__ = {}
@@ -963,58 +653,6 @@ class PLL22393(okCPLL22393):
     __del__ = lambda self : None;
 PLL22393_swigregister = _ok.PLL22393_swigregister
 PLL22393_swigregister(PLL22393)
-
-class Firmware(okCFirmware):
-    __swig_setmethods__ = {}
-    for _s in [okCFirmware]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
-    __setattr__ = lambda self, name, value: _swig_setattr(self, Firmware, name, value)
-    __swig_getmethods__ = {}
-    for _s in [okCFirmware]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
-    __getattr__ = lambda self, name: _swig_getattr(self, Firmware, name)
-    def __init__(self, *args, **kwargs): raise AttributeError("No constructor defined")
-    __repr__ = _swig_repr
-    __swig_destroy__ = _ok.delete_Firmware
-    __del__ = lambda self : None;
-Firmware_swigregister = _ok.Firmware_swigregister
-Firmware_swigregister(Firmware)
-
-class FirmwarePackage(okCFirmwarePackage):
-    __swig_setmethods__ = {}
-    for _s in [okCFirmwarePackage]: __swig_setmethods__.update(getattr(_s,'__swig_setmethods__',{}))
-    __setattr__ = lambda self, name, value: _swig_setattr(self, FirmwarePackage, name, value)
-    __swig_getmethods__ = {}
-    for _s in [okCFirmwarePackage]: __swig_getmethods__.update(getattr(_s,'__swig_getmethods__',{}))
-    __getattr__ = lambda self, name: _swig_getattr(self, FirmwarePackage, name)
-    __repr__ = _swig_repr
-    def __init__(self): 
-        this = _ok.new_FirmwarePackage()
-        try: self.this.append(this)
-        except: self.this = this
-    __swig_destroy__ = _ok.delete_FirmwarePackage
-    __del__ = lambda self : None;
-FirmwarePackage_swigregister = _ok.FirmwarePackage_swigregister
-FirmwarePackage_swigregister(FirmwarePackage)
-
-class okCFrontPanelManager(_object):
-    __swig_setmethods__ = {}
-    __setattr__ = lambda self, name, value: _swig_setattr(self, okCFrontPanelManager, name, value)
-    __swig_getmethods__ = {}
-    __getattr__ = lambda self, name: _swig_getattr(self, okCFrontPanelManager, name)
-    __repr__ = _swig_repr
-    def __init__(self, *args): 
-        this = _ok.new_okCFrontPanelManager(*args)
-        try: self.this.append(this)
-        except: self.this = this
-    def Open(self, *args): return _ok.okCFrontPanelManager_Open(self, *args)
-    def OnDeviceAdded(self, *args): return _ok.okCFrontPanelManager_OnDeviceAdded(self, *args)
-    def OnDeviceRemoved(self, *args): return _ok.okCFrontPanelManager_OnDeviceRemoved(self, *args)
-    __swig_destroy__ = _ok.delete_okCFrontPanelManager
-    __del__ = lambda self : None;
-okCFrontPanelManager_swigregister = _ok.okCFrontPanelManager_swigregister
-okCFrontPanelManager_swigregister(okCFrontPanelManager)
-cvar = _ok.cvar
-okREALM_LOCAL = cvar.okREALM_LOCAL
-okREALM_TEST = cvar.okREALM_TEST
 
 # This file is compatible with both classic and new-style classes.
 

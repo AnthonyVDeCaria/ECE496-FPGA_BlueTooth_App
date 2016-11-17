@@ -1,7 +1,7 @@
 # BoardInfo.py
 #
 # This module contains some functions that query the device to find out the
-# current PLL and output settings, and device information and print( it.
+# current PLL and output settings, and device information and print it.
 #
 # Before using these functions:
 # import ok
@@ -11,7 +11,7 @@
 # Created on: Sep. 22, 2012
 #
 # Version 2: Jan 31, 2014
-#   -improved the print(out formatting
+#   -improved the printout formatting
 
 class ClkSrc:
 	""" create an "enumerated" type to describe clock sources to use in
@@ -48,7 +48,7 @@ def GetDeviceInfo(x):
 	""" display device information
 		x is an instance of ok.FrontPanel() """
 	if x.IsOpen() == 0:
-		print( 'No device is open. First call dev.OpenBySerial(\'\')')
+		print 'No device is open. First call dev.OpenBySerial(\'\')'
 		return
 
 	BoardModel = x.GetBoardModel()
@@ -57,20 +57,20 @@ def GetDeviceInfo(x):
 	DeviceMajVer = x.GetDeviceMajorVersion()
 	DeviceMinVer = x.GetDeviceMinorVersion()
 	DeviceSerNum = x.GetSerialNumber()
-	print( 'Device Information:')
-	print( 'Board Model is %s = %s' % (BoardModel, BoardModelString))
-	print( 'Device ID is %s' % DeviceID)
-	print( 'Device Version is %d.%d' % (DeviceMajVer, DeviceMinVer))
-	print( 'Device Serial Number is %s\n' % DeviceSerNum)
+	print 'Device Information:'
+	print 'Board Model is %s = %s' % (BoardModel, BoardModelString)
+	print 'Device ID is %s' % DeviceID
+	print 'Device Version is %d.%d' % (DeviceMajVer, DeviceMinVer)
+	print 'Device Serial Number is %s\n' % DeviceSerNum	
 
 
 def GetPLLInfo(x):
 	""" display current PLL settings
 		x is an instance of ok.PLL22393() """
-	print( 'PLL Settings:')
+	print 'PLL Settings:'
 
 	ClkRef = x.GetReference()	
-	print( 'Reference frequency = %f MHz' % ClkRef)
+	print 'Reference frequency = %f MHz' % ClkRef
 
 	PLL1P = x.GetPLLP(0)
 	PLL1Q = x.GetPLLQ(0)
@@ -88,15 +88,15 @@ def GetPLLInfo(x):
 	PLL3EN = x.IsPLLEnabled(2)
 
 
-	print( 'PLL0: P = {0:3d}, Q = {1:3d}, Freq = {2:9f} MHz, Enabled = {3:5}'.format(PLL1P,PLL1Q,PLL1F,str(PLL1EN)))
-	print( 'PLL1: P = {0:3d}, Q = {1:3d}, Freq = {2:9f} MHz, Enabled = {3:5}'.format(PLL2P,PLL2Q,PLL2F,str(PLL2EN)))
-	print( 'PLL2: P = {0:3d}, Q = {1:3d}, Freq = {2:9f} MHz, Enabled = {3:5}'.format(PLL3P,PLL3Q,PLL3F,str(PLL3EN)))
+	print 'PLL0: P = {0:3d}, Q = {1:3d}, Freq = {2:9f} MHz, Enabled = {3:5}'.format(PLL1P,PLL1Q,PLL1F,str(PLL1EN))
+	print 'PLL1: P = {0:3d}, Q = {1:3d}, Freq = {2:9f} MHz, Enabled = {3:5}'.format(PLL2P,PLL2Q,PLL2F,str(PLL2EN))
+	print 'PLL2: P = {0:3d}, Q = {1:3d}, Freq = {2:9f} MHz, Enabled = {3:5}'.format(PLL3P,PLL3Q,PLL3F,str(PLL3EN))
 
 
 def GetClkInfo(x):
 	""" display current Clock settings
 		x is an instance of ok.PLL22393() """
-	print( 'Clock Settings:')
+	print 'Clock Settings:'
 
 	CLK1Src = ClkSrcDict[x.GetOutputSource(0)]
 	CLK1Div = x.GetOutputDivider(0)
@@ -123,16 +123,16 @@ def GetClkInfo(x):
 	CLK5Freq = x.GetOutputFrequency(4)
 	CLK5En = x.IsOutputEnabled(4)
 
-	print( 'CLKA = CLK1: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK1Src,CLK1Div,CLK1Freq,str(CLK1En)))
-	print( 'CLKB = CLK2: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK2Src,CLK2Div,CLK2Freq,str(CLK2En)))
-	print( 'CLKC = CLK3: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK3Src,CLK3Div,CLK3Freq,str(CLK3En)))
-	print( 'CLKD = CLK4: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK4Src,CLK4Div,CLK4Freq,str(CLK4En)))
-	print( 'CLKE = CLK5: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK5Src,CLK5Div,CLK5Freq,str(CLK5En)))
+	print 'CLKA = CLK1: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK1Src,CLK1Div,CLK1Freq,str(CLK1En))
+	print 'CLKB = CLK2: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK2Src,CLK2Div,CLK2Freq,str(CLK2En))
+	print 'CLKC = CLK3: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK3Src,CLK3Div,CLK3Freq,str(CLK3En))
+	print 'CLKD = CLK4: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK4Src,CLK4Div,CLK4Freq,str(CLK4En))
+	print 'CLKE = CLK5: Src = {0:>8s}, Div = {1:3d}, Freq = {2:5f} MHz, Enabled = {3:6s}'.format(CLK5Src,CLK5Div,CLK5Freq,str(CLK5En))
 
-#	print( 'CLKA = CLK1: Src = ' + str(CLK1Src).ljust(8) + ', Div = ' + str(CLK1Div).rjust(3) + ', Freq = ' + str(CLK1Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK1En).rjust(5)
-#	print( 'CLKB = CLK2: Src = ' + str(CLK2Src).ljust(8) + ', Div = ' + str(CLK2Div).rjust(3) + ', Freq = ' + str(CLK2Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK2En).rjust(5)
-#	print( 'CLKC = CLK3: Src = ' + str(CLK3Src).ljust(8) + ', Div = ' + str(CLK3Div).rjust(3) + ', Freq = ' + str(CLK3Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK3En).rjust(5)
-#	print( 'CLKD = CLK4: Src = ' + str(CLK4Src).ljust(8) + ', Div = ' + str(CLK4Div).rjust(3) + ', Freq = ' + str(CLK4Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK4En).rjust(5)
-#	print( 'CLKE = CLK5: Src = ' + str(CLK5Src).ljust(8) + ', Div = ' + str(CLK5Div).rjust(3) + ', Freq = ' + str(CLK5Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK5En).rjust(5) + '\n'
+#	print 'CLKA = CLK1: Src = ' + str(CLK1Src).ljust(8) + ', Div = ' + str(CLK1Div).rjust(3) + ', Freq = ' + str(CLK1Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK1En).rjust(5)
+#	print 'CLKB = CLK2: Src = ' + str(CLK2Src).ljust(8) + ', Div = ' + str(CLK2Div).rjust(3) + ', Freq = ' + str(CLK2Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK2En).rjust(5)
+#	print 'CLKC = CLK3: Src = ' + str(CLK3Src).ljust(8) + ', Div = ' + str(CLK3Div).rjust(3) + ', Freq = ' + str(CLK3Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK3En).rjust(5)
+#	print 'CLKD = CLK4: Src = ' + str(CLK4Src).ljust(8) + ', Div = ' + str(CLK4Div).rjust(3) + ', Freq = ' + str(CLK4Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK4En).rjust(5)
+#	print 'CLKE = CLK5: Src = ' + str(CLK5Src).ljust(8) + ', Div = ' + str(CLK5Div).rjust(3) + ', Freq = ' + str(CLK5Freq).rjust(5) + ' MHz, Enabled = ' + str(CLK5En).rjust(5) + '\n'
 
 
