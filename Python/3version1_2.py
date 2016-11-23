@@ -1,8 +1,4 @@
-#convert char to ascii int
-def convert(text):
-    return (hex(ord(char)))
-
-#main function
+#all this code should be the same 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 import ok
 import BoardInfo as info
@@ -11,7 +7,8 @@ import matplotlib.pyplot as plt
 import sys 
 import time
 
-
+def convert(text):
+    return (hex(ord(char)))
 
 dev = ok.FrontPanel()
 pll = ok.PLL22393()
@@ -51,8 +48,8 @@ print("Configuring FPGA...")
 x = dev.ConfigureFPGA('/media/ming/D/ECE496/Python/fbc_w_ok.bit')
 
 #checking configuration
-if (x != 0):
-	sys.exit ('FPGA bitfile not found or device is not connected')
+#if (x != 0):
+#	sys.exit ('FPGA bitfile not found or device is not connected')
 
 #==================== Start Operations ======================
 
@@ -87,7 +84,7 @@ ATR = [0x4154, 0x2b52, 0x4553, 0x4554, 0x0d0a]
 #AT+NAME=BU
 ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255, 0x0d0a]
 #AT+NAME
-ATN = [0x4154, 0x2b4e, 0x414d, 0x453D]
+#ATN = [0x4154, 0x2b4e, 0x414d, 0x450d, 0x0a00]
 
 #variables for flags and counters
 count = 0
@@ -100,7 +97,7 @@ command = ''
 while (exit == 0):
 	#polling for AT command
 	while (command == ""):
-		command = raw_input('Enter command: ')
+		command = input('Enter command: ')
 		print('Command:', command)
 		#write in certain AT command
 		if (command == 'AT'):
@@ -119,15 +116,6 @@ while (exit == 0):
 			write = 4
 			at = ATNB
 			print('Write:', command)
-		elif (command == 'ATN'):
-			write = 4
-			at = ATN
-			print('Write:', command)
-			name = raw_input('Enter name: ')
-			index = 4
-			for char in name:
-				i = convert(char)
-				
 		#exit
 		elif (command == 'exit'):
 			exit = 1
@@ -137,7 +125,7 @@ while (exit == 0):
 			print('Read', command)
 
 	if (write > 0):
-		print ("write:", at)
+		print ("write: ", write)
 		# sending in AT command
 		while (count < len(at)):
 			print('Loading: %04x' % at[count])
@@ -151,7 +139,7 @@ while (exit == 0):
 			dev.SetWireInValue(0x02, 0x000e, 0xffff)
 			dev.UpdateWireIns()
 	
-			if (count == len(at)-1):
+			if (count == len(AT)-1):
 				#user_knows_stored at the end
 				dev.SetWireInValue(0x02, 0x003e, 0xffff)
 				dev.UpdateWireIns()
@@ -164,9 +152,9 @@ while (exit == 0):
 
 		print("done reading continue")
 
-		#timer = 0
-		#while (timer < 50000000):
-		#	timer += 1
+		timer = 0
+		while (timer < 50000000):
+			timer += 1
 
 		#reading current state #
 		dev.UpdateWireOuts()
@@ -194,7 +182,7 @@ while (exit == 0):
 			print('reading out: %04x' % out)
 			#finished reading segment
 			if (ep29 > 0):
-				dev.SetWireInValue( 0x02, 0x0186, 0xffff )
+				dev.SetWireInValue( 0x02, 0x0086, 0xffff )
 				dev.UpdateWireIns()
 				ep29 -= 1
 			else:
