@@ -180,7 +180,7 @@ module FPGA_Bluetooth_connection(
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
 	
-	parameter timer_cap = 10'd1000;
+	parameter timer_cap = 10'd385;
 	assign timer_done = (timer == timer_cap) ? 1'b1 : 1'b0;
 	
 	/*
