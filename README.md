@@ -23,3 +23,14 @@ To move on when you finished sending your AT commands: 000 110 110 -> 066 -> 0 0
 To accees RFIFO: 001 000 110 -> 106 -> 0 0100 0110 -> 046
 To say you've received data: 010 000 110 -> 206 -> 0 1000 0110 -> 086
 To stop receiving data: 110 000 110 -> 606 -> 1 1000 0110 -> 186
+
+CPD
+Because of the quirks of the clock and registers, 
+you cannot just use the clock speed divided by the baud rate to get a proper period.
+You have to use other values - ones that we determined experimentally.
+Assuming a 1MHZ:
+38400 => 26 microseconds => 11
+9600 => 100 microseconds => TK(To Be Determined)
+
+Pause Length (Assuming a 1MHZ):
+HC-05 => 800 microseconds => 385
