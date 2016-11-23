@@ -45,8 +45,7 @@ module FPGA_Bluetooth_connection(
 	
 	parameter TFIFO_end = 13'h000A, RFIFO_end = 13'h0002;
 	
-	parameter clock_speed = 20'd1000000, baud_rate = 16'd38400;
-	wire [9:0] cpd;
+	parameter cpd = 10'd11;
 
 	/*
 		Assignments
@@ -65,8 +64,6 @@ module FPGA_Bluetooth_connection(
 	assign data_select[1] = 1'b0;
 	
 	assign bt_enable = 1'b1;
-	
-	assign cpd = (clock_speed / baud_rate) >> 1;
 	
 	/*
 		FSM wires
@@ -418,7 +415,7 @@ module FPGA_Bluetooth_connection(
 	assign ep26wireOut = TFIFO_wr_count;
 	
 	assign ep27wireOut = timer;
-	assign ep28wireOut = timer_cap;
+	assign ep28wireOut = cpd;
 	assign ep29wireOut = RFIFO_wr_count;
 	
 	assign ep30wireOut[7:0] = data_previously_received;
