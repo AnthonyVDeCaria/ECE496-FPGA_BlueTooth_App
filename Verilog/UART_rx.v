@@ -4,7 +4,7 @@
 	This module creates a UART receiver.
 */
 
-module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid);
+module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_valid);
 	/*
 		I/Os
 	*/
@@ -12,7 +12,7 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 	input [9:0] cycles_per_databit; //Allows for 1024 cycles between each databit
 	input rx_line;
 
-	output rx_data_valid;
+	output collecting_data, rx_data_valid;
 	output reg [7:0] rx_data;
 	
 	/*
