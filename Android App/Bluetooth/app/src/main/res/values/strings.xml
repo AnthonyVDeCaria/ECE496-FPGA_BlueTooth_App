@@ -1,30 +1,40 @@
 <!-- This is to add in arbitrary values in xml file (%s for this case)-->
- <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
-<string name="app_name">Bluetooth1</string>
+    <string name="app_name">Bluetooth1</string>
 
-     - <!--   Bluetooth Status   -->
+    - <!--   Bluetooth Status   -->
     <string name="bluetooth_on">Bluetooth is on</string>
     <string name="bluetooth_disconnected">Bluetooth disconnected</string>
     <string name="bluetooth_connected_to">Bluetooth connected to</string>
-<!--    <string name="bluetooth_off">Bluetooth is off</string> -->
+    <!--    <string name="bluetooth_off">Bluetooth is off</string> -->
 
-     - <!--   NotSupportBtDialogFragment   -->
+    - <!--   Storage Status   -->
+    <string name="failed_creating_parent_directory">Error occurred when creating parent directory</string>
+    <string name="failed_saving_data">Error occurred when saving data</string>
+
+    - <!--   NotSupportBtDialogFragment   -->
     <string name="dialog_not_support_bluetooth">This app needs Bluetooth and your device does not support it. Please
     consult your device provider.</string>
     <string name="btn_OK">OK</string>
 
-     - <!--   RepromptBtDialogFragment   -->
-     <string name="dialog_need_bluetooth">This app needs Bluetooth to run. Press connect to instantiate connection again or press exit to quit.</string>
+    - <!--   RepromptBtDialogFragment   -->
+    <string name="dialog_need_bluetooth">This app needs Bluetooth to run. Press connect to instantiate connection again or press exit to quit.</string>
     <string name="btn_Connect">Connect</string>
     <string name="btn_Exit">Exit</string>
+
+    - <!--   StorageNotWorkingDialogFragment   -->
+    <string name="dialog_unavailable_external_storage">This apps need external storage to save data. Please check if it is available.</string>
+
+    - <!--   GetFileNameDialogFragment   -->
+    <string name="txt_Warn_Duplicate">\"<xliff:g id="device_name">%1$s</xliff:g>\" file name already exists. Please enter another one.</string>
 
     - <!--   BluetoothService   -->
     <string name="send">Send</string>
     <!--<string name="not_connected">You are not connected to a device</string>-->
     <!--<string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>-->
     <string name="connecting">Connecting...</string>
-     <string name="connected_to_device">Connected to <xliff:g id="device_name">%1$s</xliff:g></string>
+    <string name="connected_to_device">Connected to <xliff:g id="device_name">%1$s</xliff:g></string>
     <string name="not_connected">Not connected</string>
 
     - <!--   DeviceListActivity   -->
@@ -34,5 +44,16 @@
     <string name="none_found">No devices found</string>
     <string name="title_paired_devices">Paired Devices</string>
     <string name="title_other_devices">Other Available Devices</string>
-    <string name="button_scan">Scan for devices</string>
+    <string name="btn_Scan">Scan for devices</string>
+
+    - <!--Permission Rationales-->
+    <!--Access Coarse Location-->
+    <string name="permission_access_coarse_location">Cannot find devices</string>
+    <string name="permission_access_coarse_location_rationale">The app needs the coarse location access to discover devices.\nPress OK to set the permission at the App\'s setting screen.</string>
+    <!--Storage-->
+    <string name="permission_write_storage">Cannot save data</string>
+    <string name="permission_write_storage_rationale">The app needs write storage permission to save data.\nPress OK to set the permission at the App\'s setting screen.</string>
+    <string name="permission_read_storage">Cannot open file</string>
+    <string name="permission_read_storage_rationale">The app needs read storage permission to open file.\nPress OK to set the permission at the App\'s setting screen.</string>
+    <string name="btn_No_Thanks">NO THANKS</string>
 </resources>
