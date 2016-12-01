@@ -16,7 +16,6 @@
 
 package com.example.hannahkwon.bluetooth1;
 
-import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -24,13 +23,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -48,14 +41,12 @@ import java.util.Set;
  * by the user, the MAC address of the device is sent back to the parent
  * Activity in the result Intent.
  */
-public class DeviceListActivity extends FragmentActivity {
+public class DeviceListActivity extends Activity {
 
     /**
      * Tag for Log
      */
     private static final String TAG = "DeviceListActivity";
-
-    private Button scanButton;
 
     /**
      * Return Intent extra
@@ -78,8 +69,6 @@ public class DeviceListActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.d(TAG, "DeviceListActivity getting created");
-
         // Setup the window
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.activity_device_list);
@@ -88,12 +77,11 @@ public class DeviceListActivity extends FragmentActivity {
         setResult(Activity.RESULT_CANCELED);
 
         // Initialize the button to perform device discovery
-        scanButton = (Button) findViewById(R.id.button_scan);
+        Button scanButton = (Button) findViewById(R.id.button_scan);
         scanButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                verifyHardwareIdentifierPermission(DeviceListActivity.this);
-//                doDiscovery();
-//                v.setVisibility(View.GONE);
+                doDiscovery();
+                v.setVisibility(View.GONE);
             }
         });
 
@@ -115,13 +103,11 @@ public class DeviceListActivity extends FragmentActivity {
 
         // Register for broadcasts when a device is discovered
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothDevice.ACTION_FOUND);
-        filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         this.registerReceiver(mReceiver, filter);
 
         // Register for broadcasts when discovery has finished
-//        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-//        this.registerReceiver(mReceiver, filter);
+        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        this.registerReceiver(mReceiver, filter);
 
         // Get the local Bluetooth adapter
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -145,8 +131,6 @@ public class DeviceListActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
 
-        Log.d(TAG, "DeviceListActivity getting destroyed");
-
         // Make sure we're not doing discovery anymore
         if (mBtAdapter != null) {
             mBtAdapter.cancelDiscovery();
@@ -154,33 +138,6 @@ public class DeviceListActivity extends FragmentActivity {
 
         // Unregister broadcast listeners
         this.unregisterReceiver(mReceiver);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case Constants.PERMISSION_ACCESS_COARSE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission granted
-                    Log.d(TAG, "User granted the permission");
-                    doDiscovery();
-                    scanButton.setVisibility(View.GONE);
-
-                } else {
-                    Log.d(TAG, "Permission is denied");
-                    DialogFragment dialog = RationalDialogFragment.newInstance(getString(R.string.permission_access_coarse_location),
-                            getString(R.string.permission_access_coarse_location_rationale));
-                    dialog.show(DeviceListActivity.this.getSupportFragmentManager(), "RationalDialogFragment");
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
     }
 
     /**
@@ -261,32 +218,4 @@ public class DeviceListActivity extends FragmentActivity {
         }
     };
 
-    /**
-     * Used to get permission for accessing hardware identifier
-     * Without this permission, from Android 6.0 the Bluetooth will not return discoverable devices
-     */
-    private void verifyHardwareIdentifierPermission(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Log.d(TAG, "Verifying Hardware Identifier Access Permission");
-            int permissionCheck = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
-            if(permissionCheck != PackageManager.PERMISSION_GRANTED){
-                Log.d(TAG, "Permission is not granted");
-                // Permission not granted
-                ActivityCompat.requestPermissions(activity,
-                        new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                        Constants.PERMISSION_ACCESS_COARSE_LOCATION);
-            }
-            else{
-                Log.d(TAG, "Permission already granted");
-                doDiscovery();
-                scanButton.setVisibility(View.GONE);
-            }
-        }
-        // Android version is under 6.0 (no runtime permission)
-        else {
-            Log.d(TAG, "Android version is under 6.0 (No need for Runtime Permission");
-            doDiscovery();
-            scanButton.setVisibility(View.GONE);
-        }
-    }
 }
