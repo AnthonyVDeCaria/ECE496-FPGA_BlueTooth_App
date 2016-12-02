@@ -69,7 +69,6 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	/*
 		FSM
 	*/
-	
 	always@(*)
 	begin
 		case(curr)
@@ -153,6 +152,7 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 			curr <= next;
 	end
 	
+	assign collecting_data = (curr == Collect_Data);
 	assign rx_data_valid = (curr == Done);
 	
 endmodule

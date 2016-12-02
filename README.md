@@ -34,3 +34,4 @@ Assuming a 1MHZ:
 
 Pause Length (Assuming a 1MHZ):
 HC-05 => 800 microseconds => 385
+HM-10 => 

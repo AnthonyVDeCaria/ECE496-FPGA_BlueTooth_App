@@ -100,7 +100,7 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	FPGA_Bluetooth_connection master_of_puppets(
 		.clock(CLK1MHZ),
 		.bt_state(HC_05_STATE),
-		.bt_enable(HC_05_ENABLE),
+		.bt_break(HC_05_ENABLE),
 		.fpga_txd(HC_05_RXD),
 		.fpga_rxd(HC_05_TXD), 
 		.ep01wireIn(ep01wireIn),
