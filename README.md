@@ -37,20 +37,20 @@ HC-05 => 800 microseconds => 385
 
 
 #Custom Protocol between FPGA and App
-Control Command Type (1 byte);
-Start		-0;
-Cancel		-1;
-Are active	-2;
-Acknowledge	-3;
+Control Command Type (1 byte)
+Start		-0
+Cancel		-1
+Are active	-2
+Acknowledge	-3
 
-Operands (1 byte);
-Which channels App will listen to	-8 bits (1 bit representing one channel);
+Operands (1 byte)
+Which channels App will listen to	-8 bits (1 bit representing one channel)
 
-Note:;
-Start will incorporate operands, which channels App will listen to.;
-Control commands having no operands will be transmitted as command type packet only.;
+Note:
+Start will incorporate operands, which channels App will listen to.
+Control commands having no operands will be transmitted as command type packet only.
 
-Phases;
-1. Establish Bluetooth Channel;
-2. Notify which channels are active from FPGA to the App (Are active is used);
-3. Interact with the user (Start, Cancel, Acknowledge are used);
+Phases
+1. Establish Bluetooth Channel
+2. Notify which channels are active from FPGA to the App (Are active is used)
+3. Interact with the user (Start, Cancel, Acknowledge are used)
