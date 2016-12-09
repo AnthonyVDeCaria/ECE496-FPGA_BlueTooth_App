@@ -115,7 +115,7 @@ public class BluetoothService {
      *
      * @param message A string of text to send.
      */
-    public void sendMessage(String message) {
+    public void sendMessage(byte[] message) {
         // Check that we're actually connected before trying anything
         if (mState != STATE_CONNECTED) {
             Toast.makeText(mActivity.getApplicationContext(), R.string.not_connected, Toast.LENGTH_SHORT).show();
@@ -123,11 +123,12 @@ public class BluetoothService {
         }
 
         // Check that there's actually something to send
-        if (message.length() > 0) {
+        if (message.length > 0) {
             // Get the message bytes and tell the BluetoothChatService to write
-            byte[] send = message.getBytes();
-            Log.d(TAG, "Sending " + Arrays.toString(send));
-            write(send);
+//            byte[] send = message.getBytes();
+//            Log.d(TAG, "Sending " + Arrays.toString(send));
+//            write(send);
+            write(message);
         }
     }
 

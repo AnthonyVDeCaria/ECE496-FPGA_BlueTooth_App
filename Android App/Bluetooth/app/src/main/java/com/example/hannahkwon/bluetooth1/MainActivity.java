@@ -16,16 +16,19 @@ import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
+import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.Switch;
+import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 public class MainActivity extends FragmentActivity
         implements RepromptBtDialogFragment.RepromptBtDialogListener, NotSupportBtDialogFragment.NotSupportBtDialogListener, GetFileNameDialogFragment.GetFileNameDialogListener{
 
     private static final String TAG = "MainActivity";
+
+    private Toolbar toolbar;
 
     // Bluetooth related
     private TextView txt_BtStatus;
@@ -33,14 +36,18 @@ public class MainActivity extends FragmentActivity
 
     private Button bt_Save;
 
-    private Switch switch_DS1Ctrl;
-    private Switch switch_DS2Ctrl;
-    private Switch switch_DS3Ctrl;
-    private Switch switch_DS4Ctrl;
-    private Switch switch_DS5Ctrl;
-    private Switch switch_DS6Ctrl;
-    private Switch switch_DS7Ctrl;
-    private Switch switch_DS8Ctrl;;
+    private GridLayout gridLayout_Channels;
+    private CheckBox checkBox_DS1;
+    private CheckBox checkBox_DS2;
+    private CheckBox checkBox_DS3;
+    private CheckBox checkBox_DS4;
+    private CheckBox checkBox_DS5;
+    private CheckBox checkBox_DS6;
+    private CheckBox checkBox_DS7;
+    private CheckBox checkBox_DS8;
+
+    private Button bt_Start;
+    private Button bt_Cancel;
 
     private BluetoothService btService = null;
     private FileManager fileManager = null;
@@ -118,18 +125,27 @@ public class MainActivity extends FragmentActivity
 
         setContentView(R.layout.activity_main);
 
+//        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setActionBar(toolbar);
+
         txt_BtStatus = (TextView) findViewById(R.id.txt_BtStatus);
         txt_DataReceived = (TextView) findViewById(R.id.txt_DataReceived);
 
-        switch_DS1Ctrl = (Switch) findViewById(R.id.switch_DS1Ctrl);
-        switch_DS2Ctrl = (Switch) findViewById(R.id.switch_DS2Ctrl);
-        switch_DS3Ctrl = (Switch) findViewById(R.id.switch_DS3Ctrl);
-        switch_DS4Ctrl = (Switch) findViewById(R.id.switch_DS4Ctrl);
-        switch_DS5Ctrl = (Switch) findViewById(R.id.switch_DS5Ctrl);
-        switch_DS6Ctrl = (Switch) findViewById(R.id.switch_DS6Ctrl);
-        switch_DS7Ctrl = (Switch) findViewById(R.id.switch_DS7Ctrl);
-        switch_DS8Ctrl = (Switch) findViewById(R.id.switch_DS8Ctrl);
         bt_Save = (Button) findViewById(R.id.btn_Save);
+
+        gridLayout_Channels = (GridLayout) findViewById(R.id.gridLayout_Channels);
+        checkBox_DS1 = (CheckBox) findViewById(R.id.checkBox_DS1);
+        checkBox_DS2 = (CheckBox) findViewById(R.id.checkBox_DS2);
+        checkBox_DS3 = (CheckBox) findViewById(R.id.checkBox_DS3);
+        checkBox_DS4 = (CheckBox) findViewById(R.id.checkBox_DS4);
+        checkBox_DS5 = (CheckBox) findViewById(R.id.checkBox_DS5);
+        checkBox_DS6 = (CheckBox) findViewById(R.id.checkBox_DS6);
+        checkBox_DS7 = (CheckBox) findViewById(R.id.checkBox_DS7);
+        checkBox_DS8 = (CheckBox) findViewById(R.id.checkBox_DS8);
+        bt_Start = (Button) findViewById(R.id.btn_Start);
+        bt_Cancel = (Button) findViewById(R.id.btn_Cancel);
+
+        // TODO scale the gridlayout
 
         if(btService == null){
             btService = new BluetoothService(this, mHandler);
@@ -150,10 +166,6 @@ public class MainActivity extends FragmentActivity
             fileManager = new FileManager(this);
         }
 
-        // Sets
-        setSwitchesListener(switch_DS1Ctrl, switch_DS2Ctrl, switch_DS3Ctrl, switch_DS4Ctrl, switch_DS5Ctrl,
-                switch_DS6Ctrl, switch_DS7Ctrl, switch_DS8Ctrl);
-
         bt_Save.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 if(fileManager.isExternalStorageAvailable()) { // External storage is available
@@ -162,6 +174,26 @@ public class MainActivity extends FragmentActivity
                 else { // External storage is not available
                     showStorageNotWorkingDialog();
                 }
+            }
+        });
+
+        bt_Start.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                // TODO Compare with the Are_Active channels wit the user's selected channels and notify
+
+                // Sends Start command using the user's selection upon the channels
+//                String commandArg;
+//                commandArg = new String(setCommandArg());
+                // encoding command arg into UTF-8
+//                commandArg = new String(setCommandArg(), 0, 1);
+//                Log.d(TAG, "Command arg is encoded into " + commandArg);
+                commandPacketCreator((byte) Constants.START, setCommandArg());
+            }
+        });
+        bt_Cancel.setOnClickListener(new View.OnClickListener(){
+            public void onClick(View v){
+                // TODO wipe out the screen
+                commandPacketCreator((byte) Constants.CANCEL);
             }
         });
     }
@@ -275,133 +307,68 @@ public class MainActivity extends FragmentActivity
         }
     }
 
-    private void setSwitchesListener(Switch sw1, Switch sw2, Switch sw3, Switch sw4, Switch sw5, Switch sw6, Switch sw7, Switch sw8) {
-        sw1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream1
-                    Log.d(TAG, "Datastream1 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_1);
-                } else {
-                    // Turned off Datastream1
-                    Log.d(TAG, "Datastream1 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_1);
-                }
-            }
-        });
-        sw2.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream2
-                    Log.d(TAG, "Datastream2 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_2);
-                } else {
-                    // Turned off Datastream2
-                    Log.d(TAG, "Datastream2 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_2);
-                }
-            }
-        });
-        sw3.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream3
-                    Log.d(TAG, "Datastream3 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_3);
-                } else {
-                    // Turned off Datastream3
-                    Log.d(TAG, "Datastream3 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_3);
-                }
-            }
-        });
-        sw4.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream4
-                    Log.d(TAG, "Datastream4 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_4);
-                } else {
-                    // Turned off Datastream4
-                    Log.d(TAG, "Datastream4 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_4);
-                }
-            }
-        });
-        sw5.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream5
-                    Log.d(TAG, "Datastream5 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_5);
-                } else {
-                    // Turned off Datastream5
-                    Log.d(TAG, "Datastream5 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_5);
-                }
-            }
-        });
-        sw6.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream6
-                    Log.d(TAG, "Datastream6 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_6);
-                } else {
-                    // Turned off Datastream6
-                    Log.d(TAG, "Datastream6 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_6);
-                }
-            }
-        });
-        sw7.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream7
-                    Log.d(TAG, "Datastream7 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_7);
-                } else {
-                    // Turned off Datastream7
-                    Log.d(TAG, "Datastream7 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_7);
-                }
-            }
-        });
-        sw8.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    // Turned on Datastream8
-                    Log.d(TAG, "Datastream8 is turned on");
-                    commandPacketCreator(Constants.ON_DS, Constants.DS_8);
-                } else {
-                    // Turned off Datastream8
-                    Log.d(TAG, "Datastream8 is turned off");
-                    commandPacketCreator(Constants.OFF_DS, Constants.DS_8);
-                }
-            }
-        });
+    /**
+     * Creates command argument byte using bitwise OR
+     */
+    private byte setCommandArg(){
+        int commandArg = 0b000000000;
+        byte ret;
+//        byte temp;
+//        String ret;
+        if(checkBox_DS1.isChecked()) {
+            Log.d(TAG, "Check Box Channel 1 is checked");
+            commandArg = commandArg | Constants.DS1;
+        }
+        if(checkBox_DS2.isChecked()) {
+            Log.d(TAG, "Check Box Channel 2 is checked");
+            commandArg = commandArg | Constants.DS2;
+        }
+        if(checkBox_DS3.isChecked()) {
+            Log.d(TAG, "Check Box Channel 3 is checked");
+            commandArg = commandArg | Constants.DS3;
+        }
+        if(checkBox_DS4.isChecked()) {
+            Log.d(TAG, "Check Box Channel 4 is checked");
+            commandArg = commandArg | Constants.DS4;
+        }
+        if(checkBox_DS5.isChecked()) {
+            Log.d(TAG, "Check Box Channel 5 is checked");
+            commandArg = commandArg | Constants.DS5;
+        }
+        if(checkBox_DS6.isChecked()) {
+            Log.d(TAG, "Check Box Channel 6 is checked");
+            commandArg = commandArg | Constants.DS6;
+        }
+        if(checkBox_DS7.isChecked()) {
+            Log.d(TAG, "Check Box Channel 7 is checked");
+            commandArg = commandArg | Constants.DS7;
+        }
+        if(checkBox_DS8.isChecked()) {
+            Log.d(TAG, "Check Box Channel 8 is checked");
+            commandArg = commandArg | Constants.DS8;
+        }
+        ret = (byte) commandArg;
+        Log.d(TAG, "Command Arg is " + Integer.toBinaryString(ret));
+        return ret;
     }
 
     /**
      * Creates command packet using the fields given and sends it to FPGA
      */
-    private void commandPacketCreator(String ... fields) {
-        String commandPacket = Constants.COMMAND_HEADER;
-//         commandHeader = String.valueOf(Constants.COMMAND_HEADER);
-//        if(fields.length == 1){ // No operands
-//            commandPacket = new byte[2];
-//            commandPacket[0] = commandHeader;
-//            commandPacket[1] = (new Integer(fields[0])).byteValue();
-//        }
-//        else {// With opreands
-//            commandPacket = new byte[3];
-//            commandPacket[0] = commandHeader;
-//            commandPacket[1] = (new Integer(fields[0])).byteValue();
-//            commandPacket[2] = (new Integer(fields[1])).byteValue();
-//        }
-        for (String field : fields){
-            commandPacket = commandPacket + field;
+    private void commandPacketCreator(byte ... fields) {
+        byte[] commandPacket;
+        if(fields.length == 1){ // No operands
+            commandPacket = new byte[1];
+            commandPacket[0] = fields[0];
         }
+        else {// With operands
+            commandPacket = new byte[2];
+            commandPacket[0] = fields[0];
+            commandPacket[1] = fields[1];
+        }
+//        for (String field : fields){
+//            commandPacket = commandPacket + field;
+//        }
 
         // sending the created command packet to FPGA
         Log.d(TAG, "Command packet created is " + commandPacket);

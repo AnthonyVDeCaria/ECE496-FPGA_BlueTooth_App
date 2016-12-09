@@ -25,23 +25,21 @@ public class Constants {
     public static final int PERMISSION_READ_EXTERNAL_STORAGE = 2001;
     public static final int PERMISSION_WRITE_EXTERNAL_STORAGE = 2002;   // dividing external storage permission in case they are not in the same group
 
-    // Commands used between FPGA and App
-    public static final String COMMAND_HEADER = "11";
-    // Command types
-    public static final String ON_DS = "00";
-    public static final String OFF_DS = "01";
-    public static final String WAIT = "02";
-    public static final String READY = "03";
-    public static final String SELECT_DS = "04";
-    public static final String ACK = "05";
-    public static final String SELECT_PRE_FILTER = "06";
-    // Sensors (Used in command operand)
-    public static final String DS_1 = "01";
-    public static final String DS_2 = "02";
-    public static final String DS_3 = "03";
-    public static final String DS_4 = "04";
-    public static final String DS_5 = "05";
-    public static final String DS_6 = "06";
-    public static final String DS_7 = "07";
-    public static final String DS_8 = "08";
+    // Control Commands used between FPGA and App
+    // Control Command types
+    public static final int START = 0x00; // 0
+    public static final int CANCEL = 0x01;    // 1
+//    public static final String WAIT = "2";
+//    public static final String READY = "3";
+    public static final int ARE_ACTIVE = 0x02;    // 2
+    public static final int ACK = 0x03;   // 3
+    // Control Command Operands
+    public static final int DS1 = 0b00000001;
+    public static final int DS2 = 0b00000010;
+    public static final int DS3 = 0b00000100;
+    public static final int DS4 = 0b00001000;
+    public static final int DS5 = 0b00010000;
+    public static final int DS6 = 0b00100000;
+    public static final int DS7 = 0b01000000;
+    public static final int DS8 = 0b10000000;
 }
