@@ -24,7 +24,7 @@ module receiver_centre(
 		output RFIFO_empty,
 		
 		output reg [7:0] stream_select,
-		output are_we_sending
+		output reg are_we_sending
 	);
 	/*
 		Wires
@@ -134,7 +134,7 @@ module receiver_centre(
 			else
 			begin
 				stream_select <= stream_select;
-				are_we_sending <= 1'b0;
+				are_we_sending <= are_we_sending;
 			end
 		end
 	end
@@ -177,7 +177,6 @@ module receiver_centre(
 						next = Done;
 					else
 						next = Checking_if_Done;
-					end
 				end
 			end
 			Done:
