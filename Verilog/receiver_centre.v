@@ -7,9 +7,12 @@
 module receiver_centre(
 		input clock, 
 		input reset,
+		
+		input bt_state,
+		input fpga_rxd,
 
 		input [9:0] cpd,
-		input fpga_rxd,
+		input [9:0] timer_cap,
 		
 		output at_complete,
 		
@@ -20,38 +23,34 @@ module receiver_centre(
 		output RFIFO_full, 
 		output RFIFO_empty,
 		
-		output reg [2:0] stream_select,
-		output set_sending,
-		
-		input bt_state
+		output reg [7:0] stream_select,
+		output are_we_sending
 	);
 	/*
 		Wires
 	*/
 	wire [7:0] rx_data;
-	wire rx_done;
+	wire is_uart_collecting_data, rx_done;
+	wire at_mode, data_mode;
 	
-	parameter Select_Datastream =  3'b110;
+	parameter Start = 8'h00, Cancel = 8'h01;
+	
+	assign at_mode = ~bt_state;
+	assign data_mode = bt_state;
 	
 	/*
 		FSM Wires
 	*/
+	parameter Collecting_Data = 2'b00, Checking_if_Done = 2'b01, Done = 2'b10;
 	reg [1:0] curr, next;
-	parameter Idle = 2'b00, Collect_AT = 2'b01, Get_Command_from_App = 2'b10, Implement_Changes = 2'b11;
 	
-	reg [1:0] c, n;
-	parameter ITB = 2'b00, Found_11 = 2'b01, Got_Message = 2'b10;
-	
-	/*
-		Assignments
-	*/
-	assign set_sending = ~( (curr == Get_Command_from_App) & (curr == Implement_Changes) ) ;
+	parameter Idle = 1'b0, Got_One = 1'b1; 
+	reg c, n;
 	
 	/*
 		Receiver Hardware
 	*/
 	//	UART
-	wire is_uart_collecting_data;
 	UART_rx rx(
 		.clk(clock), 
 		.resetn(~reset), 
@@ -64,153 +63,157 @@ module receiver_centre(
 	
 	//	FIFO
 	wire RFIFO_wr_en;
-	assign RFIFO_wr_en = rx_done & (curr == Collect_AT);
+	assign RFIFO_wr_en = rx_done & at_mode;
 	
 	FIFO_8192_8in_16out RFIFO(
 		.rst(reset),
-
+		
 		.wr_clk(clock),
 		.rd_clk(clock),
-
+		
 		.wr_en(RFIFO_wr_en),
 		.rd_en(RFIFO_rd_en),
-
+		
 		.din(rx_data),
 		.dout(RFIFO_out),
-
+		
 		.full(RFIFO_full),
 		.empty(RFIFO_empty),
-
+		
 		.rd_data_count(RFIFO_rd_count),
 		.wr_data_count(RFIFO_wr_count)
 	);
 	
-	//	User Commands	
-	wire [7:0] orders_from_app;
-	wire r_r_data, e_r_data, l_r_data;
+	//	User Commands
+	wire [7:0] commands, operands;
+	wire r_r_commands, l_r_commands;
+	wire r_r_operands, l_r_operands;
 	
-	assign r_r_data = ~reset;
-	assign e_r_data = rx_done & (curr == Get_Command_from_App) & (c == Found_11);
-	assign l_r_data = rx_done & (curr == Get_Command_from_App) & (c == Found_11);
+	assign r_r_commands = ~reset;
+	assign r_r_operands = ~reset;
 	
-	register_8bit_enable_async r_data(.clk(clock), .resetn(r_r_data), .enable(e_r_data), .select(l_r_data), .d(rx_data), .q(orders_from_app) );
+	assign l_r_commands = rx_done & data_mode & (c == Idle);
+	assign l_r_operands = rx_done & data_mode & (c == Got_One);
+	
+	register_8bit_enable_async r_commands(.clk(clock), .resetn(r_r_commands), .enable(l_r_commands), .select(l_r_commands), .d(rx_data), .q(commands) );
+	register_8bit_enable_async r_operands(.clk(clock), .resetn(r_r_operands), .enable(l_r_operands), .select(l_r_operands), .d(rx_data), .q(operands) );
 	
 	/*
 		Interpreter Hardware
 	*/
+	// AT
+	assign at_complete = (curr == Done) & at_mode;
+	
+	// Data
+	wire begin_understanding_orders;
+	assign begin_understanding_orders = (curr == Done) & data_mode;
+	
 	always@(*)
 	begin
 		if(reset)
 		begin
-			stream_select <= 3'b000;
+			stream_select <= 8'h00;
+			are_we_sending <= 1'b0;
 		end
 		else
 		begin
-			if(curr == Implement_Changes)
+			if(begin_understanding_orders)
 			begin
-				case(orders_from_app[6:4])
-					Select_Datastream:
+				case(commands)
+					Start:
 					begin
-						stream_select <= orders_from_app[2:0];
+						stream_select <= operands;
+						are_we_sending <= 1'b1;
+					end
+					Cancel:
+					begin
+						are_we_sending <= 1'b0;
 					end
 				endcase
 			end
 			else
 			begin
 				stream_select <= stream_select;
+				are_we_sending <= 1'b0;
 			end
 		end
 	end
 	
 	/*
+		Timer
+	*/
+	wire [9:0] timer, n_timer;
+	wire l_r_timer, r_r_timer, timer_done;
+	
+	assign l_r_timer = (curr == Checking_if_Done);
+	assign r_r_timer = ~(reset | (curr == Collecting_Data) ) ;
+	
+	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
+	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
+	
+	assign timer_done = (timer == timer_cap) ? 1'b1 : 1'b0;
+	
+	/*
 		FSMs
 	*/
-	//	General
-	wire found_00;
-	assign found_00 = (rx_data == 8'h00) ? 1'b1 : 1'b0;
-	
-	wire at_over;
-	assign at_over = 1'b1;
-	
+	// Receiving
 	always@(*)
 	begin
 		case(curr)
-			Idle:
+			Collecting_Data:
+			begin
+				if(rx_done)
+					next = Checking_if_Done;
+				else
+					next = Collecting_Data;
+			end
+			Checking_if_Done:
 			begin
 				if(is_uart_collecting_data)
+					next = Collecting_Data;
+				else
 				begin
-					if(bt_state)
-						next = Get_Command_from_App;
+					if(timer_done)
+						next = Done;
 					else
-						next = Collect_AT;
-				end
-				else
-				begin
-					next = Idle;
+						next = Checking_if_Done;
+					end
 				end
 			end
-			Collect_AT:
+			Done:
 			begin
-				if(at_over)
-					next = Idle;
-				else
-					next = Collect_AT;
-			end
-			Get_Command_from_App:
-			begin
-				if(found_00)
-					next = Implement_Changes;
-				else
-					next = Get_Command_from_App;
-			end
-			Implement_Changes:
-			begin
-				next = Idle;
+				next = Collecting_Data;
 			end
 		endcase
 	end
 	
-	assign at_complete = (curr == Collect_AT) & (at_over);
-	
-	//	Parsing User Input
-	wire is_line_11, f_11_trigger;
-	assign is_line_11 = (rx_data == 8'h11) ? 1'b1 : 1'b0;
-	assign f_11_trigger = is_line_11 & (curr == Get_Command_from_App);
-	
+	// Storing User Data
 	always@(*)
 	begin
 		case(c)
-			ITB:
+			Idle:
 			begin
-				if(f_11_trigger)
-					n = Found_11;
+				if(rx_done & data_mode)
+					n = Got_One;
 				else
-					n = ITB;
+					n = Idle;
 			end
-			Found_11:
+			Got_One:
 			begin
-				if(rx_done)
-					n = Got_Message;
+				if(rx_done & data_mode)
+					n = Idle;
 				else
-					n = Found_11;
-			end
-			Got_Message:
-			begin
-				if(found_00)
-					n = ITB;
-				else
-					n = Got_Message;
+					n = Got_One;
 			end
 		endcase
 	end
 	
-	//	Clock
 	always@(posedge clock or posedge reset)
 	begin
 		if(reset)
-		begin
-			curr <= Idle; 
-			c <= ITB;
+		begin 
+			curr <= Collecting_Data;
+			c <= Idle;
 		end
 		else
 		begin
