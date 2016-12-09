@@ -4,9 +4,9 @@ Anthony De Caria - December 1, 2016
 This module creates a 16-bit nine input Mux.
 */
 
-module mux_9_16bit(data0, data1, data2, data3, data4, data5, data6, data7, sel, result);
+module mux_9_16bit(data0, data1, data2, data3, data4, data5, data6, data7, data8, sel, result);
 	input [15:0] data0, data1, data2, data3, data4, data5, data6, data7, data8;
-	input [4:0] sel;
+	input [3:0] sel;
 	output reg [15:0] result;
 	
 	always@(*)

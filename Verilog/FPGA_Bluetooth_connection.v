@@ -72,23 +72,7 @@ module FPGA_Bluetooth_connection(
 	*/
 	parameter datastream0 = 16'h4869, datastream1 = 16'h5B5D, datastream2 = 16'h6E49, datastream3 = 16'h3B29;
 	parameter datastream4 = 16'h2829, datastream5 = 16'h3725, datastream6 = 16'h780A, datastream7 = 16'h7B2C;
-	
-	wire [15:0] datastream;
-	wire [2:0] m_datastream_select;
-	
-	mux_8_16bit m_datastream(
-		.data0(datastream0), 
-		.data1(datastream1), 
-		.data2(datastream2), 
-		.data3(datastream3), 
-		.data4(datastream4), 
-		.data5(datastream5), 
-		.data6(datastream6), 
-		.data7(datastream7),
-		.sel(m_datastream_select), 
-		.result(datastream) 
-	);
-	
+
 	/*
 		Output to Bluetooth
 	*/
@@ -136,6 +120,32 @@ module FPGA_Bluetooth_connection(
 	parameter timer_cap = 10'd385;
 	assign timer_done = (timer == timer_cap) ? 1'b1 : 1'b0;
 	
+	wire [15:0] datastream;
+	wire [7:0] m_datastream_select;
+	wire [3:0] datastream_select;
+	
+	/*
+		Selecting datastream
+	*/
+	master_switchece496(
+		.open_streams(m_datastream_select)
+		.next_sel(datastream_select)
+	);
+
+	mux_9_16bit m_datastream(
+		.data0(datastream0), 
+		.data1(datastream1), 
+		.data2(datastream2), 
+		.data3(datastream3), 
+		.data4(datastream4), 
+		.data5(datastream5), 
+		.data6(datastream6), 
+		.data7(datastream7),
+		.data8(TFIFO_out),
+		.sel(datastream_select), 
+		.result(datastream) 
+	);
+
 	//	UART
 	wire start_tx, tx_done;
 	

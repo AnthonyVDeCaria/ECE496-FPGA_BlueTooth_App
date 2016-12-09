@@ -6,7 +6,7 @@ This module creates a 16-bit eight input Mux.
 
 module mux_8_16bit(data0, data1, data2, data3, data4, data5, data6, data7, sel, result);
 	input [15:0] data0, data1, data2, data3, data4, data5, data6, data7;
-	input [3:0] sel;
+	input [2:0] sel;
 	output reg [15:0] result;
 	
 	always@(*)
