@@ -1,7 +1,7 @@
 module master_switchece496(bt_state, open_streams, next_sel);
 	input bt_state;
 	input open_streams[7:0];
-	output next_sel[3:0];
+	output reg next_sel[3:0];
 	reg[2:0] counter = 3'b000;
 
 	//	Timer ~800ms 
