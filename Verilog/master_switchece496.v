@@ -1,7 +1,7 @@
 module master_switchece496(bt_state, timer_cap, open_streams, next_sel);
 	input bt_state;
 	input [9:0] timer_cap;
-	input[7:0] open_streams;
+	input [7:0] open_streams;
 	
 	output reg[3:0] next_sel;
 	
@@ -21,17 +21,14 @@ module master_switchece496(bt_state, timer_cap, open_streams, next_sel);
 
 	always@(*)
 	begin
-		
-	end
-
-	always@(*)
-	begin
 		if (bt_state == 1'b0)
 		begin
 			next_sel <= 4'b1000;
 		end
 		else
 		begin
+			next_sel <= 4'b0101;
+		/*
 			if (timer_done == 1'b1)
 			begin
 				if (open_streams & 8'b00000001 == 8'b00000001 && counter == 3'b000)
@@ -91,6 +88,7 @@ module master_switchece496(bt_state, timer_cap, open_streams, next_sel);
 			begin
 				r_r_timer <= 1'b1;
 			end
+		*/
 		end
 	end
 endmodule

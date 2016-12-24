@@ -30,13 +30,13 @@ you cannot just use the clock speed divided by the baud rate to get a proper per
 You have to use other values - ones that we determined experimentally.  
 Assuming a 1MHZ:  
 38400 => 26 microseconds => 11
-19200 => 52 microseconds => TK
-9600 => 104 microseconds => TK(To Be Determined)
+19200 => 52 microseconds => 24
+9600 => 104 microseconds => 50
 
 Pause Length (Assuming a 1MHZ):  
 38400 => 800 microseconds => 385
-19200 => tk microseconds => TK
-9600 => tk microseconds => TK(To Be Determined)
+19200 => 572 microseconds => 255
+9600 => 140 microseconds => 12
 
 #Custom Protocol between FPGA and App
 Control Command Type (1 byte)  

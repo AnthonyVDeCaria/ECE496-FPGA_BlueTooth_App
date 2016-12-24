@@ -24,7 +24,7 @@ module receiver_centre(
 		output RFIFO_empty,
 		
 		output reg [7:0] stream_select,
-		output reg are_we_sending
+		output reg sending_flag
 	);
 	/*
 		Wires
@@ -113,7 +113,7 @@ module receiver_centre(
 		if(reset)
 		begin
 			stream_select <= 8'h00;
-			are_we_sending <= 1'b0;
+			sending_flag <= 1'b0;
 		end
 		else
 		begin
@@ -123,18 +123,18 @@ module receiver_centre(
 					Start:
 					begin
 						stream_select <= operands;
-						are_we_sending <= 1'b1;
+						sending_flag <= 1'b1;
 					end
 					Cancel:
 					begin
-						are_we_sending <= 1'b0;
+						sending_flag <= 1'b0;
 					end
 				endcase
 			end
 			else
 			begin
 				stream_select <= stream_select;
-				are_we_sending <= are_we_sending;
+				sending_flag <= sending_flag;
 			end
 		end
 	end
