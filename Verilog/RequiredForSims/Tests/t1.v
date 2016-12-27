@@ -32,7 +32,7 @@ module t1;
 	reg [15:0] ep02wireIn;
 
 	// Outputs
-	wire bt_enable;
+	wire bt_break;
 	wire fpga_txd;
 	wire [15:0] ep20wireOut;
 	wire [15:0] ep21wireOut;
@@ -50,7 +50,7 @@ module t1;
 	FPGA_Bluetooth_connection uut (
 		.clock(clock), 
 		.bt_state(bt_state), 
-		.bt_enable(bt_enable), 
+		.bt_break(bt_break), 
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd), 
 		.ep01wireIn(ep01wireIn), 
@@ -85,7 +85,6 @@ module t1;
         
 		// Add stimulus here
 		#0 ep02wireIn = 16'h0001;
-		#100 ep01wireIn = "AT";
 		#100 ep02wireIn = 16'h0004;
 		#300 bt_state = 1;
 	end

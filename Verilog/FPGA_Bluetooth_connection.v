@@ -57,6 +57,8 @@ module FPGA_Bluetooth_connection(
 	parameter uart_cpd = 10'd50;
 	parameter uart_timer_cap = 10'd12;
 	
+	assign bt_break = 1'b0;
+	
 	/*
 		FSM wires
 	*/
@@ -130,17 +132,19 @@ module FPGA_Bluetooth_connection(
 	);
 	
 	// Datastream Selector
-	wire [7:0] datastream;
+	assign m_datastream_select = 4'b0101;
+/*	wire [7:0] datastream;
 	wire [7:0] streams_selected;
 	assign streams_selected = 8'haa;
 	
 	master_switchece496 control_valve(
+		.clock(clock),
 		.bt_state(bt_state),
 		.timer_cap(uart_timer_cap),
 		.open_streams(streams_selected),
 		.next_sel(m_datastream_select)
 	);
-
+*/
 	mux_9_8bit m_datastream(
 		.data0(datastream0), 
 		.data1(datastream1), 
