@@ -56,6 +56,7 @@ module FPGA_Bluetooth_connection(
 	
 	parameter uart_cpd = 10'd50;
 	parameter uart_timer_cap = 10'd12;
+	parameter ms_timer_cap = 10'd100;
 	
 	assign bt_break = 1'b0;
 	
@@ -73,13 +74,18 @@ module FPGA_Bluetooth_connection(
 	/*
 		Output to Bluetooth
 	*/
-	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
-	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
+//	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
+//	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
+
+	parameter sensor0 = 16'h4869, sensor1 = 16'h0000, sensor2 = 16'h6E49, sensor3 = 16'h00FF;
+	parameter sensor4 = 16'h2829, sensor5 = 16'hF00F, sensor6 = 16'h780A, sensor7 = 16'hFFFF;
 	
 	wire [3:0] m_datastream_select;
+	wire all_data_sent;
 	
 	//	FIFO
-	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7, at;
+	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
+	wire [7:0] at;
 	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;
 	
 	assign wr_en[0] = ~fifo_state_full[0];
@@ -114,10 +120,14 @@ module FPGA_Bluetooth_connection(
 		.write_clock(clock),
 		.reset(reset),
 		
-		.DS0_in(sensor0), .DS1_in(sensor1), .DS2_in(sensor2), .DS3_in(sensor3), .DS4_in(sensor4), .DS5_in(sensor5), .DS6_in(sensor6), .DS7_in(sensor7),
-		.DS0_out(datastream0), .DS1_out(datastream1), .DS2_out(datastream2), .DS3_out(datastream3), .DS4_out(datastream4), .DS5_out(datastream5), .DS6_out(datastream6), .DS7_out(datastream7),
-		.DS0_rd_count(), .DS1_rd_count(), .DS2_rd_count(), .DS3_rd_count(), .DS4_rd_count(), .DS5_rd_count(), .DS6_rd_count(), .DS7_rd_count(),
-		.DS0_wr_count(), .DS1_wr_count(), .DS2_wr_count(), .DS3_wr_count(), .DS4_wr_count(), .DS5_wr_count(), .DS6_wr_count(), .DS7_wr_count(),
+		.DS0_in(sensor0), .DS1_in(sensor1), .DS2_in(sensor2), .DS3_in(sensor3), 
+		.DS4_in(sensor4), .DS5_in(sensor5), .DS6_in(sensor6), .DS7_in(sensor7),
+		.DS0_out(datastream0), .DS1_out(datastream1), .DS2_out(datastream2), .DS3_out(datastream3), 
+		.DS4_out(datastream4), .DS5_out(datastream5), .DS6_out(datastream6), .DS7_out(datastream7),
+		.DS0_rd_count(), .DS1_rd_count(), .DS2_rd_count(), .DS3_rd_count(), 
+		.DS4_rd_count(), .DS5_rd_count(), .DS6_rd_count(), .DS7_rd_count(),
+		.DS0_wr_count(), .DS1_wr_count(), .DS2_wr_count(), .DS3_wr_count(), 
+		.DS4_wr_count(), .DS5_wr_count(), .DS6_wr_count(), .DS7_wr_count(),
 		
 		.AT_in(ep01wireIn),
 		.AT_out(at),
@@ -132,19 +142,22 @@ module FPGA_Bluetooth_connection(
 	);
 	
 	// Datastream Selector
-	assign m_datastream_select = 4'b0101;
-/*	wire [7:0] datastream;
+	wire [7:0] datastream;
 	wire [7:0] streams_selected;
 	assign streams_selected = 8'haa;
 	
-	master_switchece496 control_valve(
+	master_switch_ece496 control_valve(
 		.clock(clock),
+		.resetn(~reset),
 		.bt_state(bt_state),
-		.timer_cap(uart_timer_cap),
-		.open_streams(streams_selected),
-		.next_sel(m_datastream_select)
+		.sending_flag(are_we_sending),
+		.want_at(want_at),
+		.at_complete(all_data_sent),
+		.timer_cap(ms_timer_cap),
+		.selected_streams(streams_selected),
+		.mux_select(m_datastream_select)
 	);
-*/
+
 	mux_9_8bit m_datastream(
 		.data0(datastream0), 
 		.data1(datastream1), 
@@ -235,8 +248,10 @@ module FPGA_Bluetooth_connection(
 	assign is_bt_done = tx_done;
 	
 	// Rest_Transmission Signals
-	wire all_data_sent;
-	assign all_data_sent = (fifo_state_empty == 9'h1FF) ? 1'b1 : 1'b0;;
+	wire all_at_data_sent, all_ds_data_sent;
+	assign all_ds_data_sent = (fifo_state_empty[7:0] == 8'hFF) ? 1'b1 : 1'b0;
+	assign all_at_data_sent = fifo_state_empty[8];
+	assign all_data_sent = all_at_data_sent | all_ds_data_sent;
 	
 	// User Signals
 	wire data_stored_for_user, data_ready_for_user;
@@ -297,7 +312,7 @@ module FPGA_Bluetooth_connection(
 					if(are_we_sending)
 						next = Begin_Transmission;
 					else
-						next = Wait_for_Connection;
+						next = Idle;
 				end
 				else
 					next = Wait_for_Connection;
