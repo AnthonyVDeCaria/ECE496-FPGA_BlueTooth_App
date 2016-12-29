@@ -3,12 +3,12 @@
 
 	This module creates the mux_select that will be used to select between datastreams in our ECE496 project.
 */
-module master_switch_ece496(clock, resetn, want_at, bt_state, sending_flag, at_complete, timer_cap, selected_streams, mux_select);
+module master_switch_ece496(clock, resetn, want_at, bt_state, sending_flag, at_empty_flag, timer_cap, selected_streams, mux_select);
 	/*
 		I/O
 	*/
 	input clock, resetn;
-	input bt_state, want_at, sending_flag, at_complete;
+	input bt_state, want_at, sending_flag, at_empty_flag;
 	input [9:0] timer_cap;
 	input [7:0] selected_streams;
 	
@@ -82,7 +82,7 @@ module master_switch_ece496(clock, resetn, want_at, bt_state, sending_flag, at_c
 			begin
 				mux_select <= 4'b1000;
 				
-				if(at_complete)
+				if(at_empty_flag)
 					next = Idle;
 				else
 					next = AT;

@@ -74,14 +74,13 @@ module FPGA_Bluetooth_connection(
 	/*
 		Output to Bluetooth
 	*/
-//	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
-//	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
-
-	parameter sensor0 = 16'h4869, sensor1 = 16'h0000, sensor2 = 16'h6E49, sensor3 = 16'h00FF;
-	parameter sensor4 = 16'h2829, sensor5 = 16'hF00F, sensor6 = 16'h780A, sensor7 = 16'hFFFF;
+	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
+	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
 	
 	wire [3:0] m_datastream_select;
-	wire all_data_sent;
+	wire are_we_sending, all_at_data_sent;
+	
+	mux_2_1bit m_sf(.data0(1'b1), .data1(~all_at_data_sent), .sel(want_at), .result(are_we_sending) );
 	
 	//	FIFO
 	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
@@ -144,15 +143,17 @@ module FPGA_Bluetooth_connection(
 	// Datastream Selector
 	wire [7:0] datastream;
 	wire [7:0] streams_selected;
+	
 	assign streams_selected = 8'haa;
+	assign all_at_data_sent = fifo_state_empty[8];
 	
 	master_switch_ece496 control_valve(
 		.clock(clock),
 		.resetn(~reset),
 		.bt_state(bt_state),
-		.sending_flag(are_we_sending),
 		.want_at(want_at),
-		.at_complete(all_data_sent),
+		.sending_flag(are_we_sending),
+		.at_empty_flag(all_at_data_sent),
 		.timer_cap(ms_timer_cap),
 		.selected_streams(streams_selected),
 		.mux_select(m_datastream_select)
@@ -210,9 +211,7 @@ module FPGA_Bluetooth_connection(
 	
 	assign RFIFO_rd_en = (curr == Read_RFIFO);
 	
-	wire did_at_finish, are_we_sending;
-	
-	assign are_we_sending = 1'b1;
+	wire did_at_finish;
 	
 	receiver_centre Purolator(
 		.clock(clock), 
@@ -248,9 +247,8 @@ module FPGA_Bluetooth_connection(
 	assign is_bt_done = tx_done;
 	
 	// Rest_Transmission Signals
-	wire all_at_data_sent, all_ds_data_sent;
+	wire all_data_sent, all_ds_data_sent;
 	assign all_ds_data_sent = (fifo_state_empty[7:0] == 8'hFF) ? 1'b1 : 1'b0;
-	assign all_at_data_sent = fifo_state_empty[8];
 	assign all_data_sent = all_at_data_sent | all_ds_data_sent;
 	
 	// User Signals

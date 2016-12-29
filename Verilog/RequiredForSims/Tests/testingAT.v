@@ -93,20 +93,30 @@ module testingAT;
 		
 		#150 ep02wireIn = 16'h0016;
 		
-		#200 ep01wireIn = "\r\n";
+		#200 ep01wireIn = "+N";
 		#200 ep02wireIn = 16'h000E;
 		
-		#275 ep02wireIn = 16'h0036;
+		#250 ep02wireIn = 16'h0016;
+		
+		#300 ep01wireIn = "AM";
+		#300 ep02wireIn = 16'h000E;
+		
+		#350 ep02wireIn = 16'h0016;
+		
+		#400 ep01wireIn = "E=";
+		#400 ep02wireIn = 16'h000E;
+		
+		#450 ep02wireIn = 16'h0016;
+		
+		#500 ep01wireIn = "OP";
+		#500 ep02wireIn = 16'h000E;
+		
+		#575 ep02wireIn = 16'h0036;
 		
 		#2000 fpga_rxd = 1'b0;
 		#2003 fpga_rxd = 1'b1;
 		#2010 fpga_rxd = 1'b0;
 		#2017 fpga_rxd = 1'b1;
-		
-		#3000 ep02wireIn = 16'h0046;
-		#3010 ep02wireIn = 16'h0086;
-		#3050 ep02wireIn = 16'h0046;
-		#3100 ep02wireIn = 16'h0186;
 	end
 	
 endmodule
