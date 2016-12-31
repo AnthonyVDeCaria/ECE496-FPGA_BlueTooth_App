@@ -5,14 +5,14 @@ This module creats Opal Kelly wires for FPGA_Bluetooth_connection.
 As well as providing the FPGA pins.
 */
 
-module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK1MHZ, LED, HC_05_STATE, HC_05_TXD, HC_05_ENABLE, HC_05_RXD);
+module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK1MHZ, LED, HM_10_STATE, HM_10_TXD, HM_10_BREAK, HM_10_RXD);
 	
 	/*
 		Others
 	*/
 	input CLK1MHZ;
-	input HC_05_STATE, HC_05_TXD; // 1-W22 , 0-T20
-	output HC_05_ENABLE, HC_05_RXD; // 1-W20 , 0-T19
+	input HM_10_STATE, HM_10_TXD;
+	output HM_10_BREAK, HM_10_RXD;
 	output [7:0] LED;
 	
 	assign LED[3:0] = ~ep21wireOut[3:0];
@@ -99,10 +99,10 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	*/	
 	FPGA_Bluetooth_connection master_of_puppets(
 		.clock(CLK1MHZ),
-		.bt_state(HC_05_STATE),
-		.bt_break(HC_05_ENABLE),
-		.fpga_txd(HC_05_RXD),
-		.fpga_rxd(HC_05_TXD), 
+		.bt_state(HM_10_STATE),
+		.bt_break(HM_10_BREAK),
+		.fpga_txd(HM_10_RXD),
+		.fpga_rxd(HM_10_TXD), 
 		.ep01wireIn(ep01wireIn),
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut),
