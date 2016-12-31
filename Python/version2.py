@@ -75,8 +75,8 @@ dev.UpdateWireIns()
 
 #reading current state #
 dev.UpdateWireOuts()
-ep21value = dev.GetWireOutValue( 0x21 )
-print('Before start 0x21: %04x' % ep21value)
+ep25value = dev.GetWireOutValue( 0x25 )
+print('Before start 0x25: %04x' % ep25value)
 
 #list of AT commands
 #AT+ORGL
@@ -87,8 +87,8 @@ AT= [0x4154, 0x0d0a]
 ATR = [0x4154, 0x2b52, 0x4553, 0x4554, 0x0d0a]
 #AT+NAME=BU
 ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255, 0x0d0a]
-#AT+NAME
-ATN = [0x4154, 0x2b4e, 0x414d, 0x453D]
+#AT+NAME?
+ATN = [0x4154, 0x2b4e, 0x414d, 0x453F]
 
 #NAT no AT commands
 
@@ -182,18 +182,17 @@ while (exit == 0):
 		#don't need to worry about all data sent, bt_done, uart_timer_done
 		dev.UpdateWireOuts()
 		out = 0
-		state = dev.GetWireOutValue( 0x21 ) & 0x000F
-		ep29 = dev.GetWireOutValue( 0x29 )
+		state = dev.GetWireOutValue( 0x25 ) & 0x000F
+		times_RFIFO_written = dev.GetWireOutValue( 0x21 )
+		times_to_read_RFIFO = dev.GetWireOutValue( 0x22 )
+		
 		print('We are in state %x.' % state)
-		print('The RFIFO was written %04x times.' % ep29)
-		if (ep29 > 1):
-			ep29 >> 1
-		print('We should read %04x pieces of data.' % ep29)
-		ep29 = 4 #for testing may change back
+		print('The RFIFO was written %04x times.' % times_RFIFO_written)
+		print('We should read %04x pieces of data.' % times_to_read_RFIFO)
 
-		while (ep29 > 0):
+		while (times_to_read_RFIFO > 0):
 			#Sending in access_RFIF0
-			dev.SetWireInValue( 0x02, 0x0046, 0xffff )
+			dev.SetWireInValue( 0x02, 0x0044, 0xffff )
 			dev.UpdateWireIns()
 	
 			dev.UpdateWireOuts()
@@ -201,26 +200,27 @@ while (exit == 0):
 			print('reading out: %04x' % out)
 			#finished reading segment
 			if (ep29 > 0):
-				#not finished with R_FIFO
+				#not finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0086, 0xffff )
 				dev.UpdateWireIns()
 				ep29 -= 1
 			else:
-				#finished with R_FIFO
+				#finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0186, 0xffff )
 				dev.UpdateWireIns()
 
 		print("done reading continue")
 
-		#checks on ep21, ep30
+		#checks on ep25, ep30
 		dev.UpdateWireOuts()
-		ep21value = dev.GetWireOutValue( 0x21 )
+		ep21value = dev.GetWireOutValue( 0x25 )
 		print("\nAfter done with AT")
 		print('0x21: %04x' % ep21value)
 
-		dev.UpdateWireOuts()
-		ep30value = dev.GetWireOutValue( 0x30 )
-		print('0x30: %04x' % ep30value)
+		#Not Needed Anymore
+		#dev.UpdateWireOuts()
+		#ep30value = dev.GetWireOutValue( 0x30 )
+		#print('0x30: %04x' % ep30value)
 
 	#no AT commands, or just reading
 	elif (write == -1):
@@ -238,16 +238,15 @@ while (exit == 0):
 	
 		dev.UpdateWireOuts()
 		out = 0
-		state = dev.GetWireOutValue( 0x21 ) & 0x000F
-		ep29 = dev.GetWireOutValue( 0x29 )
+		state = dev.GetWireOutValue( 0x25 ) & 0x000F
+		times_RFIFO_written = dev.GetWireOutValue( 0x21 )
+		times_to_read_RFIFO = dev.GetWireOutValue( 0x22 )
+		
 		print('We are in state %x.' % state)
-		print('The RFIFO was written %04x times.' % ep29)
-		if (ep29 > 1):
-			ep29 >> 1
-		print('We should read %04x pieces of data.' % ep29)
-		ep29 = 4 #for testing may change back
+		print('The RFIFO was written %04x times.' % times_RFIFO_written)
+		print('We should read %04x pieces of data.' % times_to_read_RFIFO)
 
-		while (ep29 > 0):
+		while (times_to_read_RFIFO > 0):
 			#Sending in access_RFIF0
 			dev.SetWireInValue( 0x02, 0x0044, 0xffff )
 			dev.UpdateWireIns()
@@ -257,12 +256,12 @@ while (exit == 0):
 			print('reading out: %04x' % out)
 			#finished reading segment
 			if (ep29 > 0):
-				#not finished with R_FIFO
+				#not finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0086, 0xffff )
 				dev.UpdateWireIns()
 				ep29 -= 1
 			else:
-				#finished with R_FIFO
+				#finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0186, 0xffff )
 				dev.UpdateWireIns()
 
@@ -277,8 +276,8 @@ dev.SetWireInValue(0x02, 0x0001, 0xffff)
 dev.UpdateWireIns()
 
 dev.UpdateWireOuts()
-ep21value = dev.GetWireOutValue( 0x21 )
+ep25value = dev.GetWireOutValue( 0x25 )
 print("\nAfter reset at the end")
-print('0x21: %04x' % ep21value)
+print('0x25: %04x' % ep25value)
 	
 

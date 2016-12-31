@@ -25,11 +25,8 @@ module FPGA_Bluetooth_connection(
 	
 	// OK
 	input [15:0] ep01wireIn, ep02wireIn;
-	output [15:0] ep20wireOut; 
-	output [15:0] ep21wireOut;
-	output [15:0] ep22wireOut, ep23wireOut; 
-	output [15:0] ep24wireOut, ep25wireOut, ep26wireOut; 
-	output [15:0] ep27wireOut, ep28wireOut, ep29wireOut;
+	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut; 
+	output [15:0] ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut;
 	output [15:0] ep30wireOut;
 	
 	// Sensor
@@ -206,7 +203,6 @@ module FPGA_Bluetooth_connection(
 	wire [15:0] RFIFO_out;
 	wire [12:0] RFIFO_wr_count;
 	wire [11:0] RFIFO_rd_count;
-	wire [7:0] RFIFO_in;
 	wire RFIFO_full, RFIFO_empty, RFIFO_rd_en;
 	
 	assign RFIFO_rd_en = (curr == Read_RFIFO);
@@ -384,32 +380,30 @@ module FPGA_Bluetooth_connection(
 	end
 	
 	/*
-		Check Assignments
+		WireOut Assignments
 	*/
-	assign ep20wireOut[0] = curr[0];
-	assign ep20wireOut[1] = curr[1];
-	assign ep20wireOut[2] = curr[2];
-	assign ep20wireOut[3] = curr[3];
-	assign ep20wireOut[4] = next[0];
-	assign ep20wireOut[5] = next[1];
-	assign ep20wireOut[6] = next[2];
-	assign ep20wireOut[7] = next[3];
-	assign ep20wireOut[8] = data_stored_for_user;
-	assign ep20wireOut[9] = data_ready_for_user;
-	assign ep20wireOut[15:10] = 6'h00;
+	assign ep20wireOut = RFIFO_out;
 	
-	assign ep21wireOut = ep01wireIn;
-	assign ep22wireOut = ep02wireIn;
+	assign ep21wireOut[15:13] = 2'b00;
+	assign ep21wireOut[12:0] = RFIFO_wr_count[12:0];
 	
-	assign ep23wireOut = m_datastream_select;
+	assign ep22wireOut[15:12] = 3'b000;
+	assign ep22wireOut[11:0] = RFIFO_rd_count[11:0];
 	
-	assign ep24wireOut = sensor6;
+	assign ep23wireOut = ep01wireIn;
+	assign ep24wireOut = ep02wireIn;
 	
-	assign ep25wireOut[7:0] = datastream6;
-	assign ep25wireOut[15:8] = datastream;
-	
-	assign ep26wireOut = wr_en;
-	assign ep27wireOut = rd_en;
-	
+	assign ep25wireOut[0] = curr[0];
+	assign ep25wireOut[1] = curr[1];
+	assign ep25wireOut[2] = curr[2];
+	assign ep25wireOut[3] = curr[3];
+	assign ep25wireOut[4] = next[0];
+	assign ep25wireOut[5] = next[1];
+	assign ep25wireOut[6] = next[2];
+	assign ep25wireOut[7] = next[3];
+	assign ep25wireOut[8] = data_stored_for_user;
+	assign ep25wireOut[9] = data_ready_for_user;
+	assign ep25wireOut[15:10] = 6'h00;
+
 endmodule
 
