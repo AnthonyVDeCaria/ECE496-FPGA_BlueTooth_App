@@ -62,7 +62,7 @@ module FPGA_Bluetooth_connection(
 	*/
 	parameter Idle = 4'b0000;
 	parameter Load_AT_FIFO = 4'b0001, Rest_AT_FIFO = 4'b0010;
-	parameter Load_Transmission = 4'b0011, Wait_for_Connection = 4'b0100, Begin_Transmission = 4'b0101, Rest_Transmission = 4'b0110;
+	parameter Load_Transmission = 4'b0011, Begin_Transmission = 4'b0101, Rest_Transmission = 4'b0110;
 	parameter Receive_AT_Response = 4'b0111;
 	parameter Wait_for_User_Demand = 4'b1000, Read_RFIFO = 4'b1001, Check_With_User = 4'b1010;
 	
@@ -109,7 +109,7 @@ module FPGA_Bluetooth_connection(
 	assign rd_en[7] = (curr == Load_Transmission) & (m_datastream_select == 3'b111);
 	
 	assign wr_en[8] = (curr == Load_AT_FIFO);
-	assign rd_en[8] = (curr == Load_Transmission) & ~bt_state;
+	assign rd_en[8] = (curr == Load_Transmission) & want_at;
 	
 	FIFO_centre warehouse(
 		.read_clock(clock),
@@ -141,13 +141,12 @@ module FPGA_Bluetooth_connection(
 	wire [7:0] datastream;
 	wire [7:0] streams_selected;
 	
-	assign streams_selected = 8'haa;
+	assign streams_selected = 8'h04;
 	assign all_at_data_sent = fifo_state_empty[8];
 	
 	master_switch_ece496 control_valve(
 		.clock(clock),
 		.resetn(~reset),
-		.bt_state(bt_state),
 		.want_at(want_at),
 		.sending_flag(are_we_sending),
 		.at_empty_flag(all_at_data_sent),
@@ -228,7 +227,7 @@ module FPGA_Bluetooth_connection(
 		.stream_select(),
 		.sending_flag(),
 		
-		.bt_state(bt_state)
+		.want_at(want_at)
 	);
 	
 	/*
@@ -296,20 +295,12 @@ module FPGA_Bluetooth_connection(
 				if(want_at)
 					next = Begin_Transmission;
 				else
-					next = Wait_for_Connection;
-			end
-			
-			Wait_for_Connection:
-			begin
-				if(bt_state)
 				begin
 					if(are_we_sending)
 						next = Begin_Transmission;
 					else
 						next = Idle;
 				end
-				else
-					next = Wait_for_Connection;
 			end
 			
 			Begin_Transmission:

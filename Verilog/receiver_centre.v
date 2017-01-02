@@ -8,7 +8,7 @@ module receiver_centre(
 		input clock, 
 		input reset,
 		
-		input bt_state,
+		input want_at,
 		input fpga_rxd,
 
 		input [9:0] cpd,
@@ -35,8 +35,8 @@ module receiver_centre(
 	
 	parameter Start = 8'h00, Cancel = 8'h01;
 	
-	assign at_mode = ~bt_state;
-	assign data_mode = bt_state;
+	assign at_mode = want_at;
+	assign data_mode = ~want_at;
 	
 	/*
 		FSM Wires
