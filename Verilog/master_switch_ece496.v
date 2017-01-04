@@ -2,13 +2,39 @@
 	Anthony De Caria - December 27, 2016
 
 	This module creates the mux_select that will be used to select between datastreams in our ECE496 project.
+	
+	Algorithm
+		See if we sending at all
+			If we are
+				and we're in AT
+					Set the mux_select to 4'b1000
+					Until we're not sending anymore
+				and we're in DS
+					Load the Shift Register
+					Then - #Find
+						Assuming we're still sending
+							If the first bit in the shift register is 0
+								Loop through until we find 1
+								Keeping track of the index
+							If the first bit in the shift register is 1
+								Set the mux_select to the index
+								Set a timer
+								When the timer is finished
+									Go to the next index
+									And go back to #Find
+			If we aren't
+				Do nothing
+				Reset everything
+				
+	A cycial shift register will make sure we never lose any information.
+	It should go to the right so we can go through streams in ascending order: 0->1->2..->6->7->0...
 */
-module master_switch_ece496(clock, resetn, want_at, sending_flag, at_empty_flag, timer_cap, selected_streams, mux_select);
+module master_switch_ece496(clock, resetn, want_at, sending_flag, timer_cap, selected_streams, mux_select);
 	/*
 		I/O
 	*/
 	input clock, resetn;
-	input want_at, sending_flag, at_empty_flag;
+	input want_at, sending_flag;
 	input [9:0] timer_cap;
 	input [7:0] selected_streams;
 	
@@ -82,10 +108,10 @@ module master_switch_ece496(clock, resetn, want_at, sending_flag, at_empty_flag,
 			begin
 				mux_select <= 4'b1000;
 				
-				if(at_empty_flag)
-					next = Idle;
-				else
+				if(sending_flag)
 					next = AT;
+				else
+					next = Idle;
 			end
 			Load_Shift:
 			begin

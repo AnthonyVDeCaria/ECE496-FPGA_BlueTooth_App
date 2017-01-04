@@ -1,8 +1,51 @@
 /*
 	Anthony De Caria - September 28, 2016
 
-	This module creates a connection between an ion sensor and a HC-05 Bluetooth module.
-	It assumes input and output wires created by Opal Kelly.
+	This module creates a connection between an ion sensor and a Bluetooth module.
+	It assumes input and output wires created by Opal Kelly, and the Bluetooth wires can be abstracted.
+	
+	Algorithm:
+		Starting at #Idle
+			If we want_at and the user_data_loaded
+				Put the user data into AT_FIFO - #Load_AT_FIFO
+				Check with the user - #Rest_AT_FIFO
+					If the user doesn't know we stored
+						Wait for their response (Stay in #Rest_AT_FIFO)
+					If they do
+						And they're done loading data
+							Go to #Load_Transmission
+						Otherwise
+							Go to #Load_AT_FIFO to store it
+			Or If we don't want_at, but the datastream_ready
+				Put the data into the UART - #Load_Transmission
+				If we are to send
+					Send it - #Begin_Transmission
+					Once the data is transmitted
+						Set a timer - #Rest_Transmission
+						If the timer does off
+							And we have more data to send
+								Go back to #Load_Transmission
+							If we don't
+								But we wanted AT
+									#Receive_AT_Response from the receiver_centre
+									Once we have it
+										We wait for the user to access_RFIFO - #Wait_for_RFIFO_Request
+											When they do
+												#Read_RFIFO
+												Check with the user - #Rest_RFIFO
+												If the user doesn't know we pulled out the data
+													Wait for their response (Stay in #Rest_RFIFO)
+												If they do
+													And they're done getting the data
+														Go to #Idle
+													Otherwise
+														Go to #Wait_for_RFIFO_Request
+						If it hasn't yet
+							Wait for it (#Rest_Transmission)
+				Else
+					Go back to #Idle
+			Else
+				Stay in #Idle
 */
 
 module FPGA_Bluetooth_connection(
@@ -30,16 +73,36 @@ module FPGA_Bluetooth_connection(
 	output [15:0] ep30wireOut;
 	
 	// Sensor
-
+	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
+	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
+	
 	/*
 		Wires 
 	*/
-	wire reset, want_at;
+	// General Wires
+	wire reset, want_at, begin_connection;
 	wire user_data_loaded, user_knows_stored, user_data_done;
-	wire RFIFO_access, user_received_data, finished_with_RFIFO; 
+	wire RFIFO_access, user_received_data, finished_with_RFIFO;
+	
+	// Flags
+	wire ds_sending_flag, at_sending_flag, are_we_sending, have_at_response, uart_timer_done, tx_done;
+
+	// FIFO Wires
+	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
+	wire [7:0] at;
+	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;	
+	
+	// Datastream Selector Wires
+	wire [7:0] datastream;
+	wire [7:0] streams_selected;
+	wire [3:0] m_datastream_select;
+	
+	// UART Timer Wires
+	wire [9:0] uart_timer, n_uart_timer;
+	wire l_r_uart_timer, r_r_uart_timer;
 	
 	/*
-		Assignments
+		General Assignments
 	*/
 	assign reset = ep02wireIn[0];
 	assign want_at = ep02wireIn[1];
@@ -55,35 +118,23 @@ module FPGA_Bluetooth_connection(
 	parameter uart_timer_cap = 10'd12;
 	parameter ms_timer_cap = 10'd100;
 	
-	assign bt_break = 1'b0;
+	assign bt_break = 1'b0; // Not being used
 	
 	/*
-		FSM wires
+		FSM Parameters
 	*/
 	parameter Idle = 4'b0000;
-	parameter Load_AT_FIFO = 4'b0001, Rest_AT_FIFO = 4'b0010;
-	parameter Load_Transmission = 4'b0011, Begin_Transmission = 4'b0101, Rest_Transmission = 4'b0110;
-	parameter Receive_AT_Response = 4'b0111;
-	parameter Wait_for_User_Demand = 4'b1000, Read_RFIFO = 4'b1001, Check_With_User = 4'b1010;
+	parameter Load_AT_FIFO = 4'b0010, Rest_AT_FIFO = 4'b0011;
+	parameter Load_Transmission = 4'b0100, Begin_Transmission = 4'b0101, Rest_Transmission = 4'b0110;
+	parameter Receive_AT_Response = 4'b1000;
+	parameter Wait_for_RFIFO_Request = 4'b1101, Read_RFIFO = 4'b1110, Rest_RFIFO = 4'b1111;
 	
 	reg [3:0] curr, next;
 	
 	/*
 		Output to Bluetooth
 	*/
-	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
-	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
-	
-	wire [3:0] m_datastream_select;
-	wire are_we_sending, all_at_data_sent;
-	
-	mux_2_1bit m_sf(.data0(1'b1), .data1(~all_at_data_sent), .sel(want_at), .result(are_we_sending) );
-	
-	//	FIFO
-	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
-	wire [7:0] at;
-	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;
-	
+	//	FIFO	
 	assign wr_en[0] = ~fifo_state_full[0];
 	assign rd_en[0] = (curr == Load_Transmission) & (m_datastream_select == 3'b000);
 	
@@ -138,18 +189,21 @@ module FPGA_Bluetooth_connection(
 	);
 	
 	// Datastream Selector
-	wire [7:0] datastream;
-	wire [7:0] streams_selected;
+	wire is_all_at_data_sent;
+	assign is_all_at_data_sent = fifo_state_empty[8];
 	
-	assign streams_selected = 8'h04;
-	assign all_at_data_sent = fifo_state_empty[8];
+	assign ds_sending_flag = 1'b1; // This should be replaced - it will be from the receiver_centre in the future.
+	assign at_sending_flag = ~is_all_at_data_sent;
+	
+	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(are_we_sending) );
+	
+	assign streams_selected = 8'h04; // Will remove for final integration test
 	
 	master_switch_ece496 control_valve(
 		.clock(clock),
 		.resetn(~reset),
 		.want_at(want_at),
 		.sending_flag(are_we_sending),
-		.at_empty_flag(all_at_data_sent),
 		.timer_cap(ms_timer_cap),
 		.selected_streams(streams_selected),
 		.mux_select(m_datastream_select)
@@ -169,10 +223,7 @@ module FPGA_Bluetooth_connection(
 		.result(datastream) 
 	);
 	
-	//	UART uart_timer
-	wire [9:0] uart_timer, n_uart_timer;
-	wire l_r_uart_timer, r_r_uart_timer, uart_timer_done;
-	
+	//	UART Timer
 	assign l_r_uart_timer = (curr == Rest_Transmission);
 	assign r_r_uart_timer = ~(reset | (curr == Idle) | (curr == Load_Transmission) ) ;
 	
@@ -182,8 +233,7 @@ module FPGA_Bluetooth_connection(
 	assign uart_timer_done = (uart_timer == uart_timer_cap) ? 1'b1 : 1'b0;
 
 	//	UART
-	wire start_tx, tx_done;
-	
+	wire start_tx;
 	assign start_tx = (curr == Begin_Transmission);
 	
 	UART_tx tx(
@@ -202,11 +252,9 @@ module FPGA_Bluetooth_connection(
 	wire [15:0] RFIFO_out;
 	wire [12:0] RFIFO_wr_count;
 	wire [11:0] RFIFO_rd_count;
-	wire RFIFO_full, RFIFO_empty, RFIFO_rd_en;
+	wire RFIFO_rd_en;
 	
 	assign RFIFO_rd_en = (curr == Read_RFIFO);
-	
-	wire did_at_finish;
 	
 	receiver_centre Purolator(
 		.clock(clock), 
@@ -215,17 +263,17 @@ module FPGA_Bluetooth_connection(
 		.cpd(uart_cpd),
 		.fpga_rxd(fpga_rxd),
 		
-		.at_complete(did_at_finish),
+		.at_response_flag(have_at_response),
 		
 		.RFIFO_rd_en(RFIFO_rd_en),
 		.RFIFO_out(RFIFO_out), 
 		.RFIFO_wr_count(RFIFO_wr_count), 
 		.RFIFO_rd_count(RFIFO_rd_count), 
-		.RFIFO_full(RFIFO_full), 
-		.RFIFO_empty(RFIFO_empty),
+		.RFIFO_full(), 
+		.RFIFO_empty(),
 		
 		.stream_select(),
-		.sending_flag(),
+		.ds_sending_flag(),
 		
 		.want_at(want_at)
 	);
@@ -233,23 +281,18 @@ module FPGA_Bluetooth_connection(
 	/*
 		FSM
 	*/
+	// Idle Signals
 	wire data_exists, datastream_ready;
-	assign data_exists = (fifo_state_empty != 9'h1FF) ? 1'b1 : 1'b0;
-	assign datastream_ready = are_we_sending & data_exists;
+	assign data_exists = (fifo_state_empty != 8'hFF) ? 1'b1 : 1'b0;
+	assign datastream_ready = ds_sending_flag & data_exists;
 	
 	// Begin_Transmission Signals
 	wire is_bt_done;
 	assign is_bt_done = tx_done;
 	
 	// Rest_Transmission Signals
-	wire all_data_sent, all_ds_data_sent;
-	assign all_ds_data_sent = (fifo_state_empty[7:0] == 8'hFF) ? 1'b1 : 1'b0;
-	assign all_data_sent = all_at_data_sent | all_ds_data_sent;
-	
-	// User Signals
-	wire data_stored_for_user, data_ready_for_user;
-	assign data_stored_for_user = (curr == Rest_AT_FIFO);
-	assign data_ready_for_user = (curr == Check_With_User);
+	wire all_data_sent;
+	assign all_data_sent = (fifo_state_empty[7:0] == 9'h1FF) ? 1'b1 : 1'b0;
 	
 	always@(*)
 	begin
@@ -292,15 +335,10 @@ module FPGA_Bluetooth_connection(
 			
 			Load_Transmission:
 			begin
-				if(want_at)
+				if(are_we_sending)
 					next = Begin_Transmission;
 				else
-				begin
-					if(are_we_sending)
-						next = Begin_Transmission;
-					else
-						next = Idle;
-				end
+					next = Idle;
 			end
 			
 			Begin_Transmission:
@@ -331,36 +369,36 @@ module FPGA_Bluetooth_connection(
 			
 			Receive_AT_Response:
 			begin
-				if(did_at_finish)
-					next = Wait_for_User_Demand;
+				if(have_at_response)
+					next = Wait_for_RFIFO_Request;
 				else
 					next = Receive_AT_Response;
 			end
 			
-			Wait_for_User_Demand:
+			Wait_for_RFIFO_Request:
 			begin
 				if(access_RFIFO)
 					next = Read_RFIFO;
 				else
-					next = Wait_for_User_Demand;
+					next = Wait_for_RFIFO_Request;
 			end
 			
 			Read_RFIFO:
 			begin
-				next = Check_With_User;
+				next = Rest_RFIFO;
 			end
 			
-			Check_With_User:
+			Rest_RFIFO:
 			begin
 				if(user_received_data)
 				begin
 					if(finished_with_RFIFO)
 						next = Idle;
 					else
-						next = Wait_for_User_Demand;
+						next = Wait_for_RFIFO_Request;
 				end
 				else
-					next = Check_With_User;
+					next = Rest_RFIFO;
 			end
 		endcase
 	end
@@ -382,7 +420,13 @@ module FPGA_Bluetooth_connection(
 	assign ep22wireOut[11:0] = RFIFO_rd_count[11:0];
 	
 	assign ep23wireOut = ep01wireIn;
+	
 	assign ep24wireOut = ep02wireIn;
+	
+	// User Signals
+	wire data_stored_for_user, data_ready_for_user;
+	assign data_stored_for_user = (curr == Rest_AT_FIFO);
+	assign data_ready_for_user = (curr == Rest_RFIFO);
 	
 	assign ep25wireOut[0] = curr[0];
 	assign ep25wireOut[1] = curr[1];

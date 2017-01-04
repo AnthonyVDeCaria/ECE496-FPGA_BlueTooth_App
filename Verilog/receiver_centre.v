@@ -1,7 +1,48 @@
 /*
 	Anthony De Caria - November 29, 2016
 
-	This module handles the receiver logic for the ECE496-FPGA_Bluetooth_App
+	This module handles the receiver logic for the ECE496-FPGA_Bluetooth_App.
+	
+	Algorithms:
+		If we're #Collecting_Data
+			And the UART_rx sends a done signal
+				We set a timer - #Checking_if_Done
+					If before the timer is done the UART_rx gets new data
+						We go back to #Collecting_Data
+					Else
+						We're #Done
+						Which after a clock cycle means we go back to #Collecting_Data
+	
+		If we're in DS Mode 
+			And we're #Idle
+				If new piece of data comes in
+					Store it
+					Since we got one, go to #Got_One
+						And wait for the next piece of data
+						When it comes in
+							Store it
+							Go back to #Idle
+			And we're #Done
+				Handle each case
+					Start
+						Set the select to whatever the user passed
+						Set flag to 1
+					Cancel
+						Set flag to 0
+				Otherwise
+					Don't set anything
+					UNLESS we reset
+						Then set everything to 0
+			Otherwise
+				Chill
+				
+		If we're in AT Mode
+			And we get a new piece of data
+				Add it to the RFIFO
+			And we're #Done
+				Set the at_response_flag
+			Otherwise
+				Chill
 */
 
 module receiver_centre(
@@ -14,7 +55,7 @@ module receiver_centre(
 		input [9:0] cpd,
 		input [9:0] timer_cap,
 		
-		output at_complete,
+		output at_response_flag,
 		
 		input RFIFO_rd_en,
 		output [15:0] RFIFO_out, 
@@ -24,7 +65,7 @@ module receiver_centre(
 		output RFIFO_empty,
 		
 		output reg [7:0] stream_select,
-		output reg sending_flag
+		output reg ds_sending_flag
 	);
 	/*
 		Wires
@@ -102,7 +143,7 @@ module receiver_centre(
 		Interpreter Hardware
 	*/
 	// AT
-	assign at_complete = (curr == Done) & at_mode;
+	assign at_response_flag = (curr == Done) & at_mode;
 	
 	// Data
 	wire begin_understanding_orders;
@@ -113,7 +154,7 @@ module receiver_centre(
 		if(reset)
 		begin
 			stream_select <= 8'h00;
-			sending_flag <= 1'b0;
+			ds_sending_flag <= 1'b0;
 		end
 		else
 		begin
@@ -123,18 +164,18 @@ module receiver_centre(
 					Start:
 					begin
 						stream_select <= operands;
-						sending_flag <= 1'b1;
+						ds_sending_flag <= 1'b1;
 					end
 					Cancel:
 					begin
-						sending_flag <= 1'b0;
+						ds_sending_flag <= 1'b0;
 					end
 				endcase
 			end
 			else
 			begin
 				stream_select <= stream_select;
-				sending_flag <= sending_flag;
+				ds_sending_flag <= ds_sending_flag;
 			end
 		end
 	end
