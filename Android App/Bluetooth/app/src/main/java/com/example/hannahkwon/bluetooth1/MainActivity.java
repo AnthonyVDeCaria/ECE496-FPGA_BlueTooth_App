@@ -11,9 +11,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -21,14 +23,13 @@ import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toolbar;
 
-public class MainActivity extends FragmentActivity
+public class MainActivity extends AppCompatActivity
         implements RepromptBtDialogFragment.RepromptBtDialogListener, NotSupportBtDialogFragment.NotSupportBtDialogListener, GetFileNameDialogFragment.GetFileNameDialogListener{
 
     private static final String TAG = "MainActivity";
 
-    private Toolbar toolbar;
+    private android.support.v7.widget.Toolbar toolbar;
 
     // Bluetooth related
     private TextView txt_BtStatus;
@@ -125,8 +126,8 @@ public class MainActivity extends FragmentActivity
 
         setContentView(R.layout.activity_main);
 
-//        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setActionBar(toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolBar);
+        setSupportActionBar(toolbar);
 
         txt_BtStatus = (TextView) findViewById(R.id.txt_BtStatus);
         txt_DataReceived = (TextView) findViewById(R.id.txt_DataReceived);
@@ -196,6 +197,14 @@ public class MainActivity extends FragmentActivity
                 commandPacketCreator((byte) Constants.CANCEL);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        //TODO start from here
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        return true;
     }
 
     @Override

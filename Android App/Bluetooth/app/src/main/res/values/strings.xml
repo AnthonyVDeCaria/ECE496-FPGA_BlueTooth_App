@@ -3,6 +3,10 @@
 
     <string name="app_name">Bluetooth1</string>
 
+    <!--Toolbar actions-->
+    <string name="action_open_file">Open file</string>
+    <string name="action_settings">Settings</string>
+
     - <!--   Bluetooth Status   -->
     <string name="bluetooth_on">Bluetooth is on</string>
     <string name="bluetooth_disconnected">Bluetooth disconnected</string>
