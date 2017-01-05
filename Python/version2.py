@@ -48,7 +48,7 @@ info.GetClkInfo(pll)
 print("Configuring FPGA...")
 
 #note change to necessary file path later
-x = dev.ConfigureFPGA('/media/ming/D/ECE496/Python/fbc_w_ok.bit')
+x = dev.ConfigureFPGA('../Python/HC_05.bit')
 #path will be different
 
 #checking configuration
@@ -87,8 +87,8 @@ AT= [0x4154, 0x0d0a]
 ATR = [0x4154, 0x2b52, 0x4553, 0x4554, 0x0d0a]
 #AT+NAME=BU
 ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255, 0x0d0a]
-#AT+NAME?
-ATN = [0x4154, 0x2b4e, 0x414d, 0x453F]
+#AT+NAME=
+ATNU = [0x4154, 0x2b4e, 0x414d, 0x453D]
 
 #NAT no AT commands
 
@@ -104,6 +104,7 @@ while (exit == 0):
 	while (command == ""):
 		command = raw_input('Enter command: ')
 		print('Command:', command)
+
 		#write in certain AT command
 		if (command == 'AT'):
 			write = 1
@@ -121,7 +122,7 @@ while (exit == 0):
 			write = 4
 			at = ATNB
 			print('Write:', command)
-		elif (command == 'ATN'):
+		elif (command == 'ATNU'):
 			write = 4
 			at = ATN
 			print('Write:', command)
@@ -173,22 +174,33 @@ while (exit == 0):
 
 		print("done sending AT, continue")
 
-		#timer = 0
-		#while (timer < 50000000):
-		#	timer += 1
-
 		#reading current state#
 		#should be passing into Rest_Transmission from Load Transmission
 		#don't need to worry about all data sent, bt_done, uart_timer_done
+		
 		dev.UpdateWireOuts()
 		out = 0
-		state = dev.GetWireOutValue( 0x25 ) & 0x000F
+		state = dev.GetWireOutValue( 0x25 )
 		times_RFIFO_written = dev.GetWireOutValue( 0x21 )
 		times_to_read_RFIFO = dev.GetWireOutValue( 0x22 )
 		
-		print('We are in state %x.' % state)
+		print('We are in state %04x.' % state)
 		print('The RFIFO was written %04x times.' % times_RFIFO_written)
 		print('We should read %04x pieces of data.' % times_to_read_RFIFO)
+		
+		while (state == 0x0055):
+			timer = 0
+			while (timer < 50000000):
+				timer += 1
+			
+			dev.UpdateWireOuts()
+			state = dev.GetWireOutValue( 0x25 )
+			times_RFIFO_written = dev.GetWireOutValue( 0x21 )
+			times_to_read_RFIFO = dev.GetWireOutValue( 0x22 )
+
+			print('We are in state %04x.' % state)	
+			print('The RFIFO was written %04x times.' % times_RFIFO_written)
+			print('We should read %04x pieces of data.' % times_to_read_RFIFO)
 
 		while (times_to_read_RFIFO > 0):
 			#Sending in access_RFIF0
@@ -199,11 +211,11 @@ while (exit == 0):
 			out = dev.GetWireOutValue( 0x20 )
 			print('reading out: %04x' % out)
 			#finished reading segment
-			if (ep29 > 0):
+			if (times_to_read_RFIFO > 0):
 				#not finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0086, 0xffff )
 				dev.UpdateWireIns()
-				ep29 -= 1
+				times_to_read_RFIFO -= 1
 			else:
 				#finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0186, 0xffff )
@@ -213,9 +225,9 @@ while (exit == 0):
 
 		#checks on ep25, ep30
 		dev.UpdateWireOuts()
-		ep21value = dev.GetWireOutValue( 0x25 )
+		ep25value = dev.GetWireOutValue( 0x25 )
 		print("\nAfter done with AT")
-		print('0x21: %04x' % ep21value)
+		print('0x25: %04x' % ep25value)
 
 		#Not Needed Anymore
 		#dev.UpdateWireOuts()
@@ -229,12 +241,21 @@ while (exit == 0):
 		dev.UpdateWireIns()
 
 		# activatng begin_connection and activate user_data_loaded (put e for AT, 1c for no AT) (note: may be necessary if need to bypass)
-		#dev.SetWireInValue(0x02, 0x001c, 0xffff)
-		#dev.UpdateWireIns() # comment out this line when there is AT
+		dev.SetWireInValue(0x02, 0x0004, 0xffff)
+		dev.UpdateWireIns() # comment out this line when there is AT
 
+		dev.UpdateWireOuts()
+		ep25 = dev.GetWireOutValue( 0x25 )
+		ep26 = dev.GetWireOutValue( 0x26 )
+		ep27 = dev.GetWireOutValue( 0x27 )
+		print('25 = %04x.' % ep25)
+		print('26 = %04x.' % ep26)
+		print('27 = %04x.' % ep27)
+
+		'''
 		#waiting on data_stream ready
 		#start the code (AT) and reading
-		print "Starting Receiving from RFIFO"
+		#print "Starting Receiving from RFIFO"
 	
 		dev.UpdateWireOuts()
 		out = 0
@@ -255,16 +276,17 @@ while (exit == 0):
 			out = dev.GetWireOutValue( 0x20 )
 			print('reading out: %04x' % out)
 			#finished reading segment
-			if (ep29 > 0):
+			if (times_to_read_RFIFO > 0):
 				#not finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0086, 0xffff )
 				dev.UpdateWireIns()
-				ep29 -= 1
+				times_to_read_RFIFO -= 1
 			else:
 				#finished with RFIFO
 				dev.SetWireInValue( 0x02, 0x0186, 0xffff )
 				dev.UpdateWireIns()
 
+		'''
 	#resetting all flags and counters
 	init_flag = 0
 	count = 0

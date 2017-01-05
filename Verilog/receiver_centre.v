@@ -25,8 +25,11 @@
 			And we're #Done
 				Handle each case
 					Start
-						Set the select to whatever the user passed
-						Set flag to 1
+						If the select is valid
+							Set the select to whatever the user passed
+							Set flag to 1
+						Else
+							Set everything to 0
 					Cancel
 						Set flag to 0
 				Otherwise
@@ -146,8 +149,9 @@ module receiver_centre(
 	assign at_response_flag = (curr == Done) & at_mode;
 	
 	// Data
-	wire begin_understanding_orders;
+	wire begin_understanding_orders, operand_is_0;
 	assign begin_understanding_orders = (curr == Done) & data_mode;
+	assign operand_is_0 = (operands == 8'h00) ? 1'b1 : 1'b0;
 	
 	always@(*)
 	begin
@@ -163,8 +167,16 @@ module receiver_centre(
 				case(commands)
 					Start:
 					begin
-						stream_select <= operands;
-						ds_sending_flag <= 1'b1;
+						if(operand_is_0)
+						begin
+							stream_select <= 8'h00;
+							ds_sending_flag <= 1'b0;
+						end
+						else
+						begin
+							stream_select <= operands;
+							ds_sending_flag <= 1'b1;
+						end
 					end
 					Cancel:
 					begin
