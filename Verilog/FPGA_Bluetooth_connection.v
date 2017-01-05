@@ -114,11 +114,11 @@ module FPGA_Bluetooth_connection(
 	assign user_received_data = ep02wireIn[7];
 	assign finished_with_RFIFO = ep02wireIn[8];
 	
-	parameter uart_cpd = 10'd50;
-	parameter uart_timer_cap = 10'd12;
+	parameter uart_cpd = 10'd11;
+	parameter uart_timer_cap = 10'd385;
 	parameter ms_timer_cap = 10'd100;
 	
-	assign bt_break = 1'b0; // Not being used
+	assign bt_break = 1'b1; // Not being used
 	
 	/*
 		FSM Parameters
@@ -192,12 +192,12 @@ module FPGA_Bluetooth_connection(
 	wire is_all_at_data_sent;
 	assign is_all_at_data_sent = fifo_state_empty[8];
 	
-	assign ds_sending_flag = 1'b1; // This should be replaced - it will be from the receiver_centre in the future.
+	assign ds_sending_flag = begin_connection; // This should be replaced - it will be from the receiver_centre in the future.
 	assign at_sending_flag = ~is_all_at_data_sent;
 	
 	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(are_we_sending) );
 	
-	assign streams_selected = 8'h04; // Will remove for final integration test
+	assign  = 8'haa; // Will remove for final integration test
 	
 	master_switch_ece496 control_valve(
 		.clock(clock),
