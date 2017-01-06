@@ -178,8 +178,8 @@ module FPGA_Bluetooth_connection(
 		
 		.AT_in(ep01wireIn),
 		.AT_out(at),
-		.AT_rd_count(),
-		.AT_wr_count(),
+		.AT_rd_count(ep28wireOut),
+		.AT_wr_count(ep29wireOut),
 
 		.write_enable(wr_en),
 		.read_enable(rd_en),

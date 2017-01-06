@@ -89,29 +89,33 @@ module testingAT;
 		#50 ep02wireIn = 16'h0006;
 		
 		#100 ep01wireIn = "AT";
-		#100 ep02wireIn = 16'h000E;
+		#100 ep02wireIn = 16'h000C;
+//		#100 ep02wireIn = 16'h000E;
 		
-		#150 ep02wireIn = 16'h0016;
+//		#150 ep02wireIn = 16'h0016;
+		#150 ep02wireIn = 16'h0014;
 		
 		#200 ep01wireIn = "+N";
-		#200 ep02wireIn = 16'h000E;
+		#200 ep02wireIn = 16'h000C;
+//		#200 ep02wireIn = 16'h000E;
 		
-		#250 ep02wireIn = 16'h0016;
+//		#250 ep02wireIn = 16'h0016;
+		#250 ep02wireIn = 16'h0034;
 		
-		#300 ep01wireIn = "AM";
-		#300 ep02wireIn = 16'h000E;
+//		#300 ep01wireIn = "AM";
+//		#300 ep02wireIn = 16'h000E;
 		
-		#350 ep02wireIn = 16'h0016;
+//		#350 ep02wireIn = 16'h0016;
 		
-		#400 ep01wireIn = "E=";
-		#400 ep02wireIn = 16'h000E;
+//		#400 ep01wireIn = "E=";
+//		#400 ep02wireIn = 16'h000E;
 		
-		#450 ep02wireIn = 16'h0016;
+//		#450 ep02wireIn = 16'h0016;
 		
-		#500 ep01wireIn = "OP";
-		#500 ep02wireIn = 16'h000E;
+//		#500 ep01wireIn = "OP";
+//		#500 ep02wireIn = 16'h000E;
 		
-		#575 ep02wireIn = 16'h0036;
+//		#575 ep02wireIn = 16'h0036;
 		
 		#2000 fpga_rxd = 1'b0;
 		#2003 fpga_rxd = 1'b1;
