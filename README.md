@@ -1,8 +1,8 @@
 # ECE496-FPGA_BlueTooth_App
 
-ep02wireIn[0] = reset;  
-ep02wireIn[1] = want_at;  
-ep02wireIn[2] = access_datastreams;
+ep02wireIn[0] = reset; 
+ep02wireIn[1] = access_datastreams;
+ep02wireIn[2] = want_at;
 
 ep02wireIn[3] = user_data_loaded;  
 ep02wireIn[4] = user_knows_stored;  
@@ -12,17 +12,18 @@ ep02wireIn[6] = access_RFIFO;
 ep02wireIn[7] = user_received_data;  
 ep02wireIn[8] = finished_with_RFIFO;
 
-To access constant datastream: 000 000 100 -> 004 -> 0 0000 0100 -> 004
+To access constant datastream: 000 000 010 -> 002 -> 0 0000 0010 -> 002
 
 AT  
-To begin AT Mode: 000 000 010 -> 004 -> 0 0000 0010 -> 004  
-To load a piece of data: 000 001 110 -> 016 -> 0 0000 1110 -> 00E  
-To add a new piece of data: 000 010 110 -> 026 -> 0 0001 0110 -> 016  
-To move on when you finished sending your AT commands: 000 110 110 -> 066 -> 0 0011 0110 -> 036
+To begin AT Mode: 000 000 100 -> 004 -> 0 0000 0100 -> 004
 
-To accees RFIFO: 001 000 110 -> 106 -> 0 0100 0110 -> 046  
-To say you've received data: 010 000 110 -> 206 -> 0 1000 0110 -> 086  
-To stop receiving data: 110 000 110 -> 606 -> 1 1000 0110 -> 186
+To load a byte of your AT command: 000 001 100 -> 014 -> 0 0000 1100 -> 00C
+To signal you have more to your AT command: 000 010 100 -> 024 -> 0 0001 0100 -> 014
+To signal you finished AT command: 000 110 100 -> 064 -> 0 0011 0100 -> 034
+
+To access RFIFO: 001 000 100 -> 104 -> 0 0100 0100 -> 044  
+To say you've received data: 010 000 100 -> 204 -> 0 1000 0100 -> 084  
+To stop receiving data: 110 000 100 -> 604 -> 1 1000 0100 -> 184
 
 CPD
 Because of the quirks of the clock and registers,  

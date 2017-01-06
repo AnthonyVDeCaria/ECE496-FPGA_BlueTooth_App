@@ -11,51 +11,45 @@ import ok
 import constants as con
 import library as lib
 
-'''
-	Access the first word of data in the RFIFO.
-'''
 def pop_RFIFO(fpga):
-	fpga.SetWireInValue(con.SIGNAL_WIRE, 0x0044, 0xffff)
-	fpga.UpdateWireIns()
+	'''
+		Access the first word of data in the RFIFO.
+	'''
+	lib.write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0044)
 
-	fpga.UpdateWireOuts()
-	return fpga.GetWireOutValue(con.RFIFO_OUT_WIRE)
+	return lib.read_wire(fpga, con.Wire.RFIFO_OUT_WIRE)
 
-'''
-	Lets the FPGA know that we have the RFIFO word
-	but we want more data
-'''
 def alert_FPGA_receieved_word_want_more(fpga):
-	fpga.SetWireInValue(con.SIGNAL_WIRE, 0x0084, 0xffff)
-	fpga.UpdateWireIns()
+	'''
+		Lets the FPGA know that we have the RFIFO word
+		but we want more data
+	'''
+	lib.write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0084)
 
-'''
-	Lets the FPGA know that we have the RFIFO word
-	and we're finished
-'''
 def alert_FPGA_receieved_word_done(fpga):
-	fpga.SetWireInValue(con.SIGNAL_WIRE, 0x0184, 0xffff)
-	fpga.UpdateWireIns()
+	'''
+		Lets the FPGA know that we have the RFIFO word
+		and we're finished
+	'''
+	lib.write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0184)
 
-'''
-	Reads the amount of times RFIFO has been writen
-'''
 def read_RFIFO_wr_count_wire(fpga):
-	fpga.UpdateWireOuts()
-	return fpga.GetWireOutValue(con.RFIFO_WR_COUNT_WIRE)
+	'''
+		Reads the amount of times RFIFO has been writen
+	'''
+	return lib.read_wire(fpga, con.Wire.RFIFO_WR_COUNT_WIRE)
 
-'''
-	Reads the amount of times RFIFO can been read
-'''
 def read_RFIFO_rd_count_wire(fpga):
-	fpga.UpdateWireOuts()
-	return fpga.GetWireOutValue(con.RFIFO_RD_COUNT_WIRE)
+	'''
+		Reads the amount of times RFIFO can been read
+	'''
+	return lib.read_wire(fpga, con.Wire.RFIFO_RD_COUNT_WIRE)
 
-'''
-	Takes the AT Response from the BTM.
-	Assumes the FPGA is in the proper state.
-'''
 def read_and_display_AT_response(fpga):
+	'''
+		Takes the AT Response from the BTM.
+		Assumes the FPGA is in the proper state.
+	'''
 	out = 0
 	state = lib.read_state(fpga)
 	times_RFIFO_written = read_RFIFO_wr_count_wire(fpga)

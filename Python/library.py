@@ -8,53 +8,66 @@
 import ok
 import constants as con
 
-'''
-	convert char to ascii int
-'''
 def convert(text):
+	'''
+		convert char to ascii int
+	'''
     return (hex(ord(char)))
-
-'''
-	Resets the FPGA
-'''
-def reset(fpga):
-	fpga.SetWireInValue(con.SIGNAL_WIRE, 0x0001, 0xffff)
+	
+def write_wire(fpga, wire, word):
+	'''
+		Write data to a wire
+	'''
+	fpga.SetWireInValue(wire, word, 0xffff)
 	fpga.UpdateWireIns()
 
-'''
-	Toggles the datastream
-	When want_datastream = true -> data flows
-	Otehrwise its 0.
-'''
+def clear_wire_ins(fpga):
+	'''
+		Resets the WireIns
+	'''
+	[write_wire(fpga, wire, 0x0000) for wire in con.Wire.WIRE_IN_CON]
+	
+def reset(fpga):
+	'''
+		Resets the FPGA
+	'''
+	write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0001)
+
 def datastream_toggle(fpga, want_datastream = False):
+	'''
+		Toggles the datastream
+		When want_datastream = true -> data flows
+		Otherwise its 0.
+	'''
 	if(want_datastream):
-		fpga.SetWireInValue(con.SIGNAL_WIRE, 0x0002, 0xffff)
-		fpga.UpdateWireIns()
+		write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0002)
 	else:
-		fpga.SetWireInValue(con.SIGNAL_WIRE, 0x0000, 0xffff)
-		fpga.UpdateWireIns()
-
-'''
-	Reads the State wire
-'''
-def read_state(fpga):
+		write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0000)
+		
+def read_wire(fpga, wire):
+	'''
+		Read data from a wire
+	'''
 	fpga.UpdateWireOuts()
-	return fpga.GetWireOutValue(con.STATE)
+	return fpga.GetWireOutValue(wire)
 
-'''
-	Displays the contents of the state wire
-'''
+def read_state(fpga):
+	'''
+		Reads the State wire
+	'''
+	return read_wire(fpga, con.Wire.STATE)
+
+def check_all_Wire_Outs(fpga):
+	'''
+		Reads all the WireOuts
+	'''
+	return wire_data = [read_wire(fpga, wire) for wire in con.Wire.CURR_WIRE_OUT_CON]
+	
 def display_state(fpga):
+	'''
+		Displays the contents of the state wire
+	'''
 	state = read_state(fpga)
 	print('The current state is: %04x' % state)
 
-'''
-	Reads all the WireOuts
-
-def check_all_Wire_Outs(fpga)
-	fpga.UpdateWireOuts()
-	a.Array(I)
-
-	return a
-'''
 

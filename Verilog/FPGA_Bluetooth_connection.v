@@ -80,7 +80,7 @@ module FPGA_Bluetooth_connection(
 		Wires 
 	*/
 	// General Wires
-	wire reset, want_at, begin_connection;
+	wire reset, want_at, access_datastreams;
 	wire user_data_loaded, user_knows_stored, user_data_done;
 	wire RFIFO_access, user_received_data, finished_with_RFIFO;
 	
@@ -105,8 +105,8 @@ module FPGA_Bluetooth_connection(
 		General Assignments
 	*/
 	assign reset = ep02wireIn[0];
-	assign want_at = ep02wireIn[1];
-	assign begin_connection = ep02wireIn[2];
+	assign access_datastreams = ep02wireIn[1];
+	assign want_at = ep02wireIn[2];
 	assign user_data_loaded = ep02wireIn[3];
 	assign user_knows_stored = ep02wireIn[4];
 	assign user_data_done = ep02wireIn[5];
@@ -192,7 +192,7 @@ module FPGA_Bluetooth_connection(
 	wire is_all_at_data_sent;
 	assign is_all_at_data_sent = fifo_state_empty[8];
 	
-	assign ds_sending_flag = begin_connection; // This should be replaced - it will be from the receiver_centre in the future.
+	assign ds_sending_flag = access_datastreams; // This should be replaced - it will be from the receiver_centre in the future.
 	assign at_sending_flag = ~is_all_at_data_sent;
 	
 	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(we_are_sending) );
@@ -275,7 +275,9 @@ module FPGA_Bluetooth_connection(
 		.stream_select(),
 		.ds_sending_flag(),
 		
-		.want_at(want_at)
+		.want_at(want_at),
+		
+		.commands(ep27wireOut[7:0]), .operands(ep27wireOut[15:8])
 	);
 	
 	/*
@@ -439,6 +441,11 @@ module FPGA_Bluetooth_connection(
 	assign ep25wireOut[8] = data_stored_for_user;
 	assign ep25wireOut[9] = data_ready_for_user;
 	assign ep25wireOut[15:10] = 6'h00;
+	
+	assign ep26wireOut[15:12] = m_datastream_select;
+	assign ep26wireOut[11:9] = 3'h0;
+	assign ep26wireOut[8] = ds_sending_flag;
+	assign ep26wireOut[7:0] = datastream;
 
 endmodule
 

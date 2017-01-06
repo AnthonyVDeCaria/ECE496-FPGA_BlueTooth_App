@@ -74,7 +74,7 @@ print('Before start 0x25: %04x' % state)
 #AT+ORGL
 ATO = [0x4154, 0x2b4f, 0x5247, 0x4c0d, 0x0a00]
 #AT
-AT= [0x4154, 0x0d0a]
+AT = [0x4154, 0x0d0a]
 #AT+RESET
 ATR = [0x4154, 0x2b52, 0x4553, 0x4554, 0x0d0a]
 #AT+NAME=BU
@@ -114,7 +114,7 @@ while (exit == 0):
 			print('Write:', command)
 		elif (command == 'ATNU'):
 			write = 4
-			at = ATN
+			at = ATNU
 			print('Write:', command)
 			name = raw_input('Enter name: ')
 			index = 4
@@ -135,18 +135,7 @@ while (exit == 0):
 		lib.reset(dev)
 
 		# sending in AT command
-		while (count < len(at)):
-			print('Loading: %04x' % at[count])
-
-			#sending in part of AT command
-			AT_w.load_AT_byte(dev, at[count])
-	
-			if (count == len(at)-1):
-				AT_w.alert_FPGA_done_AT_command(dev)
-			else:
-				AT_w.alert_FPGA_more_to_send(dev)
-
-			count += 1
+		AT_w.send_AT_command_to_BTM(dev, at, con.Bluetooth.HC_05)
 
 		print("done sending AT, continue")
 
@@ -156,7 +145,7 @@ while (exit == 0):
 
 		state = lib.read_state(dev)
 		
-		while (state == 0x0055):
+		while (state <= con.State.Receive_AT_Response):
 			timer = 0
 			while (timer < 50000000):
 				timer += 1
@@ -165,7 +154,7 @@ while (exit == 0):
 		AT_r.read_and_display_AT_response(dev)
 
 		print("Done reading - continue")
-		#lib.datastream_toggle(dev, False)
+		#lib.clear_wire_ins(fpga)
 
 	#no AT commands
 	elif (write == -1):
@@ -184,7 +173,7 @@ while (exit == 0):
 #resetting begin (note using reset signal, can use begin_connection set to 0)
 lib.reset(dev)
 
-lib.datastream_toggle(dev, False)
+lib.clear_wire_ins(fpga)
 
 #Read all wire outs
 	

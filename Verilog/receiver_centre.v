@@ -49,27 +49,33 @@
 */
 
 module receiver_centre(
-		input clock, 
-		input reset,
-		
-		input want_at,
-		input fpga_rxd,
-
-		input [9:0] cpd,
-		input [9:0] timer_cap,
-		
-		output at_response_flag,
-		
-		input RFIFO_rd_en,
-		output [15:0] RFIFO_out, 
-		output [12:0] RFIFO_wr_count, 
-		output [11:0] RFIFO_rd_count, 
-		output RFIFO_full, 
-		output RFIFO_empty,
-		
-		output reg [7:0] stream_select,
-		output reg ds_sending_flag
+		clock, reset, want_at, fpga_rxd,
+		cpd, timer_cap,
+		at_response_flag,
+		RFIFO_rd_en, RFIFO_out, RFIFO_wr_count, RFIFO_rd_count, RFIFO_full, RFIFO_empty,
+		stream_select, ds_sending_flag,
+		commands, operands
 	);
+	/*
+		I/Os
+	*/
+	input clock, reset, want_at, fpga_rxd;
+
+	input [9:0] cpd;
+	input [9:0] timer_cap;
+	
+	output at_response_flag;
+	
+	input RFIFO_rd_en;
+	output [15:0] RFIFO_out;
+	output [12:0] RFIFO_wr_count;
+	output [11:0] RFIFO_rd_count; 
+	output RFIFO_full;
+	output RFIFO_empty;
+	
+	output reg [7:0] stream_select;
+	output reg ds_sending_flag;
+	
 	/*
 		Wires
 	*/
@@ -129,7 +135,7 @@ module receiver_centre(
 	);
 	
 	//	User Commands
-	wire [7:0] commands, operands;
+	output [7:0] commands, operands;
 	wire r_r_commands, l_r_commands;
 	wire r_r_operands, l_r_operands;
 	
