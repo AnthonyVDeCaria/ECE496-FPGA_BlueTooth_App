@@ -1,27 +1,5 @@
 `timescale 1us / 1ps
 
-////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer:
-//
-// Create Date:   19:30:42 09/28/2016
-// Design Name:   FPGA_Bluetooth_connection
-// Module Name:   C:/Users/Anthony/Desktop/ECE496/t1_sim/t1.v
-// Project Name:  t1_sim
-// Target Device:  
-// Tool versions:  
-// Description: 
-//
-// Verilog Test Fixture created by ISE for module: FPGA_Bluetooth_connection
-//
-// Dependencies:
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-////////////////////////////////////////////////////////////////////////////////
-
 module testingAT;
 
 	// Inputs
@@ -50,7 +28,6 @@ module testingAT;
 	FPGA_Bluetooth_connection uut (
 		.clock(clock), 
 		.bt_state(bt_state), 
-		.bt_break(bt_break), 
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd), 
 		.ep01wireIn(ep01wireIn), 
@@ -86,36 +63,33 @@ module testingAT;
 		// Add stimulus here
 		#0 ep02wireIn = 16'h0001;
 		
-		#50 ep02wireIn = 16'h0006;
+		#50 ep02wireIn = 16'h0004;
 		
 		#100 ep01wireIn = "AT";
 		#100 ep02wireIn = 16'h000C;
-//		#100 ep02wireIn = 16'h000E;
 		
-//		#150 ep02wireIn = 16'h0016;
 		#150 ep02wireIn = 16'h0014;
 		
 		#200 ep01wireIn = "+N";
 		#200 ep02wireIn = 16'h000C;
-//		#200 ep02wireIn = 16'h000E;
 		
-//		#250 ep02wireIn = 16'h0016;
-		#250 ep02wireIn = 16'h0034;
+		#250 ep02wireIn = 16'h0014;
 		
-//		#300 ep01wireIn = "AM";
-//		#300 ep02wireIn = 16'h000E;
 		
-//		#350 ep02wireIn = 16'h0016;
+		#300 ep01wireIn = "AM";
+		#300 ep02wireIn = 16'h000C;
 		
-//		#400 ep01wireIn = "E=";
-//		#400 ep02wireIn = 16'h000E;
+		#350 ep02wireIn = 16'h0014;
 		
-//		#450 ep02wireIn = 16'h0016;
+		#400 ep01wireIn = "E=";
+		#400 ep02wireIn = 16'h000C;
 		
-//		#500 ep01wireIn = "OP";
-//		#500 ep02wireIn = 16'h000E;
+		#450 ep02wireIn = 16'h0014;
 		
-//		#575 ep02wireIn = 16'h0036;
+		#500 ep01wireIn = "OP";
+		#500 ep02wireIn = 16'h000C;
+		
+		575 ep02wireIn = 16'h0034;
 		
 		#2000 fpga_rxd = 1'b0;
 		#2003 fpga_rxd = 1'b1;

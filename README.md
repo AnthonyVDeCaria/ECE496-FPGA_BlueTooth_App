@@ -25,16 +25,16 @@ To access RFIFO: 001 000 100 -> 104 -> 0 0100 0100 -> 044
 To say you've received data: 010 000 100 -> 204 -> 0 1000 0100 -> 084  
 To stop receiving data: 110 000 100 -> 604 -> 1 1000 0100 -> 184
 
-CPD
+BAUD
 Because of the quirks of the clock and registers,  
 you cannot just use the clock speed divided by the baud rate to get a proper period.  
 You have to use other values - ones that we determined experimentally.  
-Assuming a 1MHZ:  
+Cycles Per Databit (uart_cpd) (Assuming a 1MHZ clock):
 38400 => 26 microseconds => 11
 19200 => 52 microseconds => 24
 9600 => 104 microseconds => 50
 
-Pause Length (Assuming a 1MHZ):  
+Pause Length (uart_timer_cap) (Assuming a 1MHZ clock):  
 38400 => 800 microseconds => 385
 19200 => 572 microseconds => 255
 9600 => 140 microseconds => 12

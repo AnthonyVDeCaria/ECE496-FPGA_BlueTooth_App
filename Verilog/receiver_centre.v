@@ -50,7 +50,7 @@
 
 module receiver_centre(
 		clock, reset, want_at, fpga_rxd,
-		cpd, timer_cap,
+		uart_cpd, uart_timer_cap,
 		at_response_flag,
 		RFIFO_rd_en, RFIFO_out, RFIFO_wr_count, RFIFO_rd_count, RFIFO_full, RFIFO_empty,
 		stream_select, ds_sending_flag,
@@ -61,8 +61,8 @@ module receiver_centre(
 	*/
 	input clock, reset, want_at, fpga_rxd;
 
-	input [9:0] cpd;
-	input [9:0] timer_cap;
+	input [9:0] uart_cpd;
+	input [9:0] uart_timer_cap;
 	
 	output at_response_flag;
 	
@@ -104,7 +104,7 @@ module receiver_centre(
 	UART_rx rx(
 		.clk(clock), 
 		.resetn(~reset), 
-		.cycles_per_databit(cpd), 
+		.cycles_per_databit(uart_cpd), 
 		.rx_line(fpga_rxd), 
 		.rx_data(rx_data), 
 		.collecting_data(is_uart_collecting_data),
@@ -210,7 +210,7 @@ module receiver_centre(
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
 	
-	assign timer_done = (timer == timer_cap) ? 1'b1 : 1'b0;
+	assign timer_done = (timer == uart_timer_cap) ? 1'b1 : 1'b0;
 	
 	/*
 		FSMs

@@ -1,28 +1,6 @@
 `timescale 1us / 1ps
 
-////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer:
-//
-// Create Date:   19:30:42 09/28/2016
-// Design Name:   FPGA_Bluetooth_connection
-// Module Name:   C:/Users/Anthony/Desktop/ECE496/t1_sim/t1.v
-// Project Name:  t1_sim
-// Target Device:  
-// Tool versions:  
-// Description: 
-//
-// Verilog Test Fixture created by ISE for module: FPGA_Bluetooth_connection
-//
-// Dependencies:
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-////////////////////////////////////////////////////////////////////////////////
-
-module t1;
+module testingDS;
 
 	// Inputs
 	reg clock;
@@ -49,8 +27,7 @@ module t1;
 	// Instantiate the Unit Under Test (UUT)
 	FPGA_Bluetooth_connection uut (
 		.clock(clock), 
-		.bt_state(bt_state), 
-		.bt_break(bt_break), 
+		.bt_state(bt_state),  
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd), 
 		.ep01wireIn(ep01wireIn), 
@@ -85,7 +62,7 @@ module t1;
         
 		// Add stimulus here
 		#0 ep02wireIn = 16'h0001;
-		#100 ep02wireIn = 16'h0004;
+		#100 ep02wireIn = 16'h0002;
 		#300 bt_state = 1;
 	end
 	

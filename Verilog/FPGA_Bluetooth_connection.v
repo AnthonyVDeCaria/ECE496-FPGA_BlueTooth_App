@@ -50,7 +50,8 @@
 
 module FPGA_Bluetooth_connection(
 		clock, 
-		bt_state, bt_break, fpga_txd, fpga_rxd, 
+		bt_state, fpga_txd, fpga_rxd,
+		uart_cpd, uart_timer_cap,
 		ep01wireIn, ep02wireIn, 
 		ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, 
 		ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut,
@@ -61,10 +62,11 @@ module FPGA_Bluetooth_connection(
 		I/Os
 	*/
 	input clock;
+	input [9:0] uart_cpd, uart_timer_cap;
 	
 	//	FPGA
 	input fpga_rxd, bt_state;
-	output fpga_txd, bt_break;
+	output fpga_txd;
 	
 	// OK
 	input [15:0] ep01wireIn, ep02wireIn;
@@ -85,7 +87,7 @@ module FPGA_Bluetooth_connection(
 	wire RFIFO_access, user_received_data, finished_with_RFIFO;
 	
 	// Flags
-	wire ds_sending_flag, at_sending_flag, we_are_sending, have_at_response, uart_timer_done, tx_done;
+	wire ds_sending_flag, at_sending_flag, sending_flag, have_at_response, uart_timer_done, tx_done;
 
 	// FIFO Wires
 	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
@@ -93,7 +95,7 @@ module FPGA_Bluetooth_connection(
 	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;	
 	
 	// Datastream Selector Wires
-	wire [7:0] datastream;
+	wire [7:0] UART_input;
 	wire [7:0] streams_selected;
 	wire [3:0] m_datastream_select;
 	
@@ -114,11 +116,7 @@ module FPGA_Bluetooth_connection(
 	assign user_received_data = ep02wireIn[7];
 	assign finished_with_RFIFO = ep02wireIn[8];
 	
-	parameter uart_cpd = 10'd11;
-	parameter uart_timer_cap = 10'd385;
 	parameter ms_timer_cap = 10'd100;
-	
-	assign bt_break = 1'b1; // Not being used
 	
 	/*
 		FSM Parameters
@@ -178,8 +176,8 @@ module FPGA_Bluetooth_connection(
 		
 		.AT_in(ep01wireIn),
 		.AT_out(at),
-		.AT_rd_count(ep28wireOut),
-		.AT_wr_count(ep29wireOut),
+		.AT_rd_count(),
+		.AT_wr_count(),
 
 		.write_enable(wr_en),
 		.read_enable(rd_en),
@@ -195,7 +193,7 @@ module FPGA_Bluetooth_connection(
 	assign ds_sending_flag = access_datastreams; // This should be replaced - it will be from the receiver_centre in the future.
 	assign at_sending_flag = ~is_all_at_data_sent;
 	
-	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(we_are_sending) );
+	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(sending_flag) );
 	
 	assign streams_selected = 8'haa; // Will remove for final integration test
 	
@@ -203,7 +201,7 @@ module FPGA_Bluetooth_connection(
 		.clock(clock),
 		.resetn(~reset),
 		.want_at(want_at),
-		.sending_flag(we_are_sending),
+		.sending_flag(sending_flag),
 		.timer_cap(ms_timer_cap),
 		.selected_streams(streams_selected),
 		.mux_select(m_datastream_select)
@@ -220,7 +218,7 @@ module FPGA_Bluetooth_connection(
 		.data7(datastream7),
 		.data8(at),
 		.sel(m_datastream_select), 
-		.result(datastream) 
+		.result(UART_input) 
 	);
 	
 	//	UART Timer
@@ -242,7 +240,7 @@ module FPGA_Bluetooth_connection(
 		.start(start_tx), 
 		.cycles_per_databit(uart_cpd), 
 		.tx_line(fpga_txd), 
-		.tx_data(datastream), 
+		.tx_data(UART_input), 
 		.tx_done(tx_done)
 	);
 	
@@ -259,9 +257,11 @@ module FPGA_Bluetooth_connection(
 	receiver_centre Purolator(
 		.clock(clock), 
 		.reset(reset),
-
-		.cpd(uart_cpd),
+		
 		.fpga_rxd(fpga_rxd),
+
+		.uart_cpd(uart_cpd),
+		.uart_timer_cap(uart_timer_cap),
 		
 		.at_response_flag(have_at_response),
 		
@@ -284,9 +284,9 @@ module FPGA_Bluetooth_connection(
 		FSM
 	*/
 	// Idle Signals
-	wire data_exists, datastream_ready;
-	assign data_exists = (fifo_state_empty != 8'hFF) ? 1'b1 : 1'b0;
-	assign datastream_ready = ds_sending_flag & data_exists;
+	wire ds_data_exists, datastream_ready;
+	assign ds_data_exists = (fifo_state_empty[7:0] != 8'hFF) ? 1'b1 : 1'b0;
+	assign datastream_ready = ds_sending_flag & ds_data_exists;
 	
 	// Begin_Transmission Signals
 	wire is_bt_done;
@@ -294,7 +294,7 @@ module FPGA_Bluetooth_connection(
 	
 	// Rest_Transmission Signals
 	wire all_data_sent;
-	assign all_data_sent = (fifo_state_empty[7:0] == 9'h1FF) ? 1'b1 : 1'b0;
+	mux_2_1bit m_all_data_sent(.data0(~ds_data_exists), .data1(is_all_at_data_sent), .sel(want_at), .result(all_data_sent) );
 	
 	always@(*)
 	begin
@@ -337,7 +337,7 @@ module FPGA_Bluetooth_connection(
 			
 			Load_Transmission:
 			begin
-				if(we_are_sending)
+				if(sending_flag)
 					next = Begin_Transmission;
 				else
 					next = Idle;
@@ -445,7 +445,7 @@ module FPGA_Bluetooth_connection(
 	assign ep26wireOut[15:12] = m_datastream_select;
 	assign ep26wireOut[11:9] = 3'h0;
 	assign ep26wireOut[8] = ds_sending_flag;
-	assign ep26wireOut[7:0] = datastream;
+	assign ep26wireOut[7:0] = UART_input;
 
 endmodule
 
