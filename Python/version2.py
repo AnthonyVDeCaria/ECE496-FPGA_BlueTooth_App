@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import sys 
 import time
 
+import constants as con
 import library as lib
 import AT_read as AT_r
 import AT_write as AT_w
@@ -42,7 +43,7 @@ info.GetClkInfo(pll)
 print("Configuring FPGA...")
 
 #note change to necessary file path later
-x = dev.ConfigureFPGA('../Python/HC_05.bit')
+x = dev.ConfigureFPGA('../Python/hm_10.bit')
 #path will be different
 
 #checking configuration
@@ -72,13 +73,13 @@ print('Before start 0x25: %04x' % state)
 
 #list of AT commands
 #AT+ORGL
-ATO = [0x4154, 0x2b4f, 0x5247, 0x4c0d, 0x0a00]
+ATO = [0x4154, 0x2b4f, 0x5247, 0x4c00]
 #AT
-AT = [0x4154, 0x0d0a]
+AT = [0x4154]
 #AT+RESET
-ATR = [0x4154, 0x2b52, 0x4553, 0x4554, 0x0d0a]
+ATR = [0x4154, 0x2b52, 0x4553, 0x4554]
 #AT+NAME=BU
-ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255, 0x0d0a]
+ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255]
 #AT+NAME=
 ATNU = [0x4154, 0x2b4e, 0x414d, 0x453D]
 
@@ -135,27 +136,33 @@ while (exit == 0):
 		lib.reset(dev)
 
 		# sending in AT command
-		AT_w.send_AT_command_to_BTM(dev, at, con.Bluetooth.HC_05)
+		AT_w.send_AT_command_to_BTM(dev, at, con.Bluetooth.HM_10)
 
 		print("done sending AT, continue")
+		lib.display_all_Wire_Outs(dev)
 
 		#reading current state#
 		#should be passing into Rest_Transmission from Load Transmission
 		#don't need to worry about all data sent, bt_done, uart_timer_done
 
-		state = lib.read_state(dev)
+		print('Waiting for Response.')
 		
-		while (state <= con.State.Receive_AT_Response):
-			timer = 0
-			while (timer < 50000000):
-				timer += 1
-			state = lib.read_state(dev)
+		state = lib.read_state(dev) & 0x00FF
+		lib.display_state(dev)
+		# POLL
+		while (state <= 0x0088):
+			time.sleep(0.01)
+			state = lib.read_state(dev) & 0x00FF
+			lib.display_state(dev)
+			lib.display_all_Wire_Outs(dev)
 
+		print('Reading Response.')
 		AT_r.read_and_display_AT_response(dev)
 
 		print("Done reading - continue")
-		#lib.clear_wire_ins(fpga)
-
+		lib.display_all_Wire_Outs(dev)
+		lib.clear_wire_ins(dev)
+		
 	#no AT commands
 	elif (write == -1):
 		#Start with reset
@@ -173,7 +180,7 @@ while (exit == 0):
 #resetting begin (note using reset signal, can use begin_connection set to 0)
 lib.reset(dev)
 
-lib.clear_wire_ins(fpga)
+lib.clear_wire_ins(dev)
 
 #Read all wire outs
 	

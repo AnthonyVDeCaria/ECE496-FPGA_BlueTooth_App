@@ -55,7 +55,6 @@ def read_and_display_AT_response(fpga):
 	times_RFIFO_written = read_RFIFO_wr_count_wire(fpga)
 	times_to_read_RFIFO = read_RFIFO_rd_count_wire(fpga)
 
-	print('We are in state %04x.' % state)	
 	print('The RFIFO was written %04x times.' % times_RFIFO_written)
 	print('We should read %04x pieces of data.' % times_to_read_RFIFO)
 
@@ -67,11 +66,6 @@ def read_and_display_AT_response(fpga):
 		
 		if (times_to_read_RFIFO == 0): #finished with RFIFO
 			alert_FPGA_receieved_word_done(fpga)
-			print('I love poop')
 		else:
 			alert_FPGA_receieved_word_want_more(fpga)
-
-	alert_FPGA_receieved_word_done(fpga)
-	lib.display_state(fpga)
-	print('I dont like poop')
 

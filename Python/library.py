@@ -12,7 +12,7 @@ def convert(text):
 	'''
 		convert char to ascii int
 	'''
-    return (hex(ord(char)))
+	return (hex(ord(char)))
 	
 def write_wire(fpga, wire, word):
 	'''
@@ -57,11 +57,14 @@ def read_state(fpga):
 	'''
 	return read_wire(fpga, con.Wire.STATE)
 
-def check_all_Wire_Outs(fpga):
+def read_all_Wire_Outs(fpga):
 	'''
 		Reads all the WireOuts
 	'''
-	return wire_data = [read_wire(fpga, wire) for wire in con.Wire.CURR_WIRE_OUT_CON]
+	wire_data = []
+	for wire in con.Wire.CURR_WIRE_OUT_CON:
+		wire_data = wire_data + [read_wire(fpga, wire)]
+	return wire_data
 	
 def display_state(fpga):
 	'''
@@ -70,4 +73,11 @@ def display_state(fpga):
 	state = read_state(fpga)
 	print('The current state is: %04x' % state)
 
+def display_all_Wire_Outs(fpga):
+	'''
+		Display all the WireOuts
+	'''
+	wire_data = read_all_Wire_Outs(fpga)
+	for i, wire in enumerate(wire_data):
+		print(i, ' %04x' % wire)
 

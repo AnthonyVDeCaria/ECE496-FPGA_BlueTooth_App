@@ -42,11 +42,18 @@ def send_AT_command(fpga, data):
 	for byte in data:
 		print('Loading: %04x' % byte)
 		load_AT_byte(fpga, byte)
-		
+
+		data_stored_for_user = lib.read_state(fpga) & 0x0100
+
+		# POLL
+		while(data_stored_for_user == 0):
+			time.sleep(0.01)
+			data_stored_for_user = lib.read_state(fpga) & 0x0100
+
 		if (byte == data[end_i]):
-			alert_FPGA_done_AT_command
+			alert_FPGA_done_AT_command(fpga)
 		else:
-			alert_FPGA_more_to_send
+			alert_FPGA_more_to_send(fpga)
 	
 def send_AT_command_to_BTM(fpga, data, btm):
 	'''
