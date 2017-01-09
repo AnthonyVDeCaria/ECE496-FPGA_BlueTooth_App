@@ -5,12 +5,12 @@
 	Note: BTM = Bluetooth Module
 '''
 
-import ok
+#import ok
 import constants as con
 
-def convert(text):
+def convert(char):
 	'''
-		convert char to ascii int
+		convert a char to ascii int
 	'''
 	return (hex(ord(char)))
 	
@@ -44,6 +44,12 @@ def datastream_toggle(fpga, want_datastream = False):
 	else:
 		write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0000)
 		
+def turn_on_datastream(fpga)
+	'''
+		Turns on the Datastream
+	'''
+	write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0002)
+		
 def read_wire(fpga, wire):
 	'''
 		Read data from a wire
@@ -62,7 +68,7 @@ def read_all_Wire_Outs(fpga):
 		Reads all the WireOuts
 	'''
 	wire_data = []
-	for wire in con.Wire.CURR_WIRE_OUT_CON:
+	for wire in con.Wire.CURR_WIRE_OUTS:
 		wire_data = wire_data + [read_wire(fpga, wire)]
 	return wire_data
 	
@@ -79,5 +85,8 @@ def display_all_Wire_Outs(fpga):
 	'''
 	wire_data = read_all_Wire_Outs(fpga)
 	for i, wire in enumerate(wire_data):
-		print(i, ' %04x' % wire)
+		print('0x2',i,':', '%04x' % wire)
 
+if __name__ == "__main__":
+	char = raw_input('Enter character: ')
+	print(convert(char))

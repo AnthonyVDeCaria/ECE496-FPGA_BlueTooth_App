@@ -120,7 +120,7 @@ while (exit == 0):
 			name = raw_input('Enter name: ')
 			index = 4
 			for char in name:
-				i = lib.convert(char)	
+				i = lib.convert(char)
 		#exit
 		elif (command == 'exit'):
 			exit = 1
@@ -129,47 +129,37 @@ while (exit == 0):
 			write = -1
 
 	#AT Command sent in
-	if (write > 0):
-		print ("write:", at)
-
-		#Start with reset
-		lib.reset(dev)
-
-		# sending in AT command
-		AT_w.send_AT_command_to_BTM(dev, at, con.Bluetooth.HM_10)
-
-		print("done sending AT, continue")
-		lib.display_all_Wire_Outs(dev)
-
-		#reading current state#
-		#should be passing into Rest_Transmission from Load Transmission
-		#don't need to worry about all data sent, bt_done, uart_timer_done
-
-		print('Waiting for Response.')
+	#Start with reset
+	lib.reset(dev)
 		
+	if (write > 0):
+		print("Beginning to send AT Command ", at ,"...")
+		AT_w.send_AT_command_to_BTM(dev, at, con.Bluetooth.HM_10)
+		print("Done sending AT Command - continue.")
+		
+		lib.display_all_Wire_Outs(dev)
+		
+		print('Waiting for Response...')
+		# POLL {
 		state = lib.read_state(dev) & 0x00FF
-		lib.display_state(dev)
-		# POLL
+		lib.display_all_Wire_Outs(dev)
 		while (state <= 0x0088):
 			time.sleep(0.01)
 			state = lib.read_state(dev) & 0x00FF
-			lib.display_state(dev)
 			lib.display_all_Wire_Outs(dev)
+		# } POLL
+		print("Received Response.")
 
-		print('Reading Response.')
+		print('Reading Response...')
 		AT_r.read_and_display_AT_response(dev)
-
-		print("Done reading - continue")
+		print("Done reading.")
+		
 		lib.display_all_Wire_Outs(dev)
 		lib.clear_wire_ins(dev)
 		
 	#no AT commands
 	elif (write == -1):
-		#Start with reset
-		lib.reset(dev)
-
-		lib.datastream_toggle(dev, True)
-
+		lib.turn_on_datastream(dev)
 		
 	#resetting all flags and counters
 	init_flag = 0
@@ -177,11 +167,10 @@ while (exit == 0):
 	write = 0
 	command = ""
 
-#resetting begin (note using reset signal, can use begin_connection set to 0)
+#resetting begin
 lib.reset(dev)
 
 lib.clear_wire_ins(dev)
 
 #Read all wire outs
-	
-
+lib.display_all_Wire_Outs(dev)

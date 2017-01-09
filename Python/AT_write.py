@@ -20,7 +20,6 @@ def load_AT_byte(fpga, byte):
 	lib.write_wire(fpga, con.Wire.AT_DATA_WIRE, byte)
 	lib.write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x000C)
 
-
 def alert_FPGA_more_to_send(fpga):
 	'''
 		Alerts the FPGA we have more bytes to send 
