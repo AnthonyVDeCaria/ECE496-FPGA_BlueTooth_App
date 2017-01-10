@@ -2,6 +2,27 @@
 	Anthony De Caria - October 16, 2016
 
 	This module creates a UART transmittor.
+	
+	Algorithm:
+		#Idle
+			If we get the ok to start
+				Load o, the data and 1 into a 10_bit reg - #Prepare_Data
+				Put data[i] onto the line - #Send_Data
+				And start the timer
+					If the timer goes off
+						Add one to i - #Add_i
+							If i == 9
+								Set the done flag - #Done
+									If start is low
+										Go to #Idle
+									Else
+										Stay in #Done
+							Else
+								Go back to #Send_Data 
+					Else
+						Keep the data on the line
+			Else
+				#Idle
 */
 
 module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done);

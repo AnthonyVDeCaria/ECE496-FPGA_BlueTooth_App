@@ -75,8 +75,8 @@ module FPGA_Bluetooth_connection(
 	output [15:0] ep30wireOut;
 	
 	// Sensor
-	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
-	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
+	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29; // Hi, [], nI, ;)
+	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C; // (), 7%, x\n, {,
 	
 	/*
 		Wires 
@@ -116,7 +116,7 @@ module FPGA_Bluetooth_connection(
 	assign user_received_data = ep02wireIn[7];
 	assign finished_with_RFIFO = ep02wireIn[8];
 	
-	parameter ms_timer_cap = 10'd100;
+	parameter ms_timer_cap = 10'd2000;
 	
 	/*
 		FSM Parameters
@@ -195,7 +195,7 @@ module FPGA_Bluetooth_connection(
 	
 	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(sending_flag) );
 	
-	assign streams_selected = 8'haa; // Will remove for final integration test
+	assign streams_selected = 8'hFF; // Will remove for final integration test
 	
 	master_switch_ece496 control_valve(
 		.clock(clock),
