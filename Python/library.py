@@ -44,7 +44,7 @@ def datastream_toggle(fpga, want_datastream = False):
 	else:
 		write_wire(fpga, con.Wire.SIGNAL_WIRE, 0x0000)
 		
-def turn_on_datastream(fpga)
+def turn_on_datastream(fpga):
 	'''
 		Turns on the Datastream
 	'''
@@ -85,7 +85,7 @@ def display_all_Wire_Outs(fpga):
 	'''
 	wire_data = read_all_Wire_Outs(fpga)
 	for i, wire in enumerate(wire_data):
-		print('0x2',i,':', '%04x' % wire)
+		print(i, '%04x' % wire)
 
 if __name__ == "__main__":
 	char = raw_input('Enter character: ')
