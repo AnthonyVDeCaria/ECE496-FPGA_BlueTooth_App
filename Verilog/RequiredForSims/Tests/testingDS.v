@@ -8,6 +8,9 @@ module testingDS;
 	reg fpga_rxd;
 	reg [15:0] ep01wireIn;
 	reg [15:0] ep02wireIn;
+	
+	parameter uart_cpd = 10'd11;
+	parameter uart_timer_cap = 10'd385;
 
 	// Outputs
 	wire bt_break;
@@ -29,7 +32,9 @@ module testingDS;
 		.clock(clock), 
 		.bt_state(bt_state),  
 		.fpga_txd(fpga_txd), 
-		.fpga_rxd(fpga_rxd), 
+		.fpga_rxd(fpga_rxd),
+		.uart_cpd(uart_cpd),
+		.uart_timer_cap(uart_timer_cap),
 		.ep01wireIn(ep01wireIn), 
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut), 
