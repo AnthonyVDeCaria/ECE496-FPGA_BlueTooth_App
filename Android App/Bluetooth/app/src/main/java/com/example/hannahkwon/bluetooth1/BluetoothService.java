@@ -68,7 +68,7 @@ public class BluetoothService {
     public void enableBluetooth() {
         Log.i(TAG,"Checking enabled Bluetooth");
 
-        if (btAdapter.isEnabled()) { // Bluetooth is on
+        if (btAdapter.isEnabled() && btAdapter != null) { // Bluetooth is on
             Log.d(TAG,"Bluetooth is already enabled");
 
             // Send the name of the connected device back to the UI Activity

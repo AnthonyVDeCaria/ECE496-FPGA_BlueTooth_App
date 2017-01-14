@@ -62,6 +62,7 @@ public class DeviceListActivity extends FragmentActivity {
      */
     public static String EXTRA_DEVICE_NAME = "device_name";
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
+    public static String EXTRA_DEVICE_TYPE = "device_type";
 
 
     /**
@@ -133,7 +134,7 @@ public class DeviceListActivity extends FragmentActivity {
         if (pairedDevices.size() > 0) {
             findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
             for (BluetoothDevice device : pairedDevices) {
-                pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getType() + "\n" + device.getAddress() );
             }
         } else {
             String noDevices = getResources().getText(R.string.none_paired).toString();
@@ -219,12 +220,20 @@ public class DeviceListActivity extends FragmentActivity {
             // Splitting at new line
 //            String lines[] = info.split("\\r?\\n");
 //            String deviceName = lines[0];
-            String address = info.substring(info.length() - 17);
+            int MACAddr_Start = info.length() - 17;
+            String address = info.substring(MACAddr_Start);
+
+            // Get the device Bluetooth type
+            int type = Integer.parseInt(info.substring(MACAddr_Start - 2, MACAddr_Start -1));
+            String deviceName = info.substring(0, MACAddr_Start -2);
 
             // Create the result Intent and include the MAC address
             Intent intent = new Intent();
-//            intent.putExtra(EXTRA_DEVICE_NAME, deviceName);
+            intent.putExtra(EXTRA_DEVICE_NAME, deviceName);
             intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
+            intent.putExtra(EXTRA_DEVICE_TYPE, type);
+
+            Log.d(TAG, "Selected device " + info.substring(0, MACAddr_Start -3));
 
             // Set result and finish this Activity
             setResult(Activity.RESULT_OK, intent);
@@ -247,7 +256,7 @@ public class DeviceListActivity extends FragmentActivity {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 // If it's already paired, skip it, because it's been listed already
                 if (device.getBondState() != BluetoothDevice.BOND_BONDED) {
-                    mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+                    mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getType() + "\n" + device.getAddress());
                 }
                 // When discovery is finished, change the Activity title
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) {
