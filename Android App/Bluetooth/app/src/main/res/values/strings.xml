@@ -15,6 +15,7 @@
 
     <!--BLE Status-->
     <string name="ble_not_supported">BLE is not supported</string>
+    <string name="ble_not_ready">BLE is not ready for data transfer. Please wait until the status changes to "Connected to"</string>
 
     - <!--   Storage Status   -->
     <string name="failed_creating_parent_directory">Error occurred when creating parent directory</string>

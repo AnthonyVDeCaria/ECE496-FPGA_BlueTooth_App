@@ -225,7 +225,7 @@ public class DeviceListActivity extends FragmentActivity {
 
             // Get the device Bluetooth type
             int type = Integer.parseInt(info.substring(MACAddr_Start - 2, MACAddr_Start -1));
-            String deviceName = info.substring(0, MACAddr_Start -2);
+            String deviceName = info.substring(0, MACAddr_Start -3);
 
             // Create the result Intent and include the MAC address
             Intent intent = new Intent();
@@ -233,7 +233,7 @@ public class DeviceListActivity extends FragmentActivity {
             intent.putExtra(EXTRA_DEVICE_ADDRESS, address);
             intent.putExtra(EXTRA_DEVICE_TYPE, type);
 
-            Log.d(TAG, "Selected device " + info.substring(0, MACAddr_Start -3));
+            Log.d(TAG, "Selected device " + deviceName);
 
             // Set result and finish this Activity
             setResult(Activity.RESULT_OK, intent);

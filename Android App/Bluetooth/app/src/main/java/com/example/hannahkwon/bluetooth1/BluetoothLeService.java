@@ -20,6 +20,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -57,7 +58,8 @@ public class BluetoothLeService extends Service {
             UUID.fromString(SampleGattAttributes.BATTERY_LEVEL);
 
     private ConnectedThread mConnectedThread;
-
+    private BluetoothGattCharacteristic mcharacteristicTX = null;
+    private BluetoothGattCharacteristic mcharacteristicRX = null;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -96,16 +98,40 @@ public class BluetoothLeService extends Service {
                                          BluetoothGattCharacteristic characteristic,
                                          int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.d(TAG, "Characteristic read was successful");
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             }
             else if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION ||
                     status == BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION)
                 Log.d(TAG, "Failed to complete operation. Bonding should start shortly");
+            else {
+                Log.e(TAG, "Characteristic read failed some other reason");
+            }
+        }
+
+        @Override
+        public void onCharacteristicWrite (BluetoothGatt gatt,
+                                           BluetoothGattCharacteristic characteristic,
+                                           int status) {
+            Log.d(TAG, "Write result is as following");
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                Log.d(TAG, "Characteristic write was successful");
+                //TODO Move this to the appropriate place. Pair with updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
+                connected();
+            }
+            else if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION ||
+                    status == BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION) {
+                Log.d(TAG, "Failed to complete operation. Bonding should start shortly");
+            }
+            else {
+                Log.e(TAG, "Characteristic write failed some other reason" + status);
+            }
         }
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
+            Log.d(TAG, "Received characteristic notification");
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
     };
@@ -122,15 +148,16 @@ public class BluetoothLeService extends Service {
         final byte[] data = characteristic.getValue();
         Log.i(TAG, "data"+characteristic.getValue());
 
-        if (data != null && data.length > 0) {
-            final StringBuilder stringBuilder = new StringBuilder(data.length);
-            for(byte byteChar : data)
-                stringBuilder.append(String.format("%02X ", byteChar));
-            Log.d(TAG, String.format("%s", new String(data)));
+//        if (data != null && data.length > 0) {
+//            final StringBuilder stringBuilder = new StringBuilder(data.length);
+//            for(byte byteChar : data)
+//                stringBuilder.append(String.format("%02X ", byteChar));
+//            Log.d(TAG, String.format("%s", new String(data)));
             // getting cut off when longer, need to push on new line, 0A
-            intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
-
-        }
+//            intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
+//        }
+        Log.d(TAG, String.format("%s", new String(data)));
+        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
         sendBroadcast(intent);
     }
 
@@ -256,28 +283,39 @@ public class BluetoothLeService extends Service {
      * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
      * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
      * callback.
-     *
-     * @param characteristic The characteristic to read from.
      */
-    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+    public void readCharacteristic() {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
-        mBluetoothGatt.readCharacteristic(characteristic);
+        if (mcharacteristicRX == null)
+            Log.e(TAG, "Characteristic is null");
+
+        mBluetoothGatt.readCharacteristic(mcharacteristicRX);
     }
 
     /**
      * Write to a given char
-     * @param characteristic The characteristic to write to
      */
-    public void writeCharacteristic(BluetoothGattCharacteristic characteristic) {
+    public void writeCharacteristic(byte[] out) {
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
+        if (mcharacteristicTX == null)
+            Log.e(TAG, "Characteristic is null");
 
-        mBluetoothGatt.writeCharacteristic(characteristic);
+        if(out.length > 20) {
+            Log.e(TAG, "Cannot write longer than 20 bytes");
+            return;
+        }
+
+        mcharacteristicTX.setValue(out);
+        // For now, expecting no response from BLE module
+        mcharacteristicTX.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
+        Log.d(TAG, "Sending " + Arrays.toString(mcharacteristicTX.getValue()));
+        mBluetoothGatt.writeCharacteristic(mcharacteristicTX);
     }
 
     /**
@@ -315,32 +353,64 @@ public class BluetoothLeService extends Service {
         return mBluetoothGatt.getServices();
     }
 
-    public synchronized void connected (BluetoothGattCharacteristic characteristicTX, BluetoothGattCharacteristic characteristicRX) {
+    /**
+     * Sets characteristics discovered
+     * @param characteristicTX The characteristic to write to
+     * @param characteristicRX The characteristic to read from
+     */
+    public void setCharacteristic(BluetoothGattCharacteristic characteristicTX, BluetoothGattCharacteristic characteristicRX) {
+        mcharacteristicTX = characteristicTX;
+        mcharacteristicRX = characteristicRX;
+    }
+
+    /**
+     * Resets characteristics to null
+     */
+    public void resetCharacteristic() {
+        mcharacteristicTX = null;
+        mcharacteristicRX = null;
+    }
+
+    /**
+     * Checks if characteristics are set. (Checks if it is ready for data transfer)
+     * @return true if characteristics are set
+     * @return false if one of the characteristic is null
+     */
+    public boolean checkCharacteristic() {
+        if (mcharacteristicRX == null || mcharacteristicTX ==null)
+            return false;
+        else
+            return true;
+    }
+
+    public synchronized void connected () {
         Log.d(TAG, "Connected");
 
         // Start the thread to manage the connection and perform transmission
-        mConnectedThread = new ConnectedThread(characteristicTX, characteristicRX);
+        mConnectedThread = new ConnectedThread();
         mConnectedThread.start();
     }
+
+//    public synchronized  void sleep() {
+//        Log.d(TAG, "Turn ConnnectedThread into sleep");
+//        if (mConnectedThread != null)
+//            mConnectedThread.sleep();
+//    }
 
     /*
     * This is the thread where you can start sharing data between the devices
     * It has to be in thread as read() & write() block
     */
     private class ConnectedThread extends Thread {
-        private BluetoothGattCharacteristic mmcharacteristicTX; // Used to make connection again
-        private BluetoothGattCharacteristic mmCharacteristicRX;
 
-        public ConnectedThread(BluetoothGattCharacteristic characteristicTX, BluetoothGattCharacteristic characteristicRX) {
+        public ConnectedThread() {
             Log.d(TAG, "Creating ConnectedThread");
-            mmcharacteristicTX = characteristicTX;
-            mmCharacteristicRX = characteristicRX;
         }
 
         public void run() {
             Log.i(TAG, "Beginning mConnectedThread");
             while (true) {
-                readCharacteristic(mmCharacteristicRX);
+                readCharacteristic();
             }
         }
 

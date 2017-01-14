@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                Log.d(TAG, "Changing Bluetooth Status to " + data);
                 txt_BtStatus.setText(data);
             }
         });
@@ -161,7 +162,11 @@ public class MainActivity extends AppCompatActivity
     private void displayData(String data) {
 
         if (data != null) {
+            Log.d(TAG, "Displaying data :" + data);
             txt_DataReceived.append(data);
+        }
+        else {
+            Log.e(TAG, "Failed displaying data");
         }
     }
 
@@ -197,8 +202,6 @@ public class MainActivity extends AppCompatActivity
 //                if (characteristicRX == null)
 //                    Log.e(TAG, "No characteristics for transfer");
 //                mBluetoothLeService.readCharacteristic(characteristicRX);
-//                // starting thread for reading characteristics
-////                mBluetoothLeService.connected(characteristicTX, characteristicRX);
 //            }
             if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
                 Log.d(TAG, "Found HM 10 Connectivity service");
@@ -208,8 +211,13 @@ public class MainActivity extends AppCompatActivity
                 characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
                 if (characteristicRX == null || characteristicTX == null)
                     Log.e(TAG, "No characteristics for transfer");
+                // For bonding
+//                mBluetoothLeService.readCharacteristic(characteristicRX);
                 // starting thread for reading characteristics
-                mBluetoothLeService.connected(characteristicTX, characteristicRX);
+                mBluetoothLeService.setCharacteristic(characteristicTX, characteristicRX);
+//                mBluetoothLeService.connected();
+                // Only now show it is connected
+//                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
             }
         }
         if(!serviceFound)
@@ -242,9 +250,11 @@ public class MainActivity extends AppCompatActivity
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.d(TAG, "Connected to a GATT server");
-                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
+//                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 Log.d(TAG, "Disconnected from a GATT server");
+                // reset characteristic
+                mBluetoothLeService.resetCharacteristic();
                 updateConnectionState(getResources().getString(R.string.disoconnted));
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 //Show all the supported services and characteristics on the user interface.
@@ -355,12 +365,15 @@ public class MainActivity extends AppCompatActivity
                 // encoding command arg into UTF-8
 //                commandArg = new String(setCommandArg(), 0, 1);
 //                Log.d(TAG, "Command arg is encoded into " + commandArg);
+                Log.d(TAG, "Pressed Start");
                 commandPacketCreator((byte) Constants.START, setCommandArg());
             }
         });
         bt_Cancel.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
                 // TODO wipe out the screen
+
+                Log.d(TAG, "Pressed Cancel");
                 commandPacketCreator((byte) Constants.CANCEL);
             }
         });
@@ -586,7 +599,19 @@ public class MainActivity extends AppCompatActivity
 
         // sending the created command packet to FPGA
         Log.d(TAG, "Command packet created is " + commandPacket);
-        btService.sendMessage(commandPacket);
+        if(mBound) { // When BLE
+            if(mBluetoothLeService.checkCharacteristic()) {
+                mBluetoothLeService.writeCharacteristic(commandPacket);
+            }
+            else{
+                Log.d(TAG, "Characteristics are not set yet");
+                Toast.makeText(this, R.string.failed_saving_data,
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+        else {  // When Classic Bluetooth
+            btService.sendMessage(commandPacket);
+        }
     }
 
     /**
