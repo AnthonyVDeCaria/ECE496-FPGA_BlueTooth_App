@@ -34,7 +34,7 @@
         jumboMode="true"
         optimize="true"
         revision="24.0.2"
-        sha1="5f382e8fb4bf0976c627601c1608bd2bdf416cf5">
+        sha1="4f490d0c9bb3d547171309f2733fc5d23c1b62a3">
         <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\instant-run_93123bcec54ca10d19c5e92a40b728a0de474db8\classes.dex" />
     </item>
     <item
@@ -43,7 +43,7 @@
         jumboMode="true"
         optimize="true"
         revision="24.0.2"
-        sha1="e0025a85b4cf3e658fbca0bbe0886193e42b40c4">
+        sha1="8f370bd34a4815703459d8f06e0f003952bbc98b">
         <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\instant-run-bootstrap_2c7510c234d5e33ae5c2e659ca17aa29f9652206\classes.dex" />
     </item>
     <item

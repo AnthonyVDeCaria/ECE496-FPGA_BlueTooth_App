@@ -330,7 +330,7 @@ public class BluetoothLeService extends Service {
                 // Extract characteristics
                 List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
                 for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
-                    Log.d(TAG, "Discovered GATT Characteristic: "+ gattCharacteristic.toString());
+                    Log.d(TAG, "Discovered GATT Characteristic: "+ gattCharacteristic.getUuid().toString());
 
                     boolean isWritable = isWritableCharacteristic(gattCharacteristic);
                     if(isWritable) {
@@ -354,7 +354,7 @@ public class BluetoothLeService extends Service {
                     //                mBluetoothLeService.readCharacteristic(characteristicRX);
                     // starting thread for reading characteristics
                     setCharacteristic(characteristicTX, characteristicRX);
-                    connected();
+//                    connected();
                     // Only now show it is connected
                     //                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
                 }
@@ -458,17 +458,21 @@ public class BluetoothLeService extends Service {
             return;
         }
         if(characteristic != null) {
+            Log.d(TAG, "Setting characteristic notification");
             mBluetoothGatt.setCharacteristicNotification(characteristic, enabled); // Enabled locally
 
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
                         UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
 
-            if(enabled)
+            if(enabled) {
+                Log.d(TAG, "Enabled notification remotely");
                 descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            else
+            }
+            else {
+                Log.d(TAG, "Disabled notification remotely");
                 descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
-
-            mBluetoothGatt.writeDescriptor(descriptor); // Enabled remotely
+            }
+            mBluetoothGatt.writeDescriptor(descriptor); // Configured remote device
         }
         else
             Log.e(TAG, "Failed to set notification as the characteristic is null!");
