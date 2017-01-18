@@ -20,7 +20,7 @@
 								Set the mux_select to the index
 								Set a timer
 								When the timer is finished
-									Go to the next index
+									Go to the ms_next index
 									And go back to #Find
 			If we aren't
 				Do nothing
@@ -38,13 +38,14 @@ module master_switch_ece496(clock, resetn, want_at, sending_flag, timer_cap, sel
 	input [9:0] timer_cap;
 	input [7:0] selected_streams;
 	
-	output reg[3:0] mux_select;
+	output reg [3:0] mux_select;
+//	output reg select_ready;
 	
 	/*
 		FSM Wires
 	*/
 	parameter Idle = 3'b000, AT = 3'b111, Load_Shift = 3'b001, Find = 3'b010, Run = 3'b011;
-	reg [2:0] curr, next;
+	reg [2:0] ms_curr, ms_next;
 	
 	/*
 		Timer
@@ -52,8 +53,8 @@ module master_switch_ece496(clock, resetn, want_at, sending_flag, timer_cap, sel
 	wire [9:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
-	assign l_r_timer = (curr == Run);
-	assign r_r_timer = ~( ~resetn | (curr == Find) );
+	assign l_r_timer = (ms_curr == Run);
+	assign r_r_timer = ~( ~resetn | (ms_curr == Find) );
 	
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
@@ -66,9 +67,9 @@ module master_switch_ece496(clock, resetn, want_at, sending_flag, timer_cap, sel
 	wire [7:0] shift;
 	wire r_sr_shift, e_sr_shift, s_sr_shift;
 	
-	assign r_sr_shift = ~( ~resetn | (curr == Idle) );
-	assign e_sr_shift = (curr == Load_Shift) | ((curr == Find) & ~shift[0]) | ((curr == Run) & timer_done);
-	assign s_sr_shift = (curr == Load_Shift);
+	assign r_sr_shift = ~( ~resetn | (ms_curr == Idle) );
+	assign e_sr_shift = (ms_curr == Load_Shift) | ((ms_curr == Find) & ~shift[0]) | ((ms_curr == Run) & timer_done);
+	assign s_sr_shift = (ms_curr == Load_Shift);
 	
 	cyclical_right_shift_register_8_async sr_shift(.clk(clock), .resetn(r_sr_shift), .enable(e_sr_shift), .select(s_sr_shift), .d(selected_streams), .q(shift) );
 	
@@ -78,8 +79,8 @@ module master_switch_ece496(clock, resetn, want_at, sending_flag, timer_cap, sel
 	wire r_r_i, l_r_i;
 	wire [2:0] i, n_i;
 	
-	assign r_r_i = ~( ~resetn | (curr == Idle) );
-	assign l_r_i = ((curr == Find) & ~shift[0]) | ((curr == Run) & timer_done);
+	assign r_r_i = ~( ~resetn | (ms_curr == Idle) );
+	assign l_r_i = ((ms_curr == Find) & ~shift[0]) | ((ms_curr == Run) & timer_done);
 	
 	adder_subtractor_3bit a_i(.a(i), .b(3'b001), .want_subtract(1'b0), .c_out(), .s(n_i) );
 	register_3bit_enable_async r_i(.clk(clock), .resetn(r_r_i), .enable(l_r_i), .select(l_r_i), .d(n_i), .q(i) );
@@ -89,66 +90,77 @@ module master_switch_ece496(clock, resetn, want_at, sending_flag, timer_cap, sel
 	*/
 	always@(*)
 	begin
-		case(curr)
+		case(ms_curr)
 			Idle: 
 			begin
-				mux_select <= 4'bZZZZ;
+				mux_select = 4'bZZZZ;
+//				select_ready = 1'b0;
 				
 				if(sending_flag)
 				begin
 					if(want_at)
-						next = AT;
+						ms_next = AT;
 					else
-						next = Load_Shift;
+						ms_next = Load_Shift;
 				end
 				else
-					next = Idle;
+					ms_next = Idle;
 			end
 			AT:
 			begin
-				mux_select <= 4'b1000;
+				mux_select = 4'b1000;
+//				select_ready = 1'b1;
 				
 				if(sending_flag)
-					next = AT;
+					ms_next = AT;
 				else
-					next = Idle;
+					ms_next = Idle;
 			end
 			Load_Shift:
 			begin
-				mux_select <= 4'bZZZZ;
+				mux_select = 4'bZZZZ;
+//				select_ready = 1'b0;
 				
-				next = Find;
+				ms_next = Find;
 			end
 			Find:
 			begin
-				mux_select <= 4'bZZZZ;
+				mux_select = 4'bZZZZ;
+//				select_ready = 1'b0;
 	
 				if(sending_flag)
 				begin
 					if(shift[0])
-						next = Run;
+						ms_next = Run;
 					else
-						next = Find;
+						ms_next = Find;
 				end
 				else
-					next = Idle;
+					ms_next = Idle;
 			end
 			Run:
 			begin
-				mux_select[3] <= 1'b0;
-				mux_select[2:0] <= i;
+				mux_select[3] = 1'b0;
+				mux_select[2:0] = i;
+//				select_ready = 1'b1;
 				
 				if(timer_done)
-					next = Find;
+					ms_next = Find;
 				else
-					next = Run;
+					ms_next = Run;
+			end
+			default:
+			begin
+				mux_select = 4'bzzzz;
+//				select_ready = 1'b0;
+				ms_next = Idle;
 			end
 		endcase
 	end
 	
 	always@(posedge clock or negedge resetn)
 	begin
-		if(!resetn) curr <= Idle; else curr <= next;
+		if(!resetn) ms_curr <= Idle; else ms_curr <= ms_next;
 	end
 endmodule
 	

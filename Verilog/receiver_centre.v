@@ -54,7 +54,7 @@ module receiver_centre(
 		at_response_flag,
 		RFIFO_rd_en, RFIFO_out, RFIFO_wr_count, RFIFO_rd_count, RFIFO_full, RFIFO_empty,
 		stream_select, ds_sending_flag,
-		commands, operands
+		commands, operands, l_r_ds_sending_flag, r_r_ds_sending_flag, ds_sending_flag_value, rc_curr, rc_next, c, n
 	);
 	/*
 		I/Os
@@ -73,8 +73,8 @@ module receiver_centre(
 	output RFIFO_full;
 	output RFIFO_empty;
 	
-	output reg [7:0] stream_select;
-	output reg ds_sending_flag;
+	output [7:0] stream_select;
+	output ds_sending_flag;
 	
 	/*
 		Wires
@@ -92,21 +92,21 @@ module receiver_centre(
 		FSM Wires
 	*/
 	parameter Collecting_Data = 2'b00, Checking_if_Done = 2'b01, Done = 2'b10;
-	reg [1:0] curr, next;
+	output reg [1:0] rc_curr, rc_next;
 	
 	parameter Idle = 1'b0, Got_One = 1'b1; 
-	reg c, n;
+	output reg c, n;
 	
 	/*
 		Receiver Hardware
 	*/
 	//	UART
 	UART_rx rx(
-		.clk(clock), 
-		.resetn(~reset), 
-		.cycles_per_databit(uart_cpd), 
-		.rx_line(fpga_rxd), 
-		.rx_data(rx_data), 
+		.clk(clock),
+		.resetn(~reset),
+		.cycles_per_databit(uart_cpd),
+		.rx_line(fpga_rxd),
+		.rx_data(rx_data),
 		.collecting_data(is_uart_collecting_data),
 		.rx_data_valid(rx_done)
 	);
@@ -152,49 +152,74 @@ module receiver_centre(
 		Interpreter Hardware
 	*/
 	// AT
-	assign at_response_flag = (curr == Done) & at_mode;
+	assign at_response_flag = (rc_curr == Done) & at_mode;
 	
 	// Data
 	wire begin_understanding_orders, operand_is_0;
-	assign begin_understanding_orders = (curr == Done) & data_mode;
+	assign begin_understanding_orders = (rc_curr == Done) & data_mode;
 	assign operand_is_0 = (operands == 8'h00) ? 1'b1 : 1'b0;
+	
+	reg l_r_stream_select;
+	wire r_r_stream_select;
+	assign r_r_stream_select = ~reset; 
+	register_8bit_enable_async r_stream_select(.clk(clock), .resetn(r_r_stream_select), .enable(l_r_stream_select), .select(l_r_stream_select), .d(operands), .q(stream_select) );
+	
+	output reg l_r_ds_sending_flag, ds_sending_flag_value;
+	output r_r_ds_sending_flag;
+	assign r_r_ds_sending_flag = ~reset;
+	register_1bit_enable_async r_ds_sending_flag(
+		.clk(clock), 
+		.resetn(r_r_ds_sending_flag), 
+		.enable(l_r_ds_sending_flag), 
+		.select(l_r_ds_sending_flag), 
+		.d(ds_sending_flag_value), 
+		.q(ds_sending_flag) 
+	);
 	
 	always@(*)
 	begin
-		if(reset)
+		if(begin_understanding_orders)
 		begin
-			stream_select <= 8'h00;
-			ds_sending_flag <= 1'b0;
+			case(commands)
+				Start:
+				begin
+					if(operand_is_0)
+					begin
+						l_r_stream_select = 1'b0;
+						
+						l_r_ds_sending_flag = 1'b1;
+						ds_sending_flag_value = 1'b0;
+					end
+					else
+					begin
+						l_r_stream_select = 1'b1;
+						
+						l_r_ds_sending_flag = 1'b1;
+						ds_sending_flag_value = 1'b1;
+					end
+				end
+				Cancel:
+				begin
+					l_r_stream_select = 1'b0;
+					
+					l_r_ds_sending_flag = 1'b1;
+					ds_sending_flag_value = 1'b0;
+				end
+				default:
+				begin
+					l_r_stream_select = 1'b0;
+					
+					l_r_ds_sending_flag = 1'b0;
+					ds_sending_flag_value = 1'b0;
+				end
+			endcase
 		end
 		else
 		begin
-			if(begin_understanding_orders)
-			begin
-				case(commands)
-					Start:
-					begin
-						if(operand_is_0)
-						begin
-							stream_select <= 8'h00;
-							ds_sending_flag <= 1'b0;
-						end
-						else
-						begin
-							stream_select <= operands;
-							ds_sending_flag <= 1'b1;
-						end
-					end
-					Cancel:
-					begin
-						ds_sending_flag <= 1'b0;
-					end
-				endcase
-			end
-			else
-			begin
-				stream_select <= stream_select;
-				ds_sending_flag <= ds_sending_flag;
-			end
+			l_r_stream_select = 1'b0;
+			
+			l_r_ds_sending_flag = 1'b0;
+			ds_sending_flag_value = 1'b0;
 		end
 	end
 	
@@ -204,8 +229,8 @@ module receiver_centre(
 	wire [9:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
-	assign l_r_timer = (curr == Checking_if_Done);
-	assign r_r_timer = ~(reset | (curr == Collecting_Data) ) ;
+	assign l_r_timer = (rc_curr == Checking_if_Done);
+	assign r_r_timer = ~(reset | (rc_curr == Collecting_Data) ) ;
 	
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
@@ -218,29 +243,34 @@ module receiver_centre(
 	// Receiving
 	always@(*)
 	begin
-		case(curr)
+		case(rc_curr)
 			Collecting_Data:
 			begin
 				if(rx_done)
-					next = Checking_if_Done;
+					rc_next = Checking_if_Done;
 				else
-					next = Collecting_Data;
+					rc_next = Collecting_Data;
 			end
 			Checking_if_Done:
 			begin
 				if(is_uart_collecting_data)
-					next = Collecting_Data;
+					rc_next = Collecting_Data;
 				else
 				begin
 					if(timer_done)
-						next = Done;
+						rc_next = Done;
 					else
-						next = Checking_if_Done;
+						rc_next = Checking_if_Done;
 				end
 			end
 			Done:
 			begin
-				next = Collecting_Data;
+				rc_next = Collecting_Data;
+			end
+			
+			default:
+			begin
+				rc_next = Collecting_Data;
 			end
 		endcase
 	end
@@ -263,6 +293,10 @@ module receiver_centre(
 				else
 					n = Got_One;
 			end
+			default:
+			begin
+				n = Idle;
+			end
 		endcase
 	end
 	
@@ -270,12 +304,12 @@ module receiver_centre(
 	begin
 		if(reset)
 		begin 
-			curr <= Collecting_Data;
+			rc_curr <= Collecting_Data;
 			c <= Idle;
 		end
 		else
 		begin
-			curr <= next;
+			rc_curr <= rc_next;
 			c <= n;
 		end
 	end

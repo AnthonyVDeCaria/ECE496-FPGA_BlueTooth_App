@@ -39,7 +39,7 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	/*
 		FSM
 	*/
-	reg [2:0] curr, next;
+	reg [2:0] utx_curr, utx_next;
 	parameter Idle = 3'b000, Prepare_Data = 3'b001, Send_Data = 3'b010, Add_i = 3'b011, Done = 3'b100;
 	
 	/*
@@ -49,8 +49,8 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	wire l_r_timer, r_r_timer;
 	wire at_cpd;
 	
-	assign l_r_timer = ((curr == Send_Data) & (~at_cpd));
-	assign r_r_timer = ~(~resetn | (curr == Idle) | (curr == Add_i) ) ;
+	assign l_r_timer = ((utx_curr == Send_Data) & (~at_cpd));
+	assign r_r_timer = ~(~resetn | (utx_curr == Idle) | (utx_curr == Add_i) ) ;
 	
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clk), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
@@ -63,8 +63,8 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	wire [3:0] i, n_i;
 	wire l_r_i, r_r_i;
 	
-	assign l_r_i = (curr == Add_i);
-	assign r_r_i = ~(~resetn | (curr == Idle) );
+	assign l_r_i = (utx_curr == Add_i);
+	assign r_r_i = ~(~resetn | (utx_curr == Idle) );
 	
 	adder_subtractor_4bit a_i(.a(i), .b(4'b0001), .want_subtract(1'b0), .c_out(), .s(n_i) );
 	register_4bit_enable_async r_i(.clk(clk), .resetn(r_r_i), .enable(l_r_i), .select(l_r_i), .d(n_i), .q(i) );
@@ -79,19 +79,19 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	assign din[8:1] = tx_data[7:0];
 	assign din[0] = 1'b0;
 	
-	assign l_r_safety = (curr == Prepare_Data);
+	assign l_r_safety = (utx_curr == Prepare_Data);
 	
 	register_10bit_enable_async r_safety(.clk(clk), .resetn(resetn), .enable(l_r_safety), .select(l_r_safety), .d(din), .q(dout) );
 	
 	reg current_dout;
 	always@(*)
 	begin
-		if(curr == Send_Data)
+		if(utx_curr == Send_Data)
 			current_dout = dout[i];
 	end
 	
 	wire dout_select;
-	assign dout_select = (curr == Send_Data) | (curr == Add_i);
+	assign dout_select = (utx_curr == Send_Data) | (utx_curr == Add_i);
 	mux_2_1bit m_dout(.data0(1'b1), .data1(current_dout), .sel(dout_select), .result(tx_line) );
 	
 	/*
@@ -100,42 +100,47 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	
 	always@(*)
 	begin
-		case(curr)
+		case(utx_curr)
 			Idle: 
 			begin
 				if(start)
-					next = Prepare_Data;
+					utx_next = Prepare_Data;
 				else
-					next = Idle;
+					utx_next = Idle;
 			end
 			
 			Prepare_Data:
 			begin
-				next = Send_Data;
+				utx_next = Send_Data;
 			end
 			
 			Send_Data:
 			begin
 				if(!at_cpd)
-					next = Send_Data;
+					utx_next = Send_Data;
 				else
-					next = Add_i;
+					utx_next = Add_i;
 			end
 			
 			Add_i:
 			begin
 				if(i[3] == 1'b1 && i[0] == 1'b1)
-					next = Done;
+					utx_next = Done;
 				else
-					next = Send_Data;
+					utx_next = Send_Data;
 			end
 			
 			Done:
 			begin
 				if(start)
-					next = Done;
+					utx_next = Done;
 				else
-					next = Idle;
+					utx_next = Idle;
+			end
+			
+			default:
+			begin
+				utx_next = Idle;
 			end
 		endcase
 	end
@@ -143,12 +148,12 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	always@(posedge clk or negedge resetn)
 	begin
 		if(!resetn) 
-			curr <= Idle; 
+			utx_curr <= Idle; 
 		else 
-			curr <= next;
+			utx_curr <= utx_next;
 	end
 	
-	assign tx_done = (curr == Done);
+	assign tx_done = (utx_curr == Done);
 	
 endmodule
 

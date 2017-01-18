@@ -39,7 +39,7 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	/*
 		FSM
 	*/
-	reg [2:0] curr, next;
+	reg [2:0] urx_curr, urx_next;
 	parameter Idle = 3'b000, Double_Check = 3'b001, Reset_Timer = 3'b010, Wait_for_Timer = 3'b011, Update_rx_data = 3'b100, Done = 3'b101;
 	
 	/*
@@ -49,8 +49,8 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	wire l_r_timer, r_r_timer;
 	wire at_halftime, at_cpd;
 	
-	assign l_r_timer = ((curr == Double_Check) & (~at_halftime)) | ((curr == Wait_for_Timer) & (~at_cpd));
-	assign r_r_timer = ~(~resetn | (curr == Idle) | (curr == Reset_Timer) ) ;
+	assign l_r_timer = ((urx_curr == Double_Check) & (~at_halftime)) | ((urx_curr == Wait_for_Timer) & (~at_cpd));
+	assign r_r_timer = ~(~resetn | (urx_curr == Idle) | (urx_curr == Reset_Timer) ) ;
 	
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clk), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
@@ -67,8 +67,8 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	wire [3:0] i, n_i;
 	wire l_r_i, r_r_i;
 	
-	assign l_r_i = (curr == Update_rx_data);
-	assign r_r_i = ~(~resetn | (curr == Idle));
+	assign l_r_i = (urx_curr == Update_rx_data);
+	assign r_r_i = ~(~resetn | (urx_curr == Idle));
 	
 	adder_subtractor_4bit a_i(.a(i), .b(4'b0001), .want_subtract(1'b0), .c_out(), .s(n_i) );
 	register_4bit_enable_async r_i(.clk(clk), .resetn(r_r_i), .enable(l_r_i), .select(l_r_i), .d(n_i), .q(i) );
@@ -78,9 +78,7 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	*/
 	always@(*)
 	begin
-		if(curr == Idle)
-			rx_data = 8'h00;
-		if(curr == Update_rx_data);
+		if(urx_curr == Update_rx_data)
 			rx_data[i] = rx_line;
 	end
 	
@@ -89,16 +87,16 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	*/
 	always@(*)
 	begin
-		case(curr)
+		case(urx_curr)
 			Idle: 
 			begin
 				if(!rx_line)
 				begin
-					next = Double_Check;
+					urx_next = Double_Check;
 				end
 				else
 				begin
-					next = Idle;
+					urx_next = Idle;
 				end
 			end
 			
@@ -108,47 +106,52 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 				begin
 					if(!rx_line)
 					begin
-						next = Reset_Timer;
+						urx_next = Reset_Timer;
 					end
 					else
 					begin
-						next = Idle;
+						urx_next = Idle;
 					end
 				end
 				else
 				begin
-					next = Double_Check;
+					urx_next = Double_Check;
 				end
 			end
 			
 			Reset_Timer:
 			begin
-				next = Wait_for_Timer;
+				urx_next = Wait_for_Timer;
 			end
 			
 			Wait_for_Timer:
 			begin
 				if(i[3] == 1'b1)
 					begin
-						next = Done;
+						urx_next = Done;
 					end
 					else
 					begin
 						if(at_cpd)
-							next = Update_rx_data;
+							urx_next = Update_rx_data;
 						else
-							next = Wait_for_Timer;
+							urx_next = Wait_for_Timer;
 					end
 			end
 			
 			Update_rx_data:
 			begin
-				next = Reset_Timer;
+				urx_next = Reset_Timer;
 			end
 			
 			Done:
 			begin
-				next = Idle;
+				urx_next = Idle;
+			end
+			
+			default:
+			begin
+				urx_next = Idle;
 			end
 		endcase
 	end
@@ -156,13 +159,13 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	always@(posedge clk or negedge resetn)
 	begin
 		if(!resetn) 
-			curr <= Idle; 
+			urx_curr <= Idle; 
 		else 
-			curr <= next;
+			urx_curr <= urx_next;
 	end
 	
-	assign collecting_data = (curr == Wait_for_Timer);
-	assign rx_data_valid = (curr == Done);
+	assign collecting_data = ~((urx_curr == Idle) | (urx_curr == Done) | (urx_curr == Double_Check));
+	assign rx_data_valid = (urx_curr == Done);
 	
 endmodule
 

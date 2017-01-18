@@ -13,11 +13,11 @@ module mux_2_1bit(data0, data1, sel, result);
 	begin
 		if (~sel)
 		begin
-			result <= data0;
+			result = data0;
 		end
 		else
 		begin
-			result <= data1;
+			result = data1;
 		end
 	end
 endmodule

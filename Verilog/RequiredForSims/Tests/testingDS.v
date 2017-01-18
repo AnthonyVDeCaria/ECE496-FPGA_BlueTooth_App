@@ -4,17 +4,20 @@ module testingDS;
 
 	// Inputs
 	reg clock;
+	reg resetn;
 	reg bt_state;
-	reg fpga_rxd;
 	reg [15:0] ep01wireIn;
 	reg [15:0] ep02wireIn;
 	
-	parameter uart_cpd = 10'd11;
-	parameter uart_timer_cap = 10'd385;
+	parameter uart_cpd = 10'd50;
+	parameter uart_timer_cap = 10'd12;
+	
+	reg [7:0] App_command_byte;
+	reg start;
 
 	// Outputs
-	wire bt_break;
 	wire fpga_txd;
+	wire fpga_rxd;
 	wire [15:0] ep20wireOut;
 	wire [15:0] ep21wireOut;
 	wire [15:0] ep22wireOut;
@@ -50,6 +53,16 @@ module testingDS;
 		.ep30wireOut(ep30wireOut)
 	);
 	
+	UART_tx santas_little_helper(
+			.clk(clock), 
+			.resetn(resetn), 
+			.start(start), 
+			.cycles_per_databit(uart_cpd), 
+			.tx_line(fpga_rxd),
+			.tx_data(App_command_byte),
+			.tx_done(tx_done)
+		);
+	
 	always begin
 		#1 clock = !clock;
 	end
@@ -57,19 +70,29 @@ module testingDS;
 	initial begin
 		// Initialize Inputs
 		clock = 0;
+		resetn = 0;
 		bt_state = 0;
-		fpga_rxd = 1;
 		ep01wireIn = 0;
 		ep02wireIn = 0;
+		start = 1'b0;
+		App_command_byte = 8'h00;
 
 		// Wait 100 us for global reset to finish
 		#100;
         
 		// Add stimulus here
+		#0 resetn = 1'b1;
 		#0 ep02wireIn = 16'h0001;
+		
 		#100 ep02wireIn = 16'h0002;
-		#300 bt_state = 1;
+		
+		#200 App_command_byte = 8'h00;
+		#200 start = 1'b1;
+		#205 start = 1'b0;
+		
+		#600 App_command_byte = 8'haa;
+		#600 start = 1'b1;
+		#605 start = 1'b0;
 	end
-	
 endmodule
 
