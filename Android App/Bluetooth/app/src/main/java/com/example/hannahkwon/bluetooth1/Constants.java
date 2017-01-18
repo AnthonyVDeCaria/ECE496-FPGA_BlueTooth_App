@@ -7,6 +7,10 @@ public class Constants {
     static final int REQUEST_ENABLE_BT = 1000;
     static final int REQUEST_CONNECT_DEVICE = 1001;
 
+    // Gatt operation for BLE
+    static final int GATT_READ = 0;
+    static final int GATT_WRITE = 1;
+
     // Message types sent from the BluetoothService Handler
     public static final int MESSAGE_BLUETOOTH_ON = 0;
     public static final int MESSAGE_STATE_CHANGE = 1;
@@ -29,7 +33,8 @@ public class Constants {
     // Control Command types
     public static final int START = 0x00; // 0
     public static final int CANCEL = 0x01;    // 1
-//    public static final String WAIT = "2";
+
+    //    public static final String WAIT = "2";
 //    public static final String READY = "3";
     public static final int ARE_ACTIVE = 0x02;    // 2
     public static final int ACK = 0x03;   // 3

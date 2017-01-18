@@ -23,6 +23,7 @@ import android.util.Log;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -60,6 +61,8 @@ public class BluetoothLeService extends Service {
     private ConnectedThread mConnectedThread;
     private BluetoothGattCharacteristic mcharacteristicTX = null;
     private BluetoothGattCharacteristic mcharacteristicRX = null;
+    public static ReentrantLock GattLock = null;
+    public static boolean NoGattOperation = true;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -107,6 +110,12 @@ public class BluetoothLeService extends Service {
             else {
                 Log.e(TAG, "Characteristic read failed some other reason");
             }
+            GattLock.lock();
+            try {
+                NoGattOperation = true;
+            } finally {
+                GattLock.unlock();
+            }
         }
 
         @Override
@@ -117,7 +126,7 @@ public class BluetoothLeService extends Service {
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "Characteristic write was successful");
                 //TODO Move this to the appropriate place. Pair with updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
-                connected();
+//                connected();
             }
             else if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION ||
                     status == BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION) {
@@ -125,6 +134,12 @@ public class BluetoothLeService extends Service {
             }
             else {
                 Log.e(TAG, "Characteristic write failed some other reason" + status);
+            }
+            GattLock.lock();
+            try {
+                NoGattOperation = true;
+            } finally {
+                GattLock.unlock();
             }
         }
 
@@ -146,7 +161,7 @@ public class BluetoothLeService extends Service {
 
         // For all other profiles, writes the data formatted in HEX.
         final byte[] data = characteristic.getValue();
-        Log.i(TAG, "data"+characteristic.getValue());
+        Log.i(TAG, "data " + characteristic.getValue());
 
 //        if (data != null && data.length > 0) {
 //            final StringBuilder stringBuilder = new StringBuilder(data.length);
@@ -204,6 +219,8 @@ public class BluetoothLeService extends Service {
             Log.e(TAG, "Unable to obtain a BluetoothAdapter.");
             return false;
         }
+
+        GattLock = new ReentrantLock();
 
         return true;
     }
@@ -279,6 +296,114 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt = null;
     }
 
+    // Demonstrates how to iterate through the supported GATT Services/Characteristics.
+    // In this sample, we populate the data structure that is bound to the ExpandableListView
+    // on the UI.
+    public void displayGattServices(List<BluetoothGattService> gattServices) {
+        if (gattServices == null) return;
+        String uuid = null;
+        String unknownServiceString = "Unknown service";
+        boolean serviceFound = false;
+
+        BluetoothGattCharacteristic characteristicTX = null;
+        BluetoothGattCharacteristic characteristicRX = null;
+
+        // Loops through available GATT Services.
+        for (BluetoothGattService gattService : gattServices) {
+            uuid = gattService.getUuid().toString();
+            Log.d(TAG, "Discovered service: " + uuid);
+
+//            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "BATTERY") {
+//                Log.d(TAG, "Found Battery Service");
+//                // get characteristic when UUID matches RX/TX UUID
+//                characteristicTX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
+//                characteristicRX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
+//                if (characteristicRX == null)
+//                    Log.e(TAG, "No characteristics for transfer");
+//                mBluetoothLeService.readCharacteristic(characteristicRX);
+//            }
+            // Found HM-10 connectivity service
+            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
+                Log.d(TAG, "Found HM 10 Connectivity service");
+                serviceFound = true;
+
+                // Extract characteristics
+                List<BluetoothGattCharacteristic> gattCharacteristics = gattService.getCharacteristics();
+                for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
+                    Log.d(TAG, "Discovered GATT Characteristic: "+ gattCharacteristic.toString());
+
+                    boolean isWritable = isWritableCharacteristic(gattCharacteristic);
+                    if(isWritable) {
+                        characteristicTX = gattCharacteristic;
+                    }
+
+                    boolean isReadable = isReadableCharacteristic(gattCharacteristic);
+                    if(isReadable) {
+                        characteristicRX = gattCharacteristic;
+                    }
+
+                    if(isNotificationCharacteristic(gattCharacteristic)) {
+                        setCharacteristicNotification(gattCharacteristic, true);
+                    }
+//                    // get characteristic when UUID matches RX/TX UUID
+//                    characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+//                    characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+                    if (characteristicRX == null || characteristicTX == null)
+                        Log.e(TAG, "No characteristics for transfer");
+                    // For bonding
+                    //                mBluetoothLeService.readCharacteristic(characteristicRX);
+                    // starting thread for reading characteristics
+                    setCharacteristic(characteristicTX, characteristicRX);
+                    connected();
+                    // Only now show it is connected
+                    //                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
+                }
+            }
+        }
+        if(!serviceFound)
+            Log.e(TAG, "No HM 10 Connectivity service");
+    }
+
+    private boolean isWritableCharacteristic(BluetoothGattCharacteristic chr) {
+        if(chr == null) return false;
+
+        final int charaProp = chr.getProperties();
+        if (((charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE) |
+                (charaProp & BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE)) > 0) {
+            Log.d(TAG, "Found writable characteristic");
+            return true;
+        } else {
+            Log.d(TAG, "Not writable characteristic");
+            return false;
+        }
+    }
+
+    private boolean isReadableCharacteristic(BluetoothGattCharacteristic chr) {
+        if(chr == null) return false;
+
+        final int charaProp = chr.getProperties();
+        if((charaProp & BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+            Log.d(TAG, "Found readable characteristic");
+            return true;
+        } else {
+            Log.d(TAG, "Not readable characteristic");
+            return false;
+        }
+    }
+
+    private boolean isNotificationCharacteristic(BluetoothGattCharacteristic chr) {
+        if (chr == null) return false;
+
+        final int charaProp = chr.getProperties();
+        if ((charaProp & BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+            Log.d(TAG, "Found notification characteristic");
+            return true;
+        } else {
+            Log.d(TAG, "Not notification characteristic");
+            return false;
+        }
+    }
+
     /**
      * Request a read on a given {@code BluetoothGattCharacteristic}. The read result is reported
      * asynchronously through the {@code BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)}
@@ -292,6 +417,7 @@ public class BluetoothLeService extends Service {
         if (mcharacteristicRX == null)
             Log.e(TAG, "Characteristic is null");
 
+        Log.d(TAG, "Execute readCharacteristic()");
         mBluetoothGatt.readCharacteristic(mcharacteristicRX);
     }
 
@@ -315,6 +441,7 @@ public class BluetoothLeService extends Service {
         // For now, expecting no response from BLE module
         mcharacteristicTX.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE);
         Log.d(TAG, "Sending " + Arrays.toString(mcharacteristicTX.getValue()));
+        Log.d(TAG, "Execute writeCharacteristic()");
         mBluetoothGatt.writeCharacteristic(mcharacteristicTX);
     }
 
@@ -330,15 +457,21 @@ public class BluetoothLeService extends Service {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
-        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
+        if(characteristic != null) {
+            mBluetoothGatt.setCharacteristicNotification(characteristic, enabled); // Enabled locally
 
-        // This is specific to Heart Rate Measurement.
-        if (UUID_HM_RX_TX.equals(characteristic.getUuid())) {
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
-            descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
-            mBluetoothGatt.writeDescriptor(descriptor);
+                        UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+
+            if(enabled)
+                descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+            else
+                descriptor.setValue(BluetoothGattDescriptor.DISABLE_NOTIFICATION_VALUE);
+
+            mBluetoothGatt.writeDescriptor(descriptor); // Enabled remotely
         }
+        else
+            Log.e(TAG, "Failed to set notification as the characteristic is null!");
     }
 
     /**
@@ -410,7 +543,17 @@ public class BluetoothLeService extends Service {
         public void run() {
             Log.i(TAG, "Beginning mConnectedThread");
             while (true) {
-                readCharacteristic();
+                if(GattLock == null)
+                    Log.e(TAG, "Lock for Gatt operation is not initialized!");
+                GattLock.lock();
+                try {
+                    if(NoGattOperation) { // No Gatt operation is being processed at the moment
+                        NoGattOperation = false;
+                        readCharacteristic();
+                    }
+                } finally {
+                    GattLock.unlock();
+                }
             }
         }
 

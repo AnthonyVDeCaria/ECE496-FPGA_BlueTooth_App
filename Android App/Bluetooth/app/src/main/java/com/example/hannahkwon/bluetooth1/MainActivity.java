@@ -4,8 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.Dialog;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -33,8 +31,8 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.List;
-
+import static com.example.hannahkwon.bluetooth1.BluetoothLeService.GattLock;
+import static com.example.hannahkwon.bluetooth1.BluetoothLeService.NoGattOperation;
 import static com.example.hannahkwon.bluetooth1.DeviceListActivity.EXTRA_DEVICE_ADDRESS;
 import static com.example.hannahkwon.bluetooth1.DeviceListActivity.EXTRA_DEVICE_NAME;
 
@@ -159,84 +157,23 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void displayData(String data) {
+    private void displayData(final String data) {
 
         if (data != null) {
-            Log.d(TAG, "Displaying data :" + data);
-            txt_DataReceived.append(data);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "Displaying data :" + data);
+                    txt_DataReceived.append(data);
+                }
+            });
         }
         else {
             Log.e(TAG, "Failed displaying data");
         }
     }
 
-    // Demonstrates how to iterate through the supported GATT Services/Characteristics.
-    // In this sample, we populate the data structure that is bound to the ExpandableListView
-    // on the UI.
-    private void displayGattServices(List<BluetoothGattService> gattServices) {
-        if (gattServices == null) return;
-        String uuid = null;
-        String unknownServiceString = "Unknown service";
-        boolean serviceFound = false;
 
-        BluetoothGattCharacteristic characteristicTX;
-        BluetoothGattCharacteristic characteristicRX;
-
-        // Loops through available GATT Services.
-        for (BluetoothGattService gattService : gattServices) {
-            uuid = gattService.getUuid().toString();
-            Log.d(TAG, "Discovered service: " + uuid);
-
-            // If the service exists for HM 10 Serial, say so.
-//            if(SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial")
-//            { Log.d(TAG, "Yes, serial :-)"); }
-//            else
-//            {  Log.e(TAG, "No, serial :-("); }
-
-
-//            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "BATTERY") {
-//                Log.d(TAG, "Found Battery Service");
-//                // get characteristic when UUID matches RX/TX UUID
-//                characteristicTX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
-//                characteristicRX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
-//                if (characteristicRX == null)
-//                    Log.e(TAG, "No characteristics for transfer");
-//                mBluetoothLeService.readCharacteristic(characteristicRX);
-//            }
-            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
-                Log.d(TAG, "Found HM 10 Connectivity service");
-                serviceFound = true;
-                // get characteristic when UUID matches RX/TX UUID
-                characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
-                characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
-                if (characteristicRX == null || characteristicTX == null)
-                    Log.e(TAG, "No characteristics for transfer");
-                // For bonding
-//                mBluetoothLeService.readCharacteristic(characteristicRX);
-                // starting thread for reading characteristics
-                mBluetoothLeService.setCharacteristic(characteristicTX, characteristicRX);
-//                mBluetoothLeService.connected();
-                // Only now show it is connected
-//                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
-            }
-        }
-        if(!serviceFound)
-            Log.e(TAG, "No HM 10 Connectivity service");
-//        for (BluetoothGattService gattService : gattServices) {
-//            uuid = gattService.getUuid().toString();
-//            Log.d(TAG, "Discovered service: " + uuid);
-//
-//            List<BluetoothGattCharacteristic> gattCharacteristics =
-//                    gattService.getCharacteristics();
-//
-//            // Loops through available Characteristics.
-//            for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
-//                uuid = gattCharacteristic.getUuid().toString();
-//                Log.d(TAG, "Discovered charaacteristic: " + uuid);
-//            }
-//        }
-
-    }
 
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
@@ -250,7 +187,7 @@ public class MainActivity extends AppCompatActivity
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.d(TAG, "Connected to a GATT server");
-//                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
+                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
                 Log.d(TAG, "Disconnected from a GATT server");
                 // reset characteristic
@@ -259,7 +196,7 @@ public class MainActivity extends AppCompatActivity
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 //Show all the supported services and characteristics on the user interface.
                 Log.d(TAG, "Discovered GATT services");
-                displayGattServices(mBluetoothLeService.getSupportedGattServices());
+                mBluetoothLeService.displayGattServices(mBluetoothLeService.getSupportedGattServices());
             }
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 Log.d(TAG, "Received data");
@@ -601,7 +538,23 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, "Command packet created is " + commandPacket);
         if(mBound) { // When BLE
             if(mBluetoothLeService.checkCharacteristic()) {
-                mBluetoothLeService.writeCharacteristic(commandPacket);
+                if(GattLock == null)
+                    Log.e(TAG, "Lock for Gatt operation is not initialized!");
+                boolean writeDone = false;
+                while(true) {
+                    GattLock.lock();
+                    try {
+                        if(NoGattOperation) { // No Gatt operation is being processed at the moment
+                            NoGattOperation = false;
+                            mBluetoothLeService.writeCharacteristic(commandPacket);
+                            writeDone = true;
+                        }
+                    } finally {
+                        GattLock.unlock();
+                        if(writeDone)
+                            return;
+                    }
+                }
             }
             else{
                 Log.d(TAG, "Characteristics are not set yet");
