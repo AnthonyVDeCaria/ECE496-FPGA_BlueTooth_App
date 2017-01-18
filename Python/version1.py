@@ -90,6 +90,8 @@ ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255, 0x0d0a]
 #AT+NAME
 ATN = [0x4154, 0x2b4e, 0x414d, 0x453D]
 
+#NAT no AT commands
+
 #variables for flags and counters
 count = 0
 write = 0
@@ -128,14 +130,16 @@ while (exit == 0):
 			index = 4
 			for char in name:
 				i = convert(char)
+		elif (command == 'NAT'):
+			write = -1
+			print('NAT')
 				
 		#exit
 		elif (command == 'exit'):
 			exit = 1
-		#read
+		#reading while polling for command
 		else:
-			read = 1
-			print('Read', command)
+			write = 0
 
 	if (write > 0):
 		print ("write:", at)
@@ -213,16 +217,114 @@ while (exit == 0):
 		dev.UpdateWireOuts()
 		ep30value = dev.GetWireOutValue( 0x30 )
 		print('0x30: %04x' % ep30value)
+	elif (write == -1):
+		#Start with reset
+		dev.SetWireInValue( 0x02, 0x0001, 0xffff )
+		dev.UpdateWireIns()
 
-	elif (read == 1):
+		#reading current state #
 		dev.UpdateWireOuts()
-		out = dev.GetWireOutValue( 0x20 )	
-		print('reading out: %04x' % out)
+		ep21value = dev.GetWireOutValue( 0x21 )
+		print 'Before start 0x21: %04x' % ep21value
+
+		# activatng begin_connection and activate user_data_loaded (put e for AT, 1c for no AT)
+		dev.SetWireInValue(0x02, 0x001c, 0xffff)
+		dev.UpdateWireIns() # comment out this line when there is AT
+
+		#reading current state #
+		dev.UpdateWireOuts()
+		ep21value = dev.GetWireOutValue( 0x21 )
+		print 'After done loading all data 0x21: %04x' % ep21value
+
+		#sending in AT_FIFO_access
+		dev.SetWireInValue( 0x02, 0x0044, 0xffff )
+		dev.UpdateWireIns()
+
+		#start the code (AT) and reading
+
+		print "Starting ...."
+
+		#update user_received_data
+		dev.SetWireInValue( 0x02, 0x0084, 0xffff )
+		dev.UpdateWireIns()
+
+		#forward
+		dev.SetWireInValue( 0x02, 0x0044, 0xffff )
+		dev.UpdateWireIns()
+	
+		dev.UpdateWireOuts()
+		out = dev.GetWireOutValue( 0x20 )
+		print 'reading out: %04x' % out
+		#finished reading segment
+		dev.SetWireInValue( 0x02, 0x0084, 0xffff )
+		dev.UpdateWireIns()
+
+		#finished with AT_FIFO
+		dev.SetWireInValue( 0x02, 0x0104, 0xffff )
+		dev.UpdateWireIns()
+
+		dev.UpdateWireOuts()
+		ep20value = dev.GetWireOutValue( 0x21 )
+		print "\nAfter done with AT"
+		print '0x21: %04x' % ep20value
+
+		dev.UpdateWireOuts()
+		ep30value = dev.GetWireOutValue( 0x30 )
+		print '0x30: %04x' % ep30value
+		print "\nAfter reset at the end"
+
+		#resetting begin (note using reset signal, can use begin_connection set to 0)
+		dev.SetWireInValue(0x02, 0x0001, 0xffff)
+		dev.UpdateWireIns()
+
+		dev.UpdateWireOuts()
+		ep20value = dev.GetWireOutValue( 0x21 )
+		print "\nAfter reset at the end"
+		print '0x21: %04x' % ep20value
+
+	else:
+		#Start with reset
+		dev.SetWireInValue( 0x02, 0x0001, 0xffff )
+		dev.UpdateWireIns()
+
+		# activatng begin_connection and activate user_data_loaded 1c for no AT
+		dev.SetWireInValue(0x02, 0x001c, 0xffff)
+		dev.UpdateWireIns() # comment out this line when there is AT
+
+		#sending in AT_FIFO_access
+		dev.SetWireInValue( 0x02, 0x0044, 0xffff )
+		dev.UpdateWireIns()
+
+		#update user_received_data
+		dev.SetWireInValue( 0x02, 0x0084, 0xffff )
+		dev.UpdateWireIns()
+
+		#forward
+		dev.SetWireInValue( 0x02, 0x0044, 0xffff )
+		dev.UpdateWireIns()
+
+		#Reading RFIFO
+		dev.UpdateWireOuts()
+		out = dev.GetWireOutValue( 0x29 )
+		print 'reading out: %04x' % out
+
+		#finished reading segment
+		dev.SetWireInValue( 0x02, 0x0084, 0xffff )
+		dev.UpdateWireIns()
+
+		#finished with AT_FIFO
+		dev.SetWireInValue( 0x02, 0x0104, 0xffff )
+		dev.UpdateWireIns()
+
+		dev.UpdateWireOuts()
+		ep20value = dev.GetWireOutValue( 0x21 )
+		print "\nAfter done with AT"
+		print '0x21: %04x' % ep20value
+
 	#resetting all flags and counters
 	init_flag = 0
 	count = 0
 	write = 0
-	read = 0
 	command = ""
 
 #resetting begin (note using reset signal, can use begin_connection set to 0)

@@ -17,20 +17,22 @@ class Wire:
 	#These will come and go out of the aether
 	DS_CHECK = 0x26
 	RC_CHECK = 0x27
+	DATA_STREAM = 0x28
 
 	WIRE_IN_CON = [AT_DATA_WIRE, SIGNAL_WIRE]
 
 	STAND_WIRE_OUTS = [RFIFO_OUT_WIRE, RFIFO_WR_COUNT_WIRE, RFIFO_RD_COUNT_WIRE, AT_DATA_WIRE_CHECK, SIGNAL_WIRE_CHECK, STATE]
 
-	CURR_WIRE_OUTS = STAND_WIRE_OUTS + [DS_CHECK, RC_CHECK]
+	CURR_WIRE_OUTS = STAND_WIRE_OUTS + [DS_CHECK, RC_CHECK, DATA_STREAM]
 
 class States:
 	Idle = 0b0000
 	Load_AT_FIFO = 0b0010
 	Rest_AT_FIFO = 0b0011
-	Load_Transmission = 0b0100
-	Begin_Transmission = 0b0101
-	Rest_Transmission = 0b0110
+	Release_from_FIFO = 0b0100
+	Load_Transmission = 0b0101
+	Begin_Transmission = 0b0110
+	Rest_Transmission = 0b0111
 	Receive_AT_Response = 0b1000
 	Wait_for_RFIFO_Request = 0b1101
 	Read_RFIFO = 0b1110

@@ -71,6 +71,7 @@ lib.reset(dev)
 state = lib.read_state(dev)
 print('Before start 0x25: %04x' % state)
 
+#get rid of this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #list of AT commands
 #AT+ORGL
 ATO = [0x4154, 0x2b4f, 0x5247, 0x4c00]
@@ -82,6 +83,7 @@ ATR = [0x4154, 0x2b52, 0x4553, 0x4554]
 ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255]
 #AT+NAME=
 ATNU = [0x4154, 0x2b4e, 0x414d, 0x453D]
+########################################################
 
 #variables for flags and counters
 count = 0
@@ -96,7 +98,14 @@ while (exit == 0):
 		command = raw_input('Enter command: ')
 		print('Command:', command)
 
+		'''
 		#write in certain AT command
+		if (command != ''):
+			write = 1
+			at = ascii_command(command)
+			print('Write:', command)
+		''' 
+		#specific commands, may not be useful later
 		if (command == 'AT'):
 			write = 1
 			at = AT
@@ -121,6 +130,9 @@ while (exit == 0):
 			index = 4
 			for char in name:
 				i = lib.convert(char)
+		elif (command == "display"):
+			write == 0
+			lib.display_all_Wire_Outs(dev)
 		#exit
 		elif (command == 'exit'):
 			exit = 1
@@ -129,8 +141,9 @@ while (exit == 0):
 			write = -1
 
 	#AT Command sent in
-	#Start with reset
-	lib.reset(dev)
+	if (write != 0):
+		#Start with reset
+		lib.reset(dev)
 		
 	if (write > 0):
 		print("Beginning to send AT Command ", at ,"...")
@@ -156,6 +169,7 @@ while (exit == 0):
 		
 		lib.display_all_Wire_Outs(dev)
 		lib.clear_wire_ins(dev)
+
 		
 	#no AT commands
 	elif (write == -1):

@@ -1,5 +1,5 @@
 '''
-	Anthony De Caria - January 5, 2017
+	Anthony De Caria & Ming Hsu - January 5, 2017
 
 	This is a collection of Python functions needed to access the FPGA.
 	Note: BTM = Bluetooth Module
@@ -13,6 +13,27 @@ def convert(char):
 		convert a char to ascii int
 	'''
 	return (hex(ord(char)))
+
+def ascii_command(command):
+	'''
+		convert command to ascii, pairing every two characters together in an array
+	'''
+	asc_command = []
+	length = len(command)
+	print length
+	index = 0
+	front = 0
+	back = 1
+	while (length > 0):
+		twobyte = convert(command[front]) << 16
+		print twobyte
+
+		asc_command.append(twobyte)
+		index += 1
+		front += 2
+		back += 2
+		length -= 2
+	return (asc_command)
 	
 def write_wire(fpga, wire, word):
 	'''
@@ -89,4 +110,6 @@ def display_all_Wire_Outs(fpga):
 
 if __name__ == "__main__":
 	char = raw_input('Enter character: ')
-	print(convert(char))
+	if (len(char) == 1):
+		print(convert(char))
+	print(ascii_command(char))
