@@ -31,6 +31,7 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import static com.example.hannahkwon.bluetooth1.BluetoothLeService.EXTRA_DATA;
 import static com.example.hannahkwon.bluetooth1.BluetoothLeService.GattLock;
 import static com.example.hannahkwon.bluetooth1.BluetoothLeService.NoGattOperation;
 import static com.example.hannahkwon.bluetooth1.DeviceListActivity.EXTRA_DEVICE_ADDRESS;
@@ -95,9 +96,12 @@ public class MainActivity extends AppCompatActivity
                 // Add data received to textview
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
+//                    final StringBuilder stringBuilder = new StringBuilder(msg.arg1);
+//                    stringBuilder.append(String.format("%02X ", readBuf[0]));
                     String writeMessage = new String(readBuf, 0, msg.arg1);
 //                    Log.d(TAG, "Data recevied " + writeMessage);
                     txt_DataReceived.append(writeMessage);
+//                    txt_DataReceived.append(stringBuilder.toString());
                     break;
                 // Device connected. Now sharing data is possible.
                 case Constants.MESSAGE_DEVICE_NAME:
@@ -200,7 +204,7 @@ public class MainActivity extends AppCompatActivity
             }
             if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 Log.d(TAG, "Received data");
-                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+                displayData(intent.getStringExtra(EXTRA_DATA));
             }
         }
     };

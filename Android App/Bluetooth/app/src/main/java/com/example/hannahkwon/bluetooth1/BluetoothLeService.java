@@ -163,16 +163,15 @@ public class BluetoothLeService extends Service {
         final byte[] data = characteristic.getValue();
         Log.i(TAG, "data " + characteristic.getValue());
 
-//        if (data != null && data.length > 0) {
-//            final StringBuilder stringBuilder = new StringBuilder(data.length);
-//            for(byte byteChar : data)
-//                stringBuilder.append(String.format("%02X ", byteChar));
-//            Log.d(TAG, String.format("%s", new String(data)));
-            // getting cut off when longer, need to push on new line, 0A
-//            intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
-//        }
-        Log.d(TAG, String.format("%s", new String(data)));
-        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
+        if (data != null && data.length > 0) {
+            final StringBuilder stringBuilder = new StringBuilder(data.length);
+            for(byte byteChar : data)
+                stringBuilder.append(String.format("%02X ", byteChar));
+            intent.putExtra(EXTRA_DATA, stringBuilder.toString());
+        }
+//        Log.d(TAG, String.format("%s", new String(data)));
+//        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
+
         sendBroadcast(intent);
     }
 
