@@ -2,9 +2,30 @@
 	Anthony De Caria - October 15, 2016
 
 	This module creates a UART receiver.
+	
+	Algorithm:
+		#Idle
+			If the rx_line goes low
+				Start the timer #Double_Check
+					If after cpd/2 time rx_line is still low
+						#Reset_Timer
+						#Wait_for_Timer
+							If i == 8
+								Done
+							Else
+								If the timer goes off (cpd)
+									rx_data[i] = rx_line - #Update_rx_data
+									i++
+									#Go back to #Reset_Timer
+								Else
+									Wait for it - #Wait_for_Timer
+					Else
+						Go back to #Idle
+			Else
+				Say in #Idle
 */
 
-module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid);
+module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_valid);
 	/*
 		I/Os
 	*/
@@ -12,14 +33,14 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 	input [9:0] cycles_per_databit; //Allows for 1024 cycles between each databit
 	input rx_line;
 
-	output rx_data_valid;
+	output collecting_data, rx_data_valid;
 	output reg [7:0] rx_data;
 	
 	/*
 		FSM
 	*/
-	reg [2:0] prev, curr, next;
-	parameter Idle = 3'b000, Double_Check = 3'b001, Collect_Data = 3'b010, Add_i = 3'b011, Done = 3'b100;
+	reg [2:0] urx_curr, urx_next;
+	parameter Idle = 3'b000, Double_Check = 3'b001, Reset_Timer = 3'b010, Wait_for_Timer = 3'b011, Update_rx_data = 3'b100, Done = 3'b101;
 	
 	/*
 		Timer 
@@ -28,8 +49,8 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 	wire l_r_timer, r_r_timer;
 	wire at_halftime, at_cpd;
 	
-	assign l_r_timer = ((curr == Double_Check) & (~at_halftime)) | ((curr == Collect_Data) & (~at_cpd));
-	assign r_r_timer = ~(~resetn | (curr == Idle) | ( (prev == Double_Check) & (curr == Collect_Data)) | (curr == Add_i) ) ;
+	assign l_r_timer = ((urx_curr == Double_Check) & (~at_halftime)) | ((urx_curr == Wait_for_Timer) & (~at_cpd));
+	assign r_r_timer = ~(~resetn | (urx_curr == Idle) | (urx_curr == Reset_Timer) ) ;
 	
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clk), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
@@ -46,8 +67,8 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 	wire [3:0] i, n_i;
 	wire l_r_i, r_r_i;
 	
-	assign l_r_i = (curr == Add_i);
-	assign r_r_i = ~(~resetn | (curr == Idle));
+	assign l_r_i = (urx_curr == Update_rx_data);
+	assign r_r_i = ~(~resetn | (urx_curr == Idle));
 	
 	adder_subtractor_4bit a_i(.a(i), .b(4'b0001), .want_subtract(1'b0), .c_out(), .s(n_i) );
 	register_4bit_enable_async r_i(.clk(clk), .resetn(r_r_i), .enable(l_r_i), .select(l_r_i), .d(n_i), .q(i) );
@@ -55,35 +76,27 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 	/*
 		Adding Data
 	*/
-	wire update_rxdata;
-	assign update_rxdata = (curr == Collect_Data) & at_cpd & (i[3] == 1'b0);
-	
 	always@(*)
 	begin
-		if(curr == Idle)
-			rx_data = 8'h00;
-		if(update_rxdata);
+		if(urx_curr == Update_rx_data)
 			rx_data[i] = rx_line;
 	end
 	
 	/*
 		FSM
 	*/
-	
 	always@(*)
 	begin
-		case(curr)
+		case(urx_curr)
 			Idle: 
 			begin
 				if(!rx_line)
 				begin
-					prev = Idle;
-					next = Double_Check;
+					urx_next = Double_Check;
 				end
 				else
 				begin
-					prev = Idle;
-					next = Idle;
+					urx_next = Idle;
 				end
 			end
 			
@@ -93,54 +106,52 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 				begin
 					if(!rx_line)
 					begin
-						prev = Double_Check;
-						next = Collect_Data;
+						urx_next = Reset_Timer;
 					end
 					else
 					begin
-						prev = Double_Check;
-						next = Idle;
+						urx_next = Idle;
 					end
 				end
 				else
 				begin
-					prev = Double_Check;
-					next = Double_Check;
+					urx_next = Double_Check;
 				end
 			end
 			
-			Collect_Data:
+			Reset_Timer:
 			begin
-				if(!at_cpd)
-				begin
-					prev = Collect_Data;
-					next = Collect_Data;
-				end
-				else
-				begin
-					if(i[3] == 0)
+				urx_next = Wait_for_Timer;
+			end
+			
+			Wait_for_Timer:
+			begin
+				if(i[3] == 1'b1)
 					begin
-						prev = Collect_Data;
-						next = Add_i;
+						urx_next = Done;
 					end
 					else
 					begin
-						prev = Collect_Data;
-						next = Done;
+						if(at_cpd)
+							urx_next = Update_rx_data;
+						else
+							urx_next = Wait_for_Timer;
 					end
-				end
 			end
 			
-			Add_i:
+			Update_rx_data:
 			begin
-				prev = Add_i;
-				next = Collect_Data;
+				urx_next = Reset_Timer;
 			end
 			
 			Done:
 			begin
-				prev = Done;
-				next = Idle;
+				urx_next = Idle;
+			end
+			
+			default:
+			begin
+				urx_next = Idle;
 			end
 		endcase
 	end
@@ -148,12 +159,13 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_data_valid)
 	always@(posedge clk or negedge resetn)
 	begin
 		if(!resetn) 
-			curr <= Idle; 
+			urx_curr <= Idle; 
 		else 
-			curr <= next;
+			urx_curr <= urx_next;
 	end
 	
-	assign rx_data_valid = (curr == Done);
+	assign collecting_data = ~((urx_curr == Idle) | (urx_curr == Done) | (urx_curr == Double_Check));
+	assign rx_data_valid = (urx_curr == Done);
 	
 endmodule
 

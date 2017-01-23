@@ -22,11 +22,11 @@
 *     devices, or systems.  Use in such applications are expressly             *
 *     prohibited.                                                              *
 *                                                                              *
-*     (c) Copyright 1995-2013 Xilinx, Inc.                                     *
+*     (c) Copyright 1995-2017 Xilinx, Inc.                                     *
 *     All rights reserved.                                                     *
 *******************************************************************************/
-// You must compile the wrapper file FIFO_4096x16.v when simulating
-// the core, FIFO_4096x16. When compiling the wrapper file, be sure to
+// You must compile the wrapper file FIFO_16_128in_16out.v when simulating
+// the core, FIFO_16_128in_16out. When compiling the wrapper file, be sure to
 // reference the XilinxCoreLib Verilog simulation library. For detailed
 // instructions, please refer to the "CORE Generator Help".
 
@@ -36,7 +36,7 @@
 
 `timescale 1ns/1ps
 
-module FIFO_4096x16(
+module FIFO_16_128in_16out(
   rst,
   wr_clk,
   rd_clk,
@@ -45,11 +45,7 @@ module FIFO_4096x16(
   rd_en,
   dout,
   full,
-  wr_ack,
-  overflow,
   empty,
-  valid,
-  underflow,
   rd_data_count,
   wr_data_count
 );
@@ -57,22 +53,18 @@ module FIFO_4096x16(
 input rst;
 input wr_clk;
 input rd_clk;
-input [15 : 0] din;
+input [127 : 0] din;
 input wr_en;
 input rd_en;
 output [15 : 0] dout;
 output full;
-output wr_ack;
-output overflow;
 output empty;
-output valid;
-output underflow;
-output [11 : 0] rd_data_count;
-output [11 : 0] wr_data_count;
+output [5 : 0] rd_data_count;
+output [3 : 0] wr_data_count;
 
 // synthesis translate_off
 
-  FIFO_GENERATOR_V9_2 #(
+  FIFO_GENERATOR_V9_3 #(
     .C_ADD_NGC_CONSTRAINT(0),
     .C_APPLICATION_TYPE_AXIS(0),
     .C_APPLICATION_TYPE_RACH(0),
@@ -98,9 +90,9 @@ output [11 : 0] wr_data_count;
     .C_AXIS_TYPE(0),
     .C_COMMON_CLOCK(0),
     .C_COUNT_TYPE(0),
-    .C_DATA_COUNT_WIDTH(12),
+    .C_DATA_COUNT_WIDTH(4),
     .C_DEFAULT_VALUE("BlankString"),
-    .C_DIN_WIDTH(16),
+    .C_DIN_WIDTH(128),
     .C_DIN_WIDTH_AXIS(1),
     .C_DIN_WIDTH_RACH(32),
     .C_DIN_WIDTH_RDCH(64),
@@ -119,7 +111,7 @@ output [11 : 0] wr_data_count;
     .C_ERROR_INJECTION_TYPE_WDCH(0),
     .C_ERROR_INJECTION_TYPE_WRCH(0),
     .C_FAMILY("spartan6"),
-    .C_FULL_FLAGS_RST_VAL(1),
+    .C_FULL_FLAGS_RST_VAL(0),
     .C_HAS_ALMOST_EMPTY(0),
     .C_HAS_ALMOST_FULL(0),
     .C_HAS_AXI_ARUSER(0),
@@ -148,7 +140,7 @@ output [11 : 0] wr_data_count;
     .C_HAS_INT_CLK(0),
     .C_HAS_MASTER_CE(0),
     .C_HAS_MEMINIT_FILE(0),
-    .C_HAS_OVERFLOW(1),
+    .C_HAS_OVERFLOW(0),
     .C_HAS_PROG_FLAGS_AXIS(0),
     .C_HAS_PROG_FLAGS_RACH(0),
     .C_HAS_PROG_FLAGS_RDCH(0),
@@ -160,9 +152,9 @@ output [11 : 0] wr_data_count;
     .C_HAS_RST(1),
     .C_HAS_SLAVE_CE(0),
     .C_HAS_SRST(0),
-    .C_HAS_UNDERFLOW(1),
-    .C_HAS_VALID(1),
-    .C_HAS_WR_ACK(1),
+    .C_HAS_UNDERFLOW(0),
+    .C_HAS_VALID(0),
+    .C_HAS_WR_ACK(0),
     .C_HAS_WR_DATA_COUNT(1),
     .C_HAS_WR_RST(0),
     .C_IMPLEMENTATION_TYPE(2),
@@ -174,14 +166,14 @@ output [11 : 0] wr_data_count;
     .C_IMPLEMENTATION_TYPE_WRCH(1),
     .C_INIT_WR_PNTR_VAL(0),
     .C_INTERFACE_TYPE(0),
-    .C_MEMORY_TYPE(2),
+    .C_MEMORY_TYPE(1),
     .C_MIF_FILE_NAME("BlankString"),
     .C_MSGON_VAL(1),
     .C_OPTIMIZATION_MODE(0),
     .C_OVERFLOW_LOW(0),
     .C_PRELOAD_LATENCY(1),
     .C_PRELOAD_REGS(0),
-    .C_PRIM_FIFO_TYPE("4kx9"),
+    .C_PRIM_FIFO_TYPE("512x72"),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL(2),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_AXIS(1022),
     .C_PROG_EMPTY_THRESH_ASSERT_VAL_RACH(1022),
@@ -197,14 +189,14 @@ output [11 : 0] wr_data_count;
     .C_PROG_EMPTY_TYPE_WACH(0),
     .C_PROG_EMPTY_TYPE_WDCH(0),
     .C_PROG_EMPTY_TYPE_WRCH(0),
-    .C_PROG_FULL_THRESH_ASSERT_VAL(4093),
+    .C_PROG_FULL_THRESH_ASSERT_VAL(13),
     .C_PROG_FULL_THRESH_ASSERT_VAL_AXIS(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_RACH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_RDCH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WACH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WDCH(1023),
     .C_PROG_FULL_THRESH_ASSERT_VAL_WRCH(1023),
-    .C_PROG_FULL_THRESH_NEGATE_VAL(4092),
+    .C_PROG_FULL_THRESH_NEGATE_VAL(12),
     .C_PROG_FULL_TYPE(0),
     .C_PROG_FULL_TYPE_AXIS(0),
     .C_PROG_FULL_TYPE_RACH(0),
@@ -213,10 +205,10 @@ output [11 : 0] wr_data_count;
     .C_PROG_FULL_TYPE_WDCH(0),
     .C_PROG_FULL_TYPE_WRCH(0),
     .C_RACH_TYPE(0),
-    .C_RD_DATA_COUNT_WIDTH(12),
-    .C_RD_DEPTH(4096),
+    .C_RD_DATA_COUNT_WIDTH(6),
+    .C_RD_DEPTH(128),
     .C_RD_FREQ(1),
-    .C_RD_PNTR_WIDTH(12),
+    .C_RD_PNTR_WIDTH(7),
     .C_RDCH_TYPE(0),
     .C_REG_SLICE_MODE_AXIS(0),
     .C_REG_SLICE_MODE_RACH(0),
@@ -244,8 +236,8 @@ output [11 : 0] wr_data_count;
     .C_WACH_TYPE(0),
     .C_WDCH_TYPE(0),
     .C_WR_ACK_LOW(0),
-    .C_WR_DATA_COUNT_WIDTH(12),
-    .C_WR_DEPTH(4096),
+    .C_WR_DATA_COUNT_WIDTH(4),
+    .C_WR_DEPTH(16),
     .C_WR_DEPTH_AXIS(1024),
     .C_WR_DEPTH_RACH(16),
     .C_WR_DEPTH_RDCH(1024),
@@ -253,7 +245,7 @@ output [11 : 0] wr_data_count;
     .C_WR_DEPTH_WDCH(1024),
     .C_WR_DEPTH_WRCH(16),
     .C_WR_FREQ(1),
-    .C_WR_PNTR_WIDTH(12),
+    .C_WR_PNTR_WIDTH(4),
     .C_WR_PNTR_WIDTH_AXIS(10),
     .C_WR_PNTR_WIDTH_RACH(4),
     .C_WR_PNTR_WIDTH_RDCH(10),
@@ -272,11 +264,7 @@ output [11 : 0] wr_data_count;
     .RD_EN(rd_en),
     .DOUT(dout),
     .FULL(full),
-    .WR_ACK(wr_ack),
-    .OVERFLOW(overflow),
     .EMPTY(empty),
-    .VALID(valid),
-    .UNDERFLOW(underflow),
     .RD_DATA_COUNT(rd_data_count),
     .WR_DATA_COUNT(wr_data_count),
     .BACKUP(),
@@ -295,7 +283,11 @@ output [11 : 0] wr_data_count;
     .INJECTDBITERR(),
     .INJECTSBITERR(),
     .ALMOST_FULL(),
+    .WR_ACK(),
+    .OVERFLOW(),
     .ALMOST_EMPTY(),
+    .VALID(),
+    .UNDERFLOW(),
     .DATA_COUNT(),
     .PROG_FULL(),
     .PROG_EMPTY(),

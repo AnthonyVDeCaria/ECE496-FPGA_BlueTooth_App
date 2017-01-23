@@ -1,19 +1,69 @@
 /*
 	Anthony De Caria - September 28, 2016
 
-	This module creates a connection between an ion sensor and a HC-05 Bluetooth module.
-	It assumes input and output wires created by Opal Kelly.
+	This module creates a connection between an ion sensor_stream and a Bluetooth module.
+	It assumes input and output wires created by Opal Kelly, and the Bluetooth wires can be abstracted.
+	
+	Algorithm:
+		Starting at #Idle
+			If we want_at and the user_data_loaded
+				Put the user data into AT_FIFO - #Load_AT_FIFO
+				Check with the user - #Rest_AT_FIFO
+					If the user doesn't know we stored
+						Wait for their response (Stay in #Rest_AT_FIFO)
+					If they do
+						And they're done loading data
+							Go to #Wait_for_MS
+						Otherwise
+							Go to #Load_AT_FIFO to store it
+			Or If we don't want_at, but the datastream_ready
+				Let the Master Switch settle down - #Wait_for_MS
+				If it is
+					Access the Data from the FIFO - #Release_from_FIFO
+					Put the data into a buffer for the UART - #Load_Transmission
+					If we are to send
+						Send it - #Begin_Transmission
+						Once the data is transmitted
+							Set a timer - #Rest_Transmission
+							If the timer does off
+								And we have more data to send
+									#Wait_for_MS
+								If we don't
+									But we wanted AT
+										#Receive_AT_Response from the receiver_centre
+										Once we have it
+											We wait for the user to access_RFIFO - #Wait_for_RFIFO_Request
+												When they do
+													#Read_RFIFO
+													Check with the user - #Rest_RFIFO
+													If the user doesn't know we pulled out the data
+														Wait for their response (Stay in #Rest_RFIFO)
+													If they do
+														And they're done getting the data
+															Go to #Idle
+														Otherwise
+															Go to #Wait_for_RFIFO_Request
+									Else
+										Go back to #Idle
+							Else
+								Wait for it (#Rest_Transmission)
+					Else
+						Go back to #Idle
+				Else
+					Wait for it (#Wait_for_MS)
+			Else
+				Stay in #Idle
 */
 
 module FPGA_Bluetooth_connection(
 		clock, 
-		bt_state, bt_enable, fpga_txd, fpga_rxd, 
+		bt_state, fpga_txd, fpga_rxd,
+		uart_cpd, uart_timer_cap,
+//		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
+//		sensor_stream_ready,
 		ep01wireIn, ep02wireIn, 
-		ep20wireOut, 
-		ep21wireOut, 
-		ep22wireOut, ep23wireOut, 
-		ep24wireOut, ep25wireOut, ep26wireOut, 
-		ep27wireOut, ep28wireOut, ep29wireOut,
+		ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, 
+		ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut,
 		ep30wireOut
 	);
 	
@@ -21,405 +71,438 @@ module FPGA_Bluetooth_connection(
 		I/Os
 	*/
 	input clock;
+	input [9:0] uart_cpd, uart_timer_cap;
 	
+	//	FPGA
 	input fpga_rxd, bt_state;
-	output bt_enable, fpga_txd;
-
+	output fpga_txd;
+	
+	// OK
 	input [15:0] ep01wireIn, ep02wireIn;
-
-	output [15:0] ep20wireOut; 
-	output [15:0] ep21wireOut;
-	output [15:0] ep22wireOut, ep23wireOut; 
-	output [15:0] ep24wireOut, ep25wireOut, ep26wireOut; 
-	output [15:0] ep27wireOut, ep28wireOut, ep29wireOut;
+	output [15:0] ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut; 
+	output [15:0] ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut;
 	output [15:0] ep30wireOut;
-
+	
+	// Sensor
+	wire [31:0] sensor_stream0;
+	wire [15:0] sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
+	wire [7:0] sensor_stream_ready;
+	
 	/*
 		Wires 
 	*/
-	wire reset, want_at, begin_connection;
+	// General Wires
+	wire reset, want_at, access_datastreams;
 	wire user_data_loaded, user_knows_stored, user_data_done;
-	wire RFIFO_access, user_received_data, finished_with_RFIFO; 
-	wire start_tx, start_rx, tx_done, rx_done;
-	wire [1:0] data_select;
+	wire RFIFO_access, user_received_data, finished_with_RFIFO;
 	
-	parameter TFIFO_end = 13'h000A, RFIFO_end = 13'h0002;
-	
-	parameter cpd = 10'd11;
+	// Flags
+	wire ds_sending_flag, at_sending_flag, sending_flag, have_at_response, uart_timer_done, tx_done, select_ready, command_from_app;
 
+	// FIFO Wires
+	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
+	wire [7:0] at;
+	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;
+	
+	// Datastream Selector Wires
+	wire [7:0] datastream, uart_input;
+	wire [7:0] streams_selected;
+	wire [3:0] m_datastream_select;
+	
+	// UART Timer Wires
+	wire [9:0] uart_timer, n_uart_timer;
+	wire l_r_uart_timer, r_r_uart_timer;
+	
 	/*
-		Assignments
+		General Assignments
 	*/
 	assign reset = ep02wireIn[0];
-	assign want_at = ep02wireIn[1];
-	assign begin_connection = ep02wireIn[2];
+	assign access_datastreams = ep02wireIn[1];
+	assign want_at = ep02wireIn[2];
 	assign user_data_loaded = ep02wireIn[3];
 	assign user_knows_stored = ep02wireIn[4];
 	assign user_data_done = ep02wireIn[5];
 	assign access_RFIFO = ep02wireIn[6];
 	assign user_received_data = ep02wireIn[7];
 	assign finished_with_RFIFO = ep02wireIn[8];
-
-	assign data_select[0] = 1'b0;
-	assign data_select[1] = 1'b0;
 	
-	assign bt_enable = 1'b1;
+	parameter ms_timer_cap = 10'd1000;
 	
 	/*
-		FSM wires
+		FSM Parameters
 	*/
-	parameter Idle = 4'b0000, Done = 4'b1111;
-	parameter Wait_for_Data = 4'b0001, Load_TFIFO = 4'b0010, Rest_TFIFO = 4'b0011;
-	parameter Load_Transmission = 4'b0100, Wait_for_Connection = 4'b0101, Begin_Transmission = 4'b0110, Rest_Transmission = 4'b0111;
+	parameter Idle = 4'b0000;
+	parameter Wait_for_MS = 4'b0001;
+	parameter Load_AT_FIFO = 4'b0010, Rest_AT_FIFO = 4'b0011;
+	parameter Release_from_FIFO = 4'b0100, Load_Transmission = 4'b0101, Begin_Transmission = 4'b0110, Rest_Transmission = 4'b0111;
 	parameter Receive_AT_Response = 4'b1000;
-	parameter Wait_for_User_Demand = 4'b1011, Read_RFIFO = 4'b1100, Check_With_User = 4'b1101;
+	parameter Wait_for_RFIFO_Request = 4'b1101, Read_RFIFO = 4'b1110, Rest_RFIFO = 4'b1111;
 	
-	reg [3:0] curr, next;
+	reg [3:0] fbc_curr, fbc_next;
+	
+	/*
+		Ion Sensor
+	*/	
+	sensor_analog freash_farm(
+		.clock(clock), .reset(reset),
+		.sensor_stream0(sensor_stream0), .sensor_stream1(sensor_stream1), .sensor_stream2(sensor_stream2), .sensor_stream3(sensor_stream3), 
+		.sensor_stream4(sensor_stream4), .sensor_stream5(sensor_stream5), .sensor_stream6(sensor_stream6), .sensor_stream7(sensor_stream7), 
+		.sensor_stream_ready(sensor_stream_ready)
+	);
+	
+	/*
+		Output to Bluetooth
+	*/
+	//	FIFO	
+	assign wr_en[0] = ~fifo_state_full[0] & sensor_stream_ready[0];
+	assign rd_en[0] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b000);
+	
+	assign wr_en[1] = ~fifo_state_full[1] & sensor_stream_ready[1];
+	assign rd_en[1] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b001);
+	
+	assign wr_en[2] = ~fifo_state_full[2] & sensor_stream_ready[2];
+	assign rd_en[2] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b010);
+	
+	assign wr_en[3] = ~fifo_state_full[3] & sensor_stream_ready[3];
+	assign rd_en[3] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b011);
+	
+	assign wr_en[4] = ~fifo_state_full[4] & sensor_stream_ready[4];
+	assign rd_en[4] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b100);
+	
+	assign wr_en[5] = ~fifo_state_full[5] & sensor_stream_ready[5];
+	assign rd_en[5] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b101);
+	
+	assign wr_en[6] = ~fifo_state_full[6] & sensor_stream_ready[6];
+	assign rd_en[6] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b110);
+	
+	assign wr_en[7] = ~fifo_state_full[7] & sensor_stream_ready[7];
+	assign rd_en[7] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b111);
+	
+	assign wr_en[8] = (fbc_curr == Load_AT_FIFO);
+	assign rd_en[8] = (fbc_curr == Release_from_FIFO) & want_at;
+	
+	FIFO_centre warehouse(
+		.read_clock(clock),
+		.write_clock(clock),
+		.reset(reset),
 		
-	/*
-		Sensor
-	*/
-	wire [15:0]sensor_data;
-	test_sensor_analog fake(.select(data_select), .d_out(sensor_data));
-	
-	/*
-		FIFOs
-	*/
-	wire [15:0] TFIFO_in, RFIFO_out;
-	wire [13:0] TFIFO_rd_count;
-	wire [12:0] TFIFO_wr_count, RFIFO_wr_count;
-	wire [11:0] RFIFO_rd_count;
-	wire [7:0] TFIFO_out, RFIFO_in;
-	wire TFIFO_full, TFIFO_empty, TFIFO_wr_en, TFIFO_rd_en;
-	wire RFIFO_full, RFIFO_empty, RFIFO_wr_en, RFIFO_rd_en;
-	
-	mux_2_16bit TFIFO_input(.data0(sensor_data), .data1(ep01wireIn), .sel(want_at), .result(TFIFO_in) );
-	
-	assign TFIFO_wr_en = (curr == Load_TFIFO);
-	assign TFIFO_rd_en = (curr == Load_Transmission);
-	assign RFIFO_wr_en = rx_done;
-	assign RFIFO_rd_en = (curr == Read_RFIFO);
-	
-	FIFO_8192_16in_8out TFIFO(
-		.rst(reset),
-
-		.wr_clk(clock),
-		.rd_clk(clock),
-
-		.wr_en(TFIFO_wr_en),
-		.rd_en(TFIFO_rd_en),
-
-		.din(TFIFO_in),
-		.dout(TFIFO_out),
-
-		.full(TFIFO_full),
-		.empty(TFIFO_empty),
-
-		.rd_data_count(TFIFO_rd_count),
-		.wr_data_count(TFIFO_wr_count)
+		.DS0_in(sensor_stream0), .DS1_in(sensor_stream1), .DS2_in(sensor_stream2), .DS3_in(sensor_stream3), 
+		.DS4_in(sensor_stream4), .DS5_in(sensor_stream5), .DS6_in(sensor_stream6), .DS7_in(sensor_stream7),
+		.DS0_out(datastream0), .DS1_out(datastream1), .DS2_out(datastream2), .DS3_out(datastream3), 
+		.DS4_out(datastream4), .DS5_out(datastream5), .DS6_out(datastream6), .DS7_out(datastream7),
+		.DS0_rd_count(), .DS1_rd_count(), .DS2_rd_count(), .DS3_rd_count(), 
+		.DS4_rd_count(), .DS5_rd_count(), .DS6_rd_count(), .DS7_rd_count(),
+		.DS0_wr_count(), .DS1_wr_count(), .DS2_wr_count(), .DS3_wr_count(), 
+		.DS4_wr_count(), .DS5_wr_count(), .DS6_wr_count(), .DS7_wr_count(),
+		
+		.AT_in(ep01wireIn),
+		.AT_out(at),
+		.AT_rd_count(),
+		.AT_wr_count(),
+		
+		.write_enable(wr_en),
+		.read_enable(rd_en),
+		
+		.full_flag(fifo_state_full), 
+		.empty_flag(fifo_state_empty)
 	);
 	
-	FIFO_8192_8in_16out RFIFO(
-		.rst(reset),
-
-		.wr_clk(clock),
-		.rd_clk(clock),
-
-		.wr_en(RFIFO_wr_en),
-		.rd_en(RFIFO_rd_en),
-
-		.din(RFIFO_in),
-		.dout(RFIFO_out),
-
-		.full(RFIFO_full),
-		.empty(RFIFO_empty),
-
-		.rd_data_count(RFIFO_rd_count),
-		.wr_data_count(RFIFO_wr_count)
+	// Datastream Selector
+	wire all_at_data_sent, ds_data_exists;
+	assign all_at_data_sent = fifo_state_empty[8];
+	assign ds_data_exists = (fifo_state_empty[7:0] != 8'hFF) ? 1'b1 : 1'b0;
+	
+	assign ds_sending_flag = access_datastreams & command_from_app & ds_data_exists;
+	assign at_sending_flag = ~all_at_data_sent;
+	
+	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(sending_flag) );
+	
+	master_switch_ece496 control_valve(
+		.clock(clock),
+		.resetn(~reset),
+		.want_at(want_at),
+		.sending_flag(sending_flag),
+		.timer_cap(ms_timer_cap),
+		.selected_streams(streams_selected),
+		.empty_fifo_flags(fifo_state_empty),
+		.mux_select(m_datastream_select),
+		.select_ready(select_ready)
 	);
-	
-	/*
-		Output
-	*/
-	wire [7:0] temp;
-	wire l_t, r_t;
-	
-	assign l_t = (curr == Load_Transmission);
-	assign r_t = ~reset;
-	
-	register_8bit_enable_async r_temp(
-		.clk(clock), 
-		.resetn(r_t), 
-		.enable(l_t), 
-		.select(l_t), 
-		.d(TFIFO_out), 
-		.q(temp) 
+
+	mux_9_8bit m_datastream(
+		.data0(datastream0), 
+		.data1(datastream1), 
+		.data2(datastream2), 
+		.data3(datastream3), 
+		.data4(datastream4), 
+		.data5(datastream5), 
+		.data6(datastream6), 
+		.data7(datastream7),
+		.data8(at),
+		.sel(m_datastream_select), 
+		.result(datastream) 
 	);
+	wire l_r_uart_input, r_r_uart_input;
+	assign l_r_uart_input = (fbc_curr == Load_Transmission);
+	assign r_r_uart_input = ~(reset | (fbc_curr == Rest_Transmission));
+	register_8bit_enable_async r_uart_input(.clk(clock), .resetn(r_r_uart_input), .enable(l_r_uart_input), .select(l_r_uart_input), .d(datastream), .q(uart_input) );
 	
-	wire is_temp_NULL;
-	assign is_temp_NULL = (temp == 8'h00) ? 1'b1 : 1'b0;
+	//	UART Timer
+	assign l_r_uart_timer = (fbc_curr == Rest_Transmission);
+	assign r_r_uart_timer = ~(reset | (fbc_curr == Idle) | (fbc_curr == Release_from_FIFO) ) ;
 	
-	assign start_tx = ( (curr == Begin_Transmission) & ~is_temp_NULL);
+	adder_subtractor_10bit a_uart_timer(.a(uart_timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_uart_timer) );
+	register_10bit_enable_async r_uart_timer(.clk(clock), .resetn(r_r_uart_timer), .enable(l_r_uart_timer), .select(l_r_uart_timer), .d(n_uart_timer), .q(uart_timer) );
+	
+	assign uart_timer_done = (uart_timer == uart_timer_cap) ? 1'b1 : 1'b0;
+
+	//	UART
+	wire start_tx;
+	assign start_tx = (fbc_curr == Begin_Transmission);
 	
 	UART_tx tx(
 		.clk(clock), 
 		.resetn(~reset), 
 		.start(start_tx), 
-		.cycles_per_databit(cpd), 
+		.cycles_per_databit(uart_cpd), 
 		.tx_line(fpga_txd), 
-		.tx_data(temp), 
+		.tx_data(uart_input), 
 		.tx_done(tx_done)
 	);
 	
-	wire [9:0] timer, n_timer;
-	wire l_r_timer, r_r_timer, timer_done;
-	
-	assign l_r_timer = (curr == Rest_Transmission);
-	assign r_r_timer = ~(reset | (curr == Idle) | (curr == Load_Transmission) ) ;
-	
-	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
-	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
-	
-	parameter timer_cap = 10'd385;
-	assign timer_done = (timer == timer_cap) ? 1'b1 : 1'b0;
-	
 	/*
-		Input
+		Input from Bluetooth
 	*/	
-	UART_rx rx(
-		.clk(clock), 
-		.resetn(~reset), 
-		.cycles_per_databit(cpd), 
-		.rx_line(fpga_rxd), 
-		.rx_data(RFIFO_in), 
-		.rx_data_valid(rx_done)
-	);
+	wire [15:0] RFIFO_out;
+	wire [12:0] RFIFO_wr_count;
+	wire [11:0] RFIFO_rd_count;
+	wire RFIFO_rd_en;
 	
-	reg [7:0] data_just_received, data_previously_received;
-	always@(posedge clock)
-	begin
-		if(rx_done)
-		begin
-			data_just_received <= RFIFO_in;
-			data_previously_received <= data_just_received;
-		end
+	assign RFIFO_rd_en = (fbc_curr == Read_RFIFO);
+	
+	receiver_centre Purolator(
+		.clock(clock), 
+		.reset(reset),
 		
-		if(reset)
-		begin
-			data_just_received <= 8'h00;
-			data_previously_received <= 8'h00;
-		end
-	end
+		.fpga_rxd(fpga_rxd),
+
+		.uart_cpd(uart_cpd),
+		.uart_timer_cap(uart_timer_cap),
+		
+		.at_response_flag(have_at_response),
+		
+		.RFIFO_rd_en(RFIFO_rd_en),
+		.RFIFO_out(RFIFO_out), 
+		.RFIFO_wr_count(RFIFO_wr_count), 
+		.RFIFO_rd_count(RFIFO_rd_count), 
+		.RFIFO_full(), 
+		.RFIFO_empty(),
+		
+		.stream_select(streams_selected),
+		.ds_sending_flag(command_from_app),
+		
+		.want_at(want_at),
+		
+		.commands(ep27wireOut[7:0]), .operands(ep27wireOut[15:8])
+	);
 	
 	/*
 		FSM
 	*/
-	
-	// Loading TFIFO Signals
-	wire data_ready, data_complete;
-	
-	mux_2_1bit m_dr(.data0(1'b1), .data1(user_data_loaded), .sel(want_at), .result(data_ready) );
-	
-	wire sensor_data_done;
-	assign sensor_data_done = (TFIFO_wr_count >= TFIFO_end) ? 1'b1: 1'b0;
-	
-	mux_2_1bit m_dc(.data0(sensor_data_done), .data1(user_data_done), .sel(want_at), .result(data_complete) );
+	// Idle Signals
+	wire datastream_ready;
+	assign datastream_ready = ds_sending_flag & ds_data_exists;
 	
 	// Begin_Transmission Signals
 	wire is_bt_done;
-	assign is_bt_done = tx_done ^ (~tx_done & is_temp_NULL);
+	assign is_bt_done = tx_done;
 	
 	// Rest_Transmission Signals
-	wire i, n_i, all_data_sent, l_r_i, r_r_i;
-	
-	assign l_r_i = (curr == Rest_Transmission && TFIFO_empty);
-	assign r_r_i = ~reset;
-	
-	full_adder_1bit a_i(.a(i), .b(1'b1), .c_in(1'b0), .c_out(), .s(n_i)); 
-	D_FF_Enable_Async r_i(.clk(clock), .resetn(r_r_i), .enable(l_r_i), .d(n_i), .q(i) );
-	
-	assign all_data_sent = TFIFO_empty & i;
-	
-	// Rest_RFIFO Signals
-	wire did_at_finish;
-//	wire is_it_r, is_it_n, at_finished, did_at_finish;
-//	assign is_it_r = (data_previously_received == 8'h0d) ? 1'b1: 1'b0;
-//	assign is_it_n = (data_just_received == 8'h0a) ? 1'b1: 1'b0;
-//	assign at_finished = is_it_r & is_it_n;
-//	D_FF_Enable_Async r_datf(.clk(clock), .resetn(~reset), .enable(at_finished), .d(1'b1), .q(did_at_finish));
-	assign did_at_finish = (RFIFO_wr_count >= RFIFO_end) ? 1'b1: 1'b0;
-	
-	// Reading RFIFO Signals
-	wire data_stored_for_user, data_ready_for_user;
-	assign data_stored_for_user = (curr == Rest_TFIFO);
-	assign data_ready_for_user = (curr == Check_With_User);
+	wire all_data_sent;
+	mux_2_1bit m_all_data_sent(.data0(~ds_data_exists), .data1(all_at_data_sent), .sel(want_at), .result(all_data_sent) );
 	
 	always@(*)
 	begin
-		case(curr)
+		case(fbc_curr)
 			Idle: 
-			begin
-				if(begin_connection)
-					next = Wait_for_Data; 
-				else
-					next = Idle;
-			end
-			
-			Wait_for_Data: 
-			begin
-				if(data_ready)
-					next = Load_TFIFO;
-				else
-					next = Wait_for_Data;
-			end
-			
-			Load_TFIFO:
-			begin
-				next = Rest_TFIFO;
-			end
-			
-			Rest_TFIFO:
 			begin
 				if(want_at)
 				begin
-					if(user_knows_stored)
-					begin
-						if(data_complete)
-							next = Load_Transmission;
-						else
-							next = Wait_for_Data;
-					end
+					if(user_data_loaded)
+						fbc_next = Load_AT_FIFO;
 					else
-						next = Rest_TFIFO;
+						fbc_next = Idle;
 				end
 				else
 				begin
-					if(data_complete)
-						next = Load_Transmission;
+					if(datastream_ready)
+						fbc_next = Wait_for_MS;
 					else
-						next = Wait_for_Data;
+						fbc_next = Idle;
 				end
+			end
+			
+			Load_AT_FIFO:
+			begin
+				fbc_next = Rest_AT_FIFO;
+			end
+			
+			Rest_AT_FIFO:
+			begin
+				if(user_knows_stored)
+				begin
+					if(user_data_done)
+						fbc_next = Wait_for_MS;
+					else
+						fbc_next = Idle;
+				end
+				else
+					fbc_next = Rest_AT_FIFO;
+			end
+			
+			Wait_for_MS:
+			begin
+				if(select_ready)
+					fbc_next = Release_from_FIFO;
+				else
+					fbc_next = Wait_for_MS;
+			end
+			
+			Release_from_FIFO:
+			begin
+				if(sending_flag)
+					fbc_next = Load_Transmission;
+				else
+					fbc_next = Idle;
 			end
 			
 			Load_Transmission:
 			begin
-				if(want_at)
-					next = Begin_Transmission;
-				else
-					next = Wait_for_Connection;
-			end
-			
-			Wait_for_Connection:
-			begin
-				if(bt_state)
-					next = Begin_Transmission;
-				else
-					next = Wait_for_Connection;
+				fbc_next = Begin_Transmission;
 			end
 			
 			Begin_Transmission:
 			begin
 				if(is_bt_done)
-					next = Rest_Transmission;
+					fbc_next = Rest_Transmission;
 				else
-					next = Begin_Transmission;
+					fbc_next = Begin_Transmission;
 			end
 			
 			Rest_Transmission:
 			begin
-				if(timer_done)
+				if(uart_timer_done)
 				begin
 					if(all_data_sent)
 					begin
 						if(want_at)
-							next = Receive_AT_Response; 
+							fbc_next = Receive_AT_Response; 
 						else
-							next = Done;
+							fbc_next = Idle;
 					end
 					else
-						next = Load_Transmission;
+						fbc_next = Wait_for_MS;
 				end
 				else
-					next = Rest_Transmission;
+					fbc_next = Rest_Transmission;
 			end
 			
 			Receive_AT_Response:
 			begin
-				if(did_at_finish)
-					next = Wait_for_User_Demand;
+				if(have_at_response)
+					fbc_next = Wait_for_RFIFO_Request;
 				else
-					next = Receive_AT_Response;
+					fbc_next = Receive_AT_Response;
 			end
 			
-			Wait_for_User_Demand:
+			Wait_for_RFIFO_Request:
 			begin
 				if(access_RFIFO)
-					next = Read_RFIFO;
+					fbc_next = Read_RFIFO;
 				else
-					next = Wait_for_User_Demand;
+					fbc_next = Wait_for_RFIFO_Request;
 			end
 			
 			Read_RFIFO:
 			begin
-				next = Check_With_User;
+				fbc_next = Rest_RFIFO;
 			end
 			
-			Check_With_User:
+			Rest_RFIFO:
 			begin
 				if(user_received_data)
 				begin
 					if(finished_with_RFIFO)
-						next = Done;
+						fbc_next = Idle;
 					else
-						next = Wait_for_User_Demand;
+						fbc_next = Wait_for_RFIFO_Request;
 				end
 				else
-					next = Check_With_User;
+					fbc_next = Rest_RFIFO;
 			end
 			
-			Done:
+			default:
 			begin
-				if(begin_connection)
-					next = Done;
-				else
-					next = Idle;
+				fbc_next = Idle;
 			end
 		endcase
 	end
 	
 	always@(posedge clock or posedge reset)
 	begin
-		if(reset) curr <= Idle; else curr <= next;
+		if(reset) 
+			fbc_curr <= Idle; 
+		else 
+			fbc_curr <= fbc_next;
 	end
 	
 	/*
-		Check Assignments
+		WireOut Assignments
 	*/
 	assign ep20wireOut = RFIFO_out;
 	
-	assign ep21wireOut[0] = curr[0];
-	assign ep21wireOut[1] = curr[1];
-	assign ep21wireOut[2] = curr[2];
-	assign ep21wireOut[3] = curr[3];
-	assign ep21wireOut[4] = next[0];
-	assign ep21wireOut[5] = next[1];
-	assign ep21wireOut[6] = next[2];
-	assign ep21wireOut[7] = next[3];
-	assign ep21wireOut[15:8] = 8'h00;
+	assign ep21wireOut[15:13] = 2'b00;
+	assign ep21wireOut[12:0] = RFIFO_wr_count[12:0];
 	
-	assign ep22wireOut = ep01wireIn;
-	assign ep23wireOut = ep02wireIn;
+	assign ep22wireOut[15:12] = 3'b000;
+	assign ep22wireOut[11:0] = RFIFO_rd_count[11:0];
 	
-	assign ep24wireOut = TFIFO_out;
-	assign ep25wireOut = TFIFO_rd_count;
-	assign ep26wireOut = TFIFO_wr_count;
+	assign ep23wireOut = ep01wireIn;
 	
-	assign ep27wireOut = timer;
-	assign ep28wireOut = cpd;
-	assign ep29wireOut = RFIFO_wr_count;
+	assign ep24wireOut = ep02wireIn;
 	
-	assign ep30wireOut[7:0] = data_previously_received;
-	assign ep30wireOut[15:8] = data_just_received;
+	// User Signals
+	wire data_stored_for_user, data_ready_for_user;
+	assign data_stored_for_user = (fbc_curr == Rest_AT_FIFO);
+	assign data_ready_for_user = (fbc_curr == Rest_RFIFO);
 	
+	assign ep25wireOut[0] = fbc_curr[0];
+	assign ep25wireOut[1] = fbc_curr[1];
+	assign ep25wireOut[2] = fbc_curr[2];
+	assign ep25wireOut[3] = fbc_curr[3];
+	assign ep25wireOut[4] = fbc_next[0];
+	assign ep25wireOut[5] = fbc_next[1];
+	assign ep25wireOut[6] = fbc_next[2];
+	assign ep25wireOut[7] = fbc_next[3];
+	assign ep25wireOut[8] = data_stored_for_user;
+	assign ep25wireOut[9] = data_ready_for_user;
+	assign ep25wireOut[15:10] = 6'h00;
+	
+	assign ep26wireOut[15:12] = m_datastream_select;
+	assign ep26wireOut[11] = ds_data_exists;
+	assign ep26wireOut[10] = command_from_app;
+	assign ep26wireOut[9] = access_datastreams;
+	assign ep26wireOut[8] = ds_sending_flag;
+	assign ep26wireOut[7:0] = datastream;
+	
+	assign ep28wireOut[15:8] = uart_input;
+	assign ep28wireOut[7] = r_r_uart_input;
+	assign ep28wireOut[6] = l_r_uart_input;
+	assign ep28wireOut[5] = select_ready;
+	assign ep28wireOut[4:0] = 5'h00;
+	
+	assign ep29wireOut[7:0] = sensor_stream_ready;
+	assign ep29wireOut[15:8] = fifo_state_empty[7:0];
+
 endmodule
 

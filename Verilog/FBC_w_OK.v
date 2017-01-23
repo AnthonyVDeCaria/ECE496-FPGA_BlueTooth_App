@@ -5,22 +5,21 @@ This module creats Opal Kelly wires for FPGA_Bluetooth_connection.
 As well as providing the FPGA pins.
 */
 
-module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK1MHZ, LED, HC_05_STATE, HC_05_TXD, HC_05_ENABLE, HC_05_RXD);
+module FBC_w_OK(
+		clock, bt_state, bt_txd, bt_rxd, lights, uart_cpd, uart_timer_cap,
+		hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel
+	);
 	
 	/*
 		Others
 	*/
-	input CLK1MHZ;
-	input HC_05_STATE, HC_05_TXD; // 1-W22 , 0-T20
-	output HC_05_ENABLE, HC_05_RXD; // 1-W20 , 0-T19
-	output [7:0] LED;
+	input clock;
+	input bt_state, bt_txd;
+	output bt_rxd;
+	output [7:0] lights;
 	
-	assign LED[3:0] = ~ep21wireOut[3:0];
-	assign LED[7:4] = ~ep21wireOut[7:4];
+	input [9:0] uart_cpd, uart_timer_cap;
 	
-	/*
-		Opal Kelly
-	*/
 	input wire [7:0] hi_in;
 	output wire [1:0] hi_out;
 	inout wire [15:0] hi_inout;
@@ -29,6 +28,10 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	output wire i2c_sda;
 	output wire i2c_scl;
 	output wire hi_muxsel;
+	
+	/*
+		Opal Kelly
+	*/
 	assign i2c_sda = 1'bz;
 	assign i2c_scl = 1'bz;
 	assign hi_muxsel = 1'b0;
@@ -48,6 +51,10 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	wire [15:0] ep23wireOut;
 	wire [15:0] ep24wireOut;
 	wire [15:0] ep25wireOut;
+	
+	/*
+		Not being used - Legacy Testing wires.
+	*/
 	wire [15:0] ep26wireOut;
 	wire [15:0] ep27wireOut;
 	wire [15:0] ep28wireOut;
@@ -83,11 +90,10 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 	okWireOut ep21 (.ok1(ok1), .ok2(ok2x[ 1*17 +: 17 ]), .ep_addr(8'h21), .ep_datain(ep21wireOut) );
 	okWireOut ep22 (.ok1(ok1), .ok2(ok2x[ 2*17 +: 17 ]), .ep_addr(8'h22), .ep_datain(ep22wireOut) );
 	okWireOut ep23 (.ok1(ok1), .ok2(ok2x[ 3*17 +: 17 ]), .ep_addr(8'h23), .ep_datain(ep23wireOut) );
-	
 	okWireOut ep24 (.ok1(ok1), .ok2(ok2x[ 4*17 +: 17 ]), .ep_addr(8'h24), .ep_datain(ep24wireOut) );
+	
 	okWireOut ep25 (.ok1(ok1), .ok2(ok2x[ 5*17 +: 17 ]), .ep_addr(8'h25), .ep_datain(ep25wireOut) );
 	okWireOut ep26 (.ok1(ok1), .ok2(ok2x[ 6*17 +: 17 ]), .ep_addr(8'h26), .ep_datain(ep26wireOut) );
-	
 	okWireOut ep27 (.ok1(ok1), .ok2(ok2x[ 7*17 +: 17 ]), .ep_addr(8'h27), .ep_datain(ep27wireOut) );
 	okWireOut ep28 (.ok1(ok1), .ok2(ok2x[ 8*17 +: 17 ]), .ep_addr(8'h28), .ep_datain(ep28wireOut) );
 	okWireOut ep29 (.ok1(ok1), .ok2(ok2x[ 9*17 +: 17 ]), .ep_addr(8'h29), .ep_datain(ep29wireOut) );
@@ -98,11 +104,12 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		FPGA
 	*/	
 	FPGA_Bluetooth_connection master_of_puppets(
-		.clock(CLK1MHZ),
-		.bt_state(HC_05_STATE),
-		.bt_enable(HC_05_ENABLE),
-		.fpga_txd(HC_05_RXD),
-		.fpga_rxd(HC_05_TXD), 
+		.clock(clock),
+		.bt_state(bt_state),
+		.fpga_txd(bt_rxd),
+		.fpga_rxd(bt_txd),
+		.uart_cpd(uart_cpd),
+		.uart_timer_cap(uart_timer_cap),
 		.ep01wireIn(ep01wireIn),
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut),
@@ -117,6 +124,9 @@ module FBC_w_OK(hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel, CLK
 		.ep29wireOut(ep29wireOut),
 		.ep30wireOut(ep30wireOut)
 	);
+	
+	assign lights[3:0] = ~ep25wireOut[3:0];
+	assign lights[7:4] = ~ep25wireOut[7:4];
 	
 endmodule
 
