@@ -14,7 +14,7 @@ ep02wireIn[8] = finished_with_RFIFO;
 
 To access constant datastream: 000 000 010 -> 002 -> 0 0000 0010 -> 002
 
-AT  
+AT 
 To begin AT Mode: 000 000 100 -> 004 -> 0 0000 0100 -> 004
 
 To load a byte of your AT command: 000 001 100 -> 014 -> 0 0000 1100 -> 00C

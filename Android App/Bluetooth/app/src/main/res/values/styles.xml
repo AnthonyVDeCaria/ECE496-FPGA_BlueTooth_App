@@ -1,11 +1,53 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Main theme colors -->
+        <!--   darker variant for the status bar and contextual app bars -->
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <!--   your app branding color for the app bar -->
+        <!--   theme UI controls like checkboxes and text fields -->
+        <item name="colorAccent">@color/accent</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="android:textColorPrimary">@color/primary_text</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
+
+        <!-- To change the popup menu and app text color  -->
+        <!--<item name="android:textColor">@color/primary_text</item>-->
+        <!-- To change the background of options menu-->
+        <!--<item name="android:itemBackground">@color/background_material_light</item>-->
+        <!--<item name="android:actionBarStyle">@style/CustomActionBar</item>-->
+        <item name="actionBarTheme">@style/AppThemeOverlay.ActionBar</item>
+        <item name="android:popupMenuStyle">@style/CustomOverflowMenu</item>
+        <!--<item name="android:actionButtonStyle">@color/icons<item>-->
+        <item name="android:itemTextAppearance">@style/CustomTextColor</item>
+        <!--<item name="android:actionOverflowButtonStyle">@style/CustomOverflowButton</item>-->
+    </style>
+
+    <style name="AppThemeOverlay.ActionBar" parent="@style/ThemeOverlay.AppCompat.ActionBar">
+        <item name="android:colorControlNormal">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/secondary_text</item>
+
+    </style>
+
+    <!--Done-->
+    <style name="CustomOverflowMenu" parent="@android:style/Widget.Material.ListPopupWindow">
+        <item name="android:popupBackground">@color/background_material_light</item>
+    </style>
+
+
+    <style name="CustomOverflowButton" parent="@android:style/Widget.Material.ActionButton.Overflow">
+        <item name="android:background">@color/icons</item>
+    </style>
+
+    <!--Done-->
+    <style name="CustomTextColor" parent="@android:style/TextAppearance.Material.Widget.PopupMenu">
+        <item name="android:textColor">@color/primary_text</item>
+    </style>
+
+    <style name="CustomTitleTextColor" parent="@android:style/TextAppearance.Material.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/icons</item>
     </style>
 
 </resources>

@@ -1,44 +1,211 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
     tools:context="com.example.hannahkwon.bluetooth1.MainActivity">
+
+    <include
+        android:id="@+id/toolBar"
+        layout="@layout/toolbar">
+    </include>
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:divider="@android:drawable/divider_horizontal_textfield"
-        android:showDividers="middle"
-        android:dividerPadding="2.5dp">
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin">
 
-        <TextView
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:text="Bluetooth is off"
-            android:id="@+id/txt_BtStatus"/>
-
-        <ScrollView
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/scrollView" >
+            android:layout_height="match_parent">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceMedium"
-                android:text="User sent: "
-                android:id="@+id/txt_DataReceived" />
-        </ScrollView>
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:text="Bluetooth is off"
+                android:id="@+id/txt_BtStatus"/>
 
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider"/>
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="1dp"
+                android:id="@+id/gridLayout_Channels"
+                android:columnCount="3">
+
+                <CheckBox
+                    android:text="Channel 1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS1"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+                <CheckBox
+                    android:text="Channel 2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS2"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+                <CheckBox
+                    android:text="Channel 3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS3"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+                <CheckBox
+                    android:text="Channel 4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS4"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+                <CheckBox
+                    android:text="Channel 5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS5"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+                <CheckBox
+                    android:text="Channel 6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS6"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+                <CheckBox
+                    android:text="Channel 7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS7"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+                <CheckBox
+                    android:text="Channel 8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:id="@+id/checkBox_DS8"
+                    android:textSize="16sp"
+                    android:paddingRight="8dp"
+                    android:paddingLeft="8dp" />
+
+            </GridLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <Button
+                    android:text="Start"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:id="@+id/btn_Start"
+                    android:layout_gravity="center_horizontal"
+                    android:paddingRight="16dp"
+                    android:paddingLeft="16dp"
+                    android:layout_marginBottom="6dp"
+                    android:layout_marginTop="6dp"
+                    android:textSize="12sp"
+                    android:layout_alignParentLeft="true"/>
+
+                <Button
+                    android:text="Cancel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:id="@+id/btn_Cancel"
+                    android:layout_gravity="center_horizontal"
+                    android:paddingRight="16dp"
+                    android:paddingLeft="16dp"
+                    android:layout_marginBottom="6dp"
+                    android:layout_marginTop="6dp"
+                    android:textSize="12sp"
+                    android:layout_alignParentRight="true"/>
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider"/>
+
+            <TextView
+                android:text="Sensor sent:"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"/>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <fragment
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
+                    android:id="@+id/graph_1"
+                    android:layout_weight="1" />
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceMedium"
+                        android:id="@+id/txt_DataReceived" />
+                </ScrollView>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider"/>
+
+            <Button
+                android:text="Save"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:id="@+id/btn_Save"
+                android:layout_alignParentRight = "true"
+                android:layout_gravity="center_horizontal"
+                android:paddingRight="16dp"
+                android:paddingLeft="16dp"
+                android:layout_marginBottom="6dp"
+                android:layout_marginTop="6dp"
+                android:textSize="12sp" />
+
+        </LinearLayout>
     </LinearLayout>
-</RelativeLayout>
+
+</LinearLayout>
