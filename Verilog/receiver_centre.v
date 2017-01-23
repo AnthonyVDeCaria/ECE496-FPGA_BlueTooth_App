@@ -54,7 +54,7 @@ module receiver_centre(
 		at_response_flag,
 		RFIFO_rd_en, RFIFO_out, RFIFO_wr_count, RFIFO_rd_count, RFIFO_full, RFIFO_empty,
 		stream_select, ds_sending_flag,
-		commands, operands, l_r_ds_sending_flag, r_r_ds_sending_flag, ds_sending_flag_value, rc_curr, rc_next, c, n
+		commands, operands, l_r_ds_sending_flag, r_r_ds_sending_flag, ds_sending_flag_value, rc_curr, rc_next, c, n, timer, n_timer
 	);
 	/*
 		I/Os
@@ -226,7 +226,7 @@ module receiver_centre(
 	/*
 		Timer
 	*/
-	wire [9:0] timer, n_timer;
+	output [9:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
 	assign l_r_timer = (rc_curr == Checking_if_Done);

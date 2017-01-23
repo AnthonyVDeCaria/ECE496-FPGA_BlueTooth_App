@@ -25,6 +25,7 @@ module testingRC;
 	wire [7:0] commands, operands;
 	wire l_r_ds_sending_flag, r_r_ds_sending_flag, ds_sending_flag_value, c, n;
 	wire [1:0] rc_curr, rc_next;
+	wire [9:0] timer, n_timer;
 
 	// Instantiate the Unit Under Test (UUT)
 	receiver_centre uut(
@@ -47,7 +48,8 @@ module testingRC;
 		.ds_sending_flag(ds_sending_flag),
 		
 		.commands(commands), .operands(operands), .l_r_ds_sending_flag(l_r_ds_sending_flag), .r_r_ds_sending_flag(r_r_ds_sending_flag), .ds_sending_flag_value(ds_sending_flag_value),
-		.rc_curr(rc_curr), .rc_next(rc_next), .c(c), .n(n)
+		.rc_curr(rc_curr), .rc_next(rc_next), .c(c), .n(n),
+		.timer(timer), .n_timer(n_timer)
 	);
 	
 	UART_tx santas_little_helper(
@@ -81,7 +83,7 @@ module testingRC;
 		#100 reset = 1'b0;
 		#100 want_at = 1'b1;
 		
-		#220 tx_data = 8'h69;
+		#220 tx_data = "O";
 		#250 start = 1'b1;
 		#275 start = 1'b0;
 		

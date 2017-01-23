@@ -90,7 +90,7 @@ module testingDS;
 		#200 start = 1'b1;
 		#205 start = 1'b0;
 		
-		#600 App_command_byte = 8'haa;
+		#600 App_command_byte = 8'h55;
 		#600 start = 1'b1;
 		#605 start = 1'b0;
 	end
