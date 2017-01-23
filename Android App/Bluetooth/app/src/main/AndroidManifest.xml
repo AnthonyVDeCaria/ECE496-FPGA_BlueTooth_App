@@ -5,22 +5,38 @@
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
+    <!--To access hardware identifiers-->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!--Support both Bluetooth and BLE-->
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+
+        <!--Main screen is set to landscape orientation-->
+        <activity android:name=".MainActivity"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity android:name=".DeviceListActivity"
             android:theme="@android:style/Theme.DeviceDefault.Light.Dialog">
         </activity>
+
+        <service android:name=".BluetoothLeService" android:enabled="true"/>
+
     </application>
 
 </manifest>

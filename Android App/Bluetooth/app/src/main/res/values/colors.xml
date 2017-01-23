@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <!--Indigo Color Palette (Primary Palette)-->
+    <color name="primary">#3F51B5</color>
+    <color name="primary_dark">#303F9F</color>
+    <color name="primary_light">#C5CAE9</color>
+    <color name="accent">#FF4081</color>
+    <!--Used 87% of Opacity-->
+    <color name="primary_text">#dd212121</color>
+    <!--Used 54% of Opacity-->
+    <color name="secondary_text">#89757575</color>
+    <!--Disabled text, hint text, and icons (Used 12% of Opacity)-->
+    <color name="icons">#60FFFFFF</color>
+    <!-- Opacity of 12% black (for light themes) -->
+    <color name="divider">#1f000000</color>
+    <color name="white">#ffffff</color>
 </resources>
