@@ -19,6 +19,7 @@ import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -63,13 +64,14 @@ public class MainActivity extends AppCompatActivity
     private Button bt_Start;
     private Button bt_Cancel;
 
-    private int btType = -1;
     private BluetoothService btService = null;
 
     private BluetoothLeService mBluetoothLeService;
     private boolean mBound = false;
     private String mDeviceAddress;
     private String mDeviceName;
+
+    LocalBroadcastManager manager;
 
     private FileManager fileManager = null;
 
@@ -164,13 +166,8 @@ public class MainActivity extends AppCompatActivity
     private void displayData(final String data) {
 
         if (data != null) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d(TAG, "Displaying data :" + data);
-                    txt_DataReceived.append(data);
-                }
-            });
+            Log.d(TAG, "Displaying data :" + data);
+            txt_DataReceived.append(data);
         }
         else {
             Log.e(TAG, "Failed displaying data");
@@ -318,6 +315,7 @@ public class MainActivity extends AppCompatActivity
                 commandPacketCreator((byte) Constants.CANCEL);
             }
         });
+        manager = LocalBroadcastManager.getInstance(this);
     }
 
     @Override
@@ -338,7 +336,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+        manager.registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+//        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             Log.d(TAG, "Connect request result=" + result);
@@ -348,7 +347,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(mGattUpdateReceiver);
+        manager.unregisterReceiver(mGattUpdateReceiver);
+//        unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
@@ -404,6 +404,7 @@ public class MainActivity extends AppCompatActivity
             // When Device ListActivity returns with a device to connect
             case Constants.REQUEST_CONNECT_DEVICE:
                 if (resultCode == Activity.RESULT_OK) {
+                    int btType = -1;
                     btType = data.getExtras().getInt(DeviceListActivity.EXTRA_DEVICE_TYPE);
 
                     // Device supports only BLE

@@ -18,6 +18,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Arrays;
@@ -63,6 +64,8 @@ public class BluetoothLeService extends Service {
     private BluetoothGattCharacteristic mcharacteristicRX = null;
     public static ReentrantLock GattLock = null;
     public static boolean NoGattOperation = true;
+
+    LocalBroadcastManager manager;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -153,7 +156,8 @@ public class BluetoothLeService extends Service {
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-        sendBroadcast(intent);
+//        sendBroadcast(intent);
+        manager.sendBroadcast(intent);
     }
 
     private void broadcastUpdate(final String action,final BluetoothGattCharacteristic characteristic) {
@@ -163,16 +167,17 @@ public class BluetoothLeService extends Service {
         final byte[] data = characteristic.getValue();
         Log.i(TAG, "data " + characteristic.getValue());
 
-        if (data != null && data.length > 0) {
-            final StringBuilder stringBuilder = new StringBuilder(data.length);
-            for(byte byteChar : data)
-                stringBuilder.append(String.format("%02X ", byteChar));
-            intent.putExtra(EXTRA_DATA, stringBuilder.toString());
-        }
-//        Log.d(TAG, String.format("%s", new String(data)));
-//        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
+//        if (data != null && data.length > 0) {
+//            final StringBuilder stringBuilder = new StringBuilder(data.length);
+//            for(byte byteChar : data)
+//                stringBuilder.append(String.format("%02X ", byteChar));
+//            intent.putExtra(EXTRA_DATA, stringBuilder.toString());
+//        }
+        Log.d(TAG, String.format("%s", new String(data)));
+        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
 
-        sendBroadcast(intent);
+        manager.sendBroadcast(intent);
+//        sendBroadcast(intent);
     }
 
     public class LocalBinder extends Binder {
@@ -220,6 +225,7 @@ public class BluetoothLeService extends Service {
         }
 
         GattLock = new ReentrantLock();
+        manager = LocalBroadcastManager.getInstance(this);
 
         return true;
     }
