@@ -229,6 +229,15 @@ module FPGA_Bluetooth_connection(
 		.select_ready(select_ready)
 	);
 
+	wire [7:0] ion_sensor_num;
+	wire[109:0] data_out;
+	ion sensor1(
+		.clock(clock),
+		.resetn(~reset),
+		.ready(ion_sensor_num),
+		.data_out(data_out)
+	);
+
 	mux_9_8bit m_datastream(
 		.data0(datastream0), 
 		.data1(datastream1), 
