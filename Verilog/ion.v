@@ -6,14 +6,14 @@
 module ion(clock, resetn, ready, data_out);
 
 	input clock, resetn;
-	output reg [7:0] ready;
-	output reg [109:0] data_out;
+	output [7:0] ready;
+	output [109:0] data_out;
 
-	integer               data_file    ; // file handler
-	integer               scan_file    ; // file handler
+	integer data_file; // file handler
+	integer scan_file; // file handler
 
 	reg [109:0] extracted_data; 
-	parameter timer_cap = 10'd500000;
+	parameter timer_cap = 16'hFFFF; //16'd500000;
 
 	`define NULL 0  
 	/*
@@ -35,11 +35,11 @@ module ion(clock, resetn, ready, data_out);
 	wire [9:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
-	assign l_r_timer = (ms_curr == Run);
-	assign r_r_timer = ~( ~resetn | (ms_curr == Find) );
+	assign l_r_timer = (curr == Idle);
+	assign r_r_timer = ~( ~resetn | (curr == Read_Packet) );
 	
-	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
-	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
+	adder_subtractor_16bit a_timer(.a(timer), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
+	register_16bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
 	
 	assign timer_done = (timer == timer_cap) ? 1'b1 : 1'b0;
 

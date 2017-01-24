@@ -147,7 +147,15 @@ module FPGA_Bluetooth_connection(
 		.clock(clock), .reset(reset),
 		.sensor_stream0(sensor_stream0), .sensor_stream1(sensor_stream1), .sensor_stream2(sensor_stream2), .sensor_stream3(sensor_stream3), 
 		.sensor_stream4(sensor_stream4), .sensor_stream5(sensor_stream5), .sensor_stream6(sensor_stream6), .sensor_stream7(sensor_stream7), 
-		.sensor_stream_ready(sensor_stream_ready)
+		.sensor_stream_ready()
+	);
+	
+	wire[109:0] data_out;
+	ion sensor1(
+		.clock(clock),
+		.resetn(~reset),
+		.ready(sensor_stream_ready),
+		.data_out(data_out)
 	);
 	
 	/*
@@ -227,15 +235,6 @@ module FPGA_Bluetooth_connection(
 		.empty_fifo_flags(fifo_state_empty),
 		.mux_select(m_datastream_select),
 		.select_ready(select_ready)
-	);
-
-	wire [7:0] ion_sensor_num;
-	wire[109:0] data_out;
-	ion sensor1(
-		.clock(clock),
-		.resetn(~reset),
-		.ready(ion_sensor_num),
-		.data_out(data_out)
 	);
 
 	mux_9_8bit m_datastream(
