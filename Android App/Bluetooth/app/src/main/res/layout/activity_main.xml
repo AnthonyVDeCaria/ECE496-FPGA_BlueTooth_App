@@ -168,14 +168,15 @@
                 android:layout_height="match_parent">
 
                 <fragment
-                    android:layout_width="0dp"
                     android:layout_height="match_parent"
+                    android:layout_width="0px"
                     android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
                     android:id="@+id/graph_1"
+                    android:tag="Fragment1"
                     android:layout_weight="1" />
 
                 <ScrollView
-                    android:layout_width="match_parent"
+                    android:layout_width="0px"
                     android:layout_height="match_parent"
                     android:layout_weight="1">
 

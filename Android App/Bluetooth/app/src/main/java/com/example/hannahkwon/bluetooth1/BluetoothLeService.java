@@ -22,9 +22,13 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.UUID;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.example.hannahkwon.bluetooth1.Constants.ACK;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -55,17 +59,13 @@ public class BluetoothLeService extends Service {
     public final static UUID UUID_HM_RX_TX =
             UUID.fromString(SampleGattAttributes.HM_RX_TX);
 
-    //TODO delete this
-    public final static UUID BATTERY_LEVEL =
-            UUID.fromString(SampleGattAttributes.BATTERY_LEVEL);
-
-    private ConnectedThread mConnectedThread;
     private BluetoothGattCharacteristic mcharacteristicTX = null;
     private BluetoothGattCharacteristic mcharacteristicRX = null;
     public static ReentrantLock GattLock = null;
     public static boolean NoGattOperation = true;
 
     LocalBroadcastManager manager;
+    private PackagingThread mPackagingThread;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -128,8 +128,6 @@ public class BluetoothLeService extends Service {
             Log.d(TAG, "Write result is as following");
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "Characteristic write was successful");
-                //TODO Move this to the appropriate place. Pair with updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
-//                connected();
             }
             else if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION ||
                     status == BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION) {
@@ -150,17 +148,17 @@ public class BluetoothLeService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "Received characteristic notification");
-            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+//            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+            mPackagingThread.add(characteristic.getValue());
         }
     };
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-//        sendBroadcast(intent);
         manager.sendBroadcast(intent);
     }
 
-    private void broadcastUpdate(final String action,final BluetoothGattCharacteristic characteristic) {
+    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
 
         // For all other profiles, writes the data formatted in HEX.
@@ -174,10 +172,9 @@ public class BluetoothLeService extends Service {
 //            intent.putExtra(EXTRA_DATA, stringBuilder.toString());
 //        }
         Log.d(TAG, String.format("%s", new String(data)));
-        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
-
+//        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
+        intent.putExtra(EXTRA_DATA, data);
         manager.sendBroadcast(intent);
-//        sendBroadcast(intent);
     }
 
     public class LocalBinder extends Binder {
@@ -226,6 +223,8 @@ public class BluetoothLeService extends Service {
 
         GattLock = new ReentrantLock();
         manager = LocalBroadcastManager.getInstance(this);
+
+        startPackaging();
 
         return true;
     }
@@ -318,15 +317,6 @@ public class BluetoothLeService extends Service {
             uuid = gattService.getUuid().toString();
             Log.d(TAG, "Discovered service: " + uuid);
 
-//            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "BATTERY") {
-//                Log.d(TAG, "Found Battery Service");
-//                // get characteristic when UUID matches RX/TX UUID
-//                characteristicTX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
-//                characteristicRX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
-//                if (characteristicRX == null)
-//                    Log.e(TAG, "No characteristics for transfer");
-//                mBluetoothLeService.readCharacteristic(characteristicRX);
-//            }
             // Found HM-10 connectivity service
             if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
                 Log.d(TAG, "Found HM 10 Connectivity service");
@@ -350,18 +340,9 @@ public class BluetoothLeService extends Service {
                     if(isNotificationCharacteristic(gattCharacteristic)) {
                         setCharacteristicNotification(gattCharacteristic, true);
                     }
-//                    // get characteristic when UUID matches RX/TX UUID
-//                    characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
-//                    characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
                     if (characteristicRX == null || characteristicTX == null)
                         Log.e(TAG, "No characteristics for transfer");
-                    // For bonding
-                    //                mBluetoothLeService.readCharacteristic(characteristicRX);
-                    // starting thread for reading characteristics
                     setCharacteristic(characteristicTX, characteristicRX);
-//                    connected();
-                    // Only now show it is connected
-                    //                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
                 }
             }
         }
@@ -406,6 +387,26 @@ public class BluetoothLeService extends Service {
         } else {
             Log.d(TAG, "Not notification characteristic");
             return false;
+        }
+    }
+
+    public void write(byte[] out) {
+        if(GattLock == null)
+            Log.e(TAG, "Lock for Gatt operation is not initialized!");
+        boolean writeDone = false;
+        while(true) {
+            GattLock.lock();
+            try {
+                if(NoGattOperation) { // No Gatt operation is being processed at the moment
+                    NoGattOperation = false;
+                    writeCharacteristic(out);
+                    writeDone = true;
+                }
+            } finally {
+                GattLock.unlock();
+                if(writeDone)
+                    return;
+            }
         }
     }
 
@@ -467,7 +468,7 @@ public class BluetoothLeService extends Service {
             mBluetoothGatt.setCharacteristicNotification(characteristic, enabled); // Enabled locally
 
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-                        UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
 
             if(enabled) {
                 Log.d(TAG, "Enabled notification remotely");
@@ -525,59 +526,68 @@ public class BluetoothLeService extends Service {
             return true;
     }
 
-    public synchronized void connected () {
-        Log.d(TAG, "Connected");
+    public synchronized void startPackaging () {
+        Log.d(TAG, "Start Packaging");
 
         // Start the thread to manage the connection and perform transmission
-        mConnectedThread = new ConnectedThread();
-        mConnectedThread.start();
+        mPackagingThread = new PackagingThread();
+        mPackagingThread.start();
     }
 
-//    public synchronized  void sleep() {
-//        Log.d(TAG, "Turn ConnnectedThread into sleep");
-//        if (mConnectedThread != null)
-//            mConnectedThread.sleep();
-//    }
-
     /*
-    * This is the thread where you can start sharing data between the devices
-    * It has to be in thread as read() & write() block
+    * This is the thread where it collects bytes received from FPGA
+    * to form the entire packet
+    * Once the packet is formed, it is transferred to the MainActivity
     */
-    private class ConnectedThread extends Thread {
+    private class PackagingThread extends Thread {
+        Queue<byte []> mmFIFOQueue = new LinkedList<byte []>();
+        private int mmPacketCount = 0;
+        private byte [] mmPackagedData = null;
+        private byte [] mmTempData = null;
+        private byte [] mmDataAvailable = null;
+        //        StringBuilder buffer = null;
+//        private String mmPackagedData = null;
+//        private String mmTempData = null;
+        private byte[] commandPacket = null;
 
-        public ConnectedThread() {
-            Log.d(TAG, "Creating ConnectedThread");
+        public PackagingThread() {
+            Log.d(TAG, "Creating PackagingThread");
+            commandPacket = new byte[1];
+            commandPacket[0] = ACK;
         }
 
         public void run() {
-            Log.i(TAG, "Beginning mConnectedThread");
+            Log.i(TAG, "Beginning mPackagingThread");
             while (true) {
-                if(GattLock == null)
-                    Log.e(TAG, "Lock for Gatt operation is not initialized!");
-                GattLock.lock();
-                try {
-                    if(NoGattOperation) { // No Gatt operation is being processed at the moment
-                        NoGattOperation = false;
-                        readCharacteristic();
+                if (!mmFIFOQueue.isEmpty()) {
+                    Log.d(TAG, "Sending ACK");
+                    write(commandPacket);
+
+                    mmTempData = mmPackagedData;
+                    mmDataAvailable = mmFIFOQueue.remove();
+                    mmPackagedData = new byte[mmTempData.length + mmDataAvailable.length];
+                    System.arraycopy(mmTempData, 0, mmPackagedData, 0, mmTempData.length);
+                    System.arraycopy(mmDataAvailable, 0, mmPackagedData, mmTempData.length, mmDataAvailable.length);
+                    Log.d(TAG, "Packaged data is " + String.format("%s", new String(mmPackagedData)));
+
+                    mmPacketCount++;
+
+                    if(mmPacketCount == 15) {   // received full packet (120 bits)
+                        Log.d(TAG, "Got the full packet");
+                        Intent intent = new Intent(ACTION_DATA_AVAILABLE);
+                        Log.d(TAG, String.format("%s", new String(mmPackagedData)));
+                        intent.putExtra(EXTRA_DATA, mmPackagedData);
+                        manager.sendBroadcast(intent);
+
+                        mmPacketCount = 0;
                     }
-                } finally {
-                    GattLock.unlock();
                 }
             }
         }
 
-        /*
-         * Write to the connected OutStream
-         * Call this from the main activity to send data to the remote device (but not used now)
-         * @param buffer The bytes to write
-         */
-//        public void write(byte[] buffer) {
-//            try {
-//                mmOutStream.write(buffer);
-//                Log.d(TAG, "Succeed sending");
-//            } catch (IOException e) {
-//                Log.e(TAG, "Exception during write", e);
-//            }
-//        }
+        public synchronized void add (byte[] data) {
+            Log.i(TAG, "Adding into FIFO queue " + data);
+            mmFIFOQueue.add(data);
+        }
     }
 }
