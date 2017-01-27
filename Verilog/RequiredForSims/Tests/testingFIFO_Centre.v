@@ -8,13 +8,13 @@ module testingFIFO_Centre;
 	reg [8:0] wr_en, rd_en;
 
 	// Outputs
-	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
+	wire [15:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
 	wire [8:0] fifo_state_full, fifo_state_empty;
-	wire [13:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
-	wire [12:0] DS0_wr_count, DS1_wr_count, DS2_wr_count, DS3_wr_count, DS4_wr_count, DS5_wr_count, DS6_wr_count, DS7_wr_count;
+	wire [5:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
+	wire [3:0] DS0_wr_count, DS1_wr_count, DS2_wr_count, DS3_wr_count, DS4_wr_count, DS5_wr_count, DS6_wr_count, DS7_wr_count;
 	
-	parameter sensor0 = 16'h4869, sensor1 = 16'h5B5D, sensor2 = 16'h6E49, sensor3 = 16'h3B29;
-	parameter sensor4 = 16'h2829, sensor5 = 16'h3725, sensor6 = 16'h780A, sensor7 = 16'h7B2C;
+	parameter sensor0 = "Hello World! :-)", sensor1 = "DragonForce TFAF", sensor2 = "Bloody_Radio.exe", sensor3 = "Linkin=Park.xlsx";
+	parameter sensor4 = "Fly on a Dog[tm]", sensor5 = "Foo^Fighting^ooF", sensor6 = "~~KAWAII~~~~~~~~", sensor7 = "*I LIKE PICKLES*";
 
 	// Instantiate the Unit Under Test (UUT)
 	FIFO_centre uut(
@@ -59,7 +59,11 @@ module testingFIFO_Centre;
 		#0 reset = 1'b0;
 		#0 wr_en = 9'h0FF;
 		
-		#150 rd_en = 9'h020;
+		#1 wr_en = 9'h07F;
+		
+		#10 wr_en = 9'h033;
+		
+		#150 rd_en = 9'h0a0;
 	end
 	
 endmodule

@@ -100,12 +100,13 @@ module FPGA_Bluetooth_connection(
 	wire ds_sending_flag, at_sending_flag, sending_flag, have_at_response, uart_timer_done, tx_done, select_ready, command_from_app;
 
 	// FIFO Wires
-	wire [7:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
+	wire [15:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
 	wire [7:0] at;
 	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;
 	
 	// Datastream Selector Wires
-	wire [7:0] datastream, uart_input;
+	wire [15:0] datastream;
+	wire [7:0] uart_input;
 	wire [7:0] streams_selected;
 	wire [3:0] m_datastream_select;
 	
@@ -125,8 +126,6 @@ module FPGA_Bluetooth_connection(
 	assign access_RFIFO = ep02wireIn[6];
 	assign user_received_data = ep02wireIn[7];
 	assign finished_with_RFIFO = ep02wireIn[8];
-	
-	parameter ms_timer_cap = 10'd1000;
 	
 	/*
 		FSM Parameters
@@ -230,7 +229,6 @@ module FPGA_Bluetooth_connection(
 		.resetn(~reset),
 		.want_at(want_at),
 		.sending_flag(sending_flag),
-		.timer_cap(ms_timer_cap),
 		.selected_streams(streams_selected),
 		.empty_fifo_flags(fifo_state_empty),
 		.mux_select(m_datastream_select),
