@@ -13,18 +13,27 @@
 					Load the Shift Register
 					Then - #Find
 						Assuming we're still sending
+							Determine the triggers
 							If the first bit in the shift register is 0
 								Loop through until we find 1
 								Keeping track of the index
 							If the first bit in the shift register is 1
 								And there's data there
-									Set the mux_select to the index
+									Set the mux_select to the index - #Run
 									Set a timer
-									When the timer is finished
-										Go to the ms_next index
-										And go back to #Find
+									If we finish sending the packet
+										And the timer is finished
+											Go to the next index
+											And go back to #Find
+										Otherwise
+											Keep the channel open for the next packet
+									Else
+										Do nothing
 								Else
 									Keep looking
+						If we aren't
+							Do nothing
+							Reset everything
 			If we aren't
 				Do nothing
 				Reset everything
@@ -34,23 +43,27 @@
 */
 module master_switch_ece496(
 		clock, resetn, 
-		timer_cap,
-		want_at, sending_flag, empty_fifo_flags, selected_streams, 
+		want_at, sending_flag, empty_fifo_flags, 
+		selected_streams, 
+		DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count,
 		mux_select, select_ready,
 		
-		ms_curr, ms_next
+		ms_curr, ms_next, rd_count_equals_trig, ds_rd_count_not_0,
+		trig_DS0, trig_DS1, trig_DS2, trig_DS3, trig_DS4, trig_DS5, trig_DS6, trig_DS7
 	);
 	/*
 		I/O
 	*/
 	input clock, resetn;
-	input [9:0] timer_cap;
 	input want_at, sending_flag;
 	input [7:0] empty_fifo_flags;
 	input [7:0] selected_streams;
+	input [5:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
 	
 	output reg [3:0] mux_select;
 	output reg select_ready;
+	
+	parameter timer_cap = 10'd1000;
 	
 	/*
 		FSM Wires
@@ -65,6 +78,75 @@ module master_switch_ece496(
 	assign shift_0_is_0_in_find = ((ms_curr == Find) & ~shift[0]);
 	assign eff_i_is_1_in_find = ((ms_curr == Find) & empty_fifo_flags[i]);
 	assign timer_done_in_run = ((ms_curr == Run) & timer_done);
+	
+	output [7:0] rd_count_equals_trig, ds_rd_count_not_0;
+	
+	assign rd_count_equals_trig[0] = (DS0_rd_count == trig_DS0) ? 1'b1 : 1'b0;
+	assign rd_count_equals_trig[1] = (DS1_rd_count == trig_DS1) ? 1'b1 : 1'b0;
+	assign rd_count_equals_trig[2] = (DS2_rd_count == trig_DS2) ? 1'b1 : 1'b0;
+	assign rd_count_equals_trig[3] = (DS3_rd_count == trig_DS3) ? 1'b1 : 1'b0;
+	assign rd_count_equals_trig[4] = (DS4_rd_count == trig_DS4) ? 1'b1 : 1'b0;
+	assign rd_count_equals_trig[5] = (DS5_rd_count == trig_DS5) ? 1'b1 : 1'b0;
+	assign rd_count_equals_trig[6] = (DS6_rd_count == trig_DS6) ? 1'b1 : 1'b0;
+	assign rd_count_equals_trig[7] = (DS7_rd_count == trig_DS7) ? 1'b1 : 1'b0;
+	
+	assign ds_rd_count_not_0[0] = (DS0_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	assign ds_rd_count_not_0[1] = (DS1_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	assign ds_rd_count_not_0[2] = (DS2_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	assign ds_rd_count_not_0[3] = (DS3_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	assign ds_rd_count_not_0[4] = (DS4_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	assign ds_rd_count_not_0[5] = (DS5_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	assign ds_rd_count_not_0[6] = (DS6_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	assign ds_rd_count_not_0[7] = (DS7_rd_count != 6'h00) ? 1'b1 : 1'b0;
+	
+	/*
+		Trigger FIFO rd Values
+	*/
+	wire [5:0] n_trig_DS0, n_trig_DS1, n_trig_DS2, n_trig_DS3, n_trig_DS4, n_trig_DS5, n_trig_DS6, n_trig_DS7;
+	output [5:0] trig_DS0, trig_DS1, trig_DS2, trig_DS3, trig_DS4, trig_DS5, trig_DS6, trig_DS7;
+	wire [7:0] l_r_trig_DS, r_r_trig_DS;
+	
+	assign l_r_trig_DS[0] = ds_rd_count_not_0[0] & ((ms_curr == Find) | (rd_count_equals_trig[0] & ~timer_done & (ms_curr == Run)));
+	assign l_r_trig_DS[1] = ds_rd_count_not_0[1] & ((ms_curr == Find) | (rd_count_equals_trig[1] & ~timer_done & (ms_curr == Run)));
+	assign l_r_trig_DS[2] = ds_rd_count_not_0[2] & ((ms_curr == Find) | (rd_count_equals_trig[2] & ~timer_done & (ms_curr == Run)));
+	assign l_r_trig_DS[3] = ds_rd_count_not_0[3] & ((ms_curr == Find) | (rd_count_equals_trig[3] & ~timer_done & (ms_curr == Run)));
+	assign l_r_trig_DS[4] = ds_rd_count_not_0[4] & ((ms_curr == Find) | (rd_count_equals_trig[4] & ~timer_done & (ms_curr == Run)));
+	assign l_r_trig_DS[5] = ds_rd_count_not_0[5] & ((ms_curr == Find) | (rd_count_equals_trig[5] & ~timer_done & (ms_curr == Run)));
+	assign l_r_trig_DS[6] = ds_rd_count_not_0[6] & ((ms_curr == Find) | (rd_count_equals_trig[6] & ~timer_done & (ms_curr == Run)));
+	assign l_r_trig_DS[7] = ds_rd_count_not_0[7] & ((ms_curr == Find) | (rd_count_equals_trig[7] & ~timer_done & (ms_curr == Run)));
+	
+	assign r_r_trig_DS[0] = resetn;
+	assign r_r_trig_DS[1] = resetn;
+	assign r_r_trig_DS[2] = resetn;
+	assign r_r_trig_DS[3] = resetn;
+	assign r_r_trig_DS[4] = resetn;
+	assign r_r_trig_DS[5] = resetn;
+	assign r_r_trig_DS[6] = resetn;
+	assign r_r_trig_DS[7] = resetn;
+	
+	adder_subtractor_6bit a_trig_DS0(.a(6'd4), .b(DS0_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS0) );
+	register_6bit_enable_async r_trig_DS0 (.clk(clock), .resetn(r_r_trig_DS[0]), .enable(l_r_trig_DS[0]), .select(l_r_trig_DS[0]), .d(n_trig_DS0), .q(trig_DS0) );
+	
+	adder_subtractor_6bit a_trig_DS1(.a(6'd4), .b(DS1_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS1) );
+	register_6bit_enable_async r_trig_DS1 (.clk(clock), .resetn(r_r_trig_DS[1]), .enable(l_r_trig_DS[1]), .select(l_r_trig_DS[1]), .d(n_trig_DS1), .q(trig_DS1) );
+	
+	adder_subtractor_6bit a_trig_DS2(.a(6'd4), .b(DS2_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS2) );
+	register_6bit_enable_async r_trig_DS2 (.clk(clock), .resetn(r_r_trig_DS[2]), .enable(l_r_trig_DS[2]), .select(l_r_trig_DS[2]), .d(n_trig_DS2), .q(trig_DS2) );
+	
+	adder_subtractor_6bit a_trig_DS3(.a(6'd4), .b(DS3_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS3) );
+	register_6bit_enable_async r_trig_DS3 (.clk(clock), .resetn(r_r_trig_DS[3]), .enable(l_r_trig_DS[3]), .select(l_r_trig_DS[3]), .d(n_trig_DS3), .q(trig_DS3) );
+	
+	adder_subtractor_6bit a_trig_DS4(.a(6'd4), .b(DS4_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS4) );
+	register_6bit_enable_async r_trig_DS4 (.clk(clock), .resetn(r_r_trig_DS[4]), .enable(l_r_trig_DS[4]), .select(l_r_trig_DS[4]), .d(n_trig_DS4), .q(trig_DS4) );
+	
+	adder_subtractor_6bit a_trig_DS5(.a(6'd4), .b(DS5_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS5) );
+	register_6bit_enable_async r_trig_DS5 (.clk(clock), .resetn(r_r_trig_DS[5]), .enable(l_r_trig_DS[5]), .select(l_r_trig_DS[5]), .d(n_trig_DS5), .q(trig_DS5) );
+	
+	adder_subtractor_6bit a_trig_DS6(.a(6'd4), .b(DS6_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS6) );
+	register_6bit_enable_async r_trig_DS6 (.clk(clock), .resetn(r_r_trig_DS[6]), .enable(l_r_trig_DS[6]), .select(l_r_trig_DS[6]), .d(n_trig_DS6), .q(trig_DS6) );
+	
+	adder_subtractor_6bit a_trig_DS7(.a(6'd4), .b(DS7_rd_count), .want_subtract(1'b1), .c_out(), .s(n_trig_DS7) );
+	register_6bit_enable_async r_trig_DS7 (.clk(clock), .resetn(r_r_trig_DS[7]), .enable(l_r_trig_DS[7]), .select(l_r_trig_DS[7]), .d(n_trig_DS7), .q(trig_DS7) );
 	
 	/*
 		Timer
@@ -168,8 +250,13 @@ module master_switch_ece496(
 				mux_select[2:0] = i;
 				select_ready = 1'b1;
 				
-				if(timer_done)
-					ms_next = Find;
+				if(rd_count_equals_trig[i])
+				begin
+					if(timer_done)
+						ms_next = Find;
+					else
+						ms_next = Run;
+				end
 				else
 					ms_next = Run;
 			end
