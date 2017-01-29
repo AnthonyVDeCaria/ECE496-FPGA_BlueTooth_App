@@ -81,260 +81,858 @@ module ion(clock, resetn, ready, data_out);
 	
 	//reading data
 	
-	reg [5:0] index;
+	reg [3:0] index;
 
 	always @(*) 
 	begin
 		if (curr == Read_Packet)
 		begin
-			index = index + 6'b0000001;
+			index = index + 4'b00001;
   		end
 	end
-
-	
 
 	always @(*)
 	begin
 		case(index)
 			6'b000000:
 			begin
-				extracted_data = 110'd770255177100881239175611014272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd881;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd56110;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;		
 			end
 			6'b000001:
 			begin
-				extracted_data = 110'd77125517610092523917379114272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd176;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd925;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd3791;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end 
 			6'b000010:
 			begin
-				extracted_data = 110'd770255177100962239176327514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd962;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd63275;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end 
 			6'b000011:
 			begin
-				extracted_data = 110'd7712551771001011239172457414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1011;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd24574;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end 
 			6'b000100:
 			begin
-				extracted_data = 110'd7712551851001045239174001914272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd185;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1045;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd40019;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end 
 			6'b000101:
 			begin
-				extracted_data = 110'd7712551861001094239175052714272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd186;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1094;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd50527;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end 
 			6'b000110:
 			begin
-				extracted_data = 110'd7702551771001136239176017714272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1136;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd60177;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end 
 			6'b000111:
 			begin
-				extracted_data = 110'd7702551781001178239174722214272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1178;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd47222;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end 
 			6'b001000:
 			begin
-				extracted_data = 110'd7702551771001220239174275614272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1220;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd42756;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b001001:
 			begin
-				extracted_data = 110'd7702551771001262239176196114272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1262;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd61961;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b001010:
 			begin
-				extracted_data = 110'd77025518310013042391799314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd183;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1304;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd7993;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b001011:
 			begin
-				extracted_data = 110'd7702551781001346239171767514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1346;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd17675;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b001100:
 			begin
-				extracted_data = 110'd7702551781001380239175747314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1380;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd57473;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b001101:
 			begin
-				extracted_data = 110'd7702551771001430239175322414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1430;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd53224;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b001110:
 			begin
-				extracted_data = 110'd7702551781001472239176119514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1472;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd61195;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b001111:
 			begin
-				extracted_data = 110'd7712551851001514239174699614272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd185;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1514;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd46996;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b010000:
 			begin
-				extracted_data = 110'd77125517710015562391714514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1556;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd145;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b010001:
 			begin
-				extracted_data = 110'd7712551781001598239172119114272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1598;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd21191;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b010010:
 			begin
-				extracted_data = 110'd77025517710016352391761014272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1635;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd610;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b010011:
 			begin
-				extracted_data = 110'd771255177100167923917408914272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1679;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd4089;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b010100:
 			begin
-				extracted_data = 110'd7702551781001729239172068514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1729;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd20685;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b0010101:
 			begin
-				extracted_data = 110'd7712551771001766239171045914272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1766;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd10459;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b0010110:
 			begin
-				extracted_data = 110'd7712551781001815239175776614272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1815;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd57766;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b010111:
 			begin
-				extracted_data = 110'd7702551771001857239174823614272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1857;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd48236;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011000:
 			begin
-				extracted_data = 110'd7712551771001903239173645314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1903;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd36453;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011001:
 			begin
-				extracted_data = 110'd7702551831001945239172297714272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd183;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1945;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd22977;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011010:
 			begin
-				extracted_data = 110'd7702551771001987239171304514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd1987;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd13045;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011011:
 			begin
-				extracted_data = 110'd7702551771002033239174099314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2033;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd40993;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011100:
 			begin
-				extracted_data = 110'd7712551771002075239174531014272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2075;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd45310;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011101:
 			begin
-				extracted_data = 110'd7712551771002108239176298814272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2108;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd62988;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011110:
 			begin
-				extracted_data = 110'd7712551771012162239175003214272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd101;
+				extracted_data[47:32] = 16'd2162;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd50032;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b011111:
 			begin
-				extracted_data = 110'd7712551781002199239172231214272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2199;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd22312;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100000:
 			begin
-				extracted_data = 110'd7702551771002248239174850714272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2248;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd48507;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100001:
 			begin
-				extracted_data = 110'd770255178101228623917361514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd101;
+				extracted_data[47:32] = 16'd2286;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd3615;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100010:
 			begin
-				extracted_data = 110'd7712551771002335239173104314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2335;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd31043;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100011:
 			begin
-				extracted_data = 110'd7702551771002381239176515114272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2381;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd65151;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100100:
 			begin
-				extracted_data = 110'd7702551771002423239174512314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2423;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd45123;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100101:
 			begin
-				extracted_data = 110'd7702551771002465239174729714272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2465;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd47297;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100110:
 			begin
-				extracted_data = 110'd770255177100249823917137414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2498;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd1374;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b100111:
 			begin
-				extracted_data = 110'd770255180100254823917851014272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd180;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2548;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd8510;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101000:
 			begin
-				extracted_data = 110'd771255178100258123917376614272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2581;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd3766;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101001:
 			begin
-				extracted_data = 110'd7702551781002631239171567814272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2631;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd15678;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101010:
 			begin
-				extracted_data = 110'd7702551781002670239174614414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2670;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd46144;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101011:
 			begin
-				extracted_data = 110'd7712551761002712239174327514272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd176;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2712;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd43275;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101100:
 			begin
-				extracted_data = 110'd771255185100275823917640214272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd185;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2758;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd6402;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101101:
 			begin
-				extracted_data = 110'd7702551781002800239172832414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2800;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd28324;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101110:
 			begin
-				extracted_data = 110'd7702551771002842239174112314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2842;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd41123;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b101111:
 			begin
-				extracted_data = 110'd7702551781002888239172575414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2888;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd25754;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110000:
 			begin
-				extracted_data = 110'd7712551771002926239174375414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2926;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd43754;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110001:
 			begin
-				extracted_data = 110'd7702551771002973239173775814272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd2973;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd37758;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110010:
 			begin
-				extracted_data = 110'd7702551771003015239176236414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3015;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd62364;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110011:
 			begin
-				extracted_data = 110'd7712551771003057239174820014272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3057;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd48200;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110100:
 			begin
-				extracted_data = 110'd7712551781003100239175627614272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3100;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd56276;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110101:
 			begin
-				extracted_data = 110'd7702551781003146239175993314272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3146;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd59933;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110110:
 			begin
-				extracted_data = 110'd7702551771013184239173025014272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd101;
+				extracted_data[47:32] = 16'd3184;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd30250;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b110111:
 			begin
-				extracted_data = 110'd7712551781003233239174996614272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3233;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd49966;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b111000:
 			begin
-				extracted_data = 110'd77125517710032672391766214272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3267;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd662;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b111001:
 			begin
-				extracted_data = 110'd7712551781003308239174703114272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3308;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd47031;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b111010:
 			begin
-				extracted_data = 110'd771255178100334923917273414272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd1;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd178;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd3349;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd2734;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b111011:
 			begin
-				extracted_data = 110'd7702551771013390239173612114272433;
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd101;
+				extracted_data[47:32] = 16'd3390;
+				extracted_data[55:48] = 8'd239
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 15'd36121;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;
 			end
 			6'b111100:
 			begin
@@ -354,7 +952,6 @@ module ion(clock, resetn, ready, data_out);
 			end
 			default:
 				extracted_data = 110'd0;
-    
 		endcase
 	end
 	
