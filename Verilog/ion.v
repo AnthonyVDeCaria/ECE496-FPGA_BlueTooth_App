@@ -17,7 +17,7 @@ module ion(clock, resetn, ready, data_out);
 
 	/*
 	`define NULL 0  
-	/*
+	
 		Reading from file
 	
 	initial 
