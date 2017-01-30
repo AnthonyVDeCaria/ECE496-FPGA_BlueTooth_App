@@ -3,7 +3,7 @@
 	Ion sensor simulator
 */
 
-module ion(clock, resetn, ready, data_out);
+module ion(clock, resetn, ready, data_out, extracted_data);
 
 	input clock, resetn;
 	output [7:0] ready;
@@ -12,7 +12,7 @@ module ion(clock, resetn, ready, data_out);
 	//integer data_file; // file handler
 	//integer scan_file; // file handler
 
-	reg [109:0] extracted_data; 
+	output reg [109:0] extracted_data; 
 	parameter timer_cap = 16'hFFFF; //16'd500000;
 
 	/*
@@ -34,7 +34,7 @@ module ion(clock, resetn, ready, data_out);
 	/*
 		Timer (timer_cap 500,000)
 	*/
-	wire [9:0] timer, n_timer;
+	wire [15:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
 	assign l_r_timer = (curr == Idle);
@@ -102,7 +102,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd881;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd56110;
 				extracted_data[85:80] = 6'd1;
@@ -116,7 +116,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd176;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd925;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd3791;
 				extracted_data[85:80] = 6'd1;
@@ -130,7 +130,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd962;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd63275;
 				extracted_data[85:80] = 6'd1;
@@ -144,7 +144,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1011;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd24574;
 				extracted_data[85:80] = 6'd1;
@@ -158,7 +158,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd185;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1045;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd40019;
 				extracted_data[85:80] = 6'd1;
@@ -172,7 +172,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd186;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1094;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd50527;
 				extracted_data[85:80] = 6'd1;
@@ -186,7 +186,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1136;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd60177;
 				extracted_data[85:80] = 6'd1;
@@ -200,7 +200,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1178;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd47222;
 				extracted_data[85:80] = 6'd1;
@@ -214,7 +214,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1220;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd42756;
 				extracted_data[85:80] = 6'd1;
@@ -228,7 +228,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1262;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd61961;
 				extracted_data[85:80] = 6'd1;
@@ -242,7 +242,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd183;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1304;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd7993;
 				extracted_data[85:80] = 6'd1;
@@ -256,7 +256,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1346;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd17675;
 				extracted_data[85:80] = 6'd1;
@@ -270,7 +270,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1380;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd57473;
 				extracted_data[85:80] = 6'd1;
@@ -284,7 +284,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1430;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd53224;
 				extracted_data[85:80] = 6'd1;
@@ -298,7 +298,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1472;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd61195;
 				extracted_data[85:80] = 6'd1;
@@ -312,7 +312,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd185;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1514;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd46996;
 				extracted_data[85:80] = 6'd1;
@@ -326,7 +326,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1556;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd145;
 				extracted_data[85:80] = 6'd1;
@@ -340,7 +340,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1598;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd21191;
 				extracted_data[85:80] = 6'd1;
@@ -354,7 +354,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1635;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd610;
 				extracted_data[85:80] = 6'd1;
@@ -368,7 +368,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1679;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd4089;
 				extracted_data[85:80] = 6'd1;
@@ -382,7 +382,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1729;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd20685;
 				extracted_data[85:80] = 6'd1;
@@ -396,7 +396,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1766;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd10459;
 				extracted_data[85:80] = 6'd1;
@@ -410,7 +410,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1815;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd57766;
 				extracted_data[85:80] = 6'd1;
@@ -424,7 +424,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1857;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd48236;
 				extracted_data[85:80] = 6'd1;
@@ -438,7 +438,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1903;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd36453;
 				extracted_data[85:80] = 6'd1;
@@ -452,7 +452,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd183;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1945;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd22977;
 				extracted_data[85:80] = 6'd1;
@@ -466,7 +466,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd1987;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd13045;
 				extracted_data[85:80] = 6'd1;
@@ -480,7 +480,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2033;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd40993;
 				extracted_data[85:80] = 6'd1;
@@ -494,7 +494,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2075;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd45310;
 				extracted_data[85:80] = 6'd1;
@@ -508,7 +508,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2108;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd62988;
 				extracted_data[85:80] = 6'd1;
@@ -522,7 +522,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd101;
 				extracted_data[47:32] = 16'd2162;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd50032;
 				extracted_data[85:80] = 6'd1;
@@ -536,7 +536,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2199;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd22312;
 				extracted_data[85:80] = 6'd1;
@@ -550,7 +550,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2248;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd48507;
 				extracted_data[85:80] = 6'd1;
@@ -564,7 +564,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd101;
 				extracted_data[47:32] = 16'd2286;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd3615;
 				extracted_data[85:80] = 6'd1;
@@ -578,7 +578,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2335;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd31043;
 				extracted_data[85:80] = 6'd1;
@@ -592,7 +592,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2381;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd65151;
 				extracted_data[85:80] = 6'd1;
@@ -606,7 +606,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2423;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd45123;
 				extracted_data[85:80] = 6'd1;
@@ -620,7 +620,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2465;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd47297;
 				extracted_data[85:80] = 6'd1;
@@ -634,7 +634,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2498;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd1374;
 				extracted_data[85:80] = 6'd1;
@@ -648,7 +648,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd180;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2548;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd8510;
 				extracted_data[85:80] = 6'd1;
@@ -662,7 +662,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2581;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd3766;
 				extracted_data[85:80] = 6'd1;
@@ -676,7 +676,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2631;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd15678;
 				extracted_data[85:80] = 6'd1;
@@ -690,7 +690,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2670;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd46144;
 				extracted_data[85:80] = 6'd1;
@@ -704,7 +704,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd176;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2712;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd43275;
 				extracted_data[85:80] = 6'd1;
@@ -718,7 +718,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd185;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2758;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd6402;
 				extracted_data[85:80] = 6'd1;
@@ -732,7 +732,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2800;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd28324;
 				extracted_data[85:80] = 6'd1;
@@ -746,7 +746,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2842;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd41123;
 				extracted_data[85:80] = 6'd1;
@@ -760,7 +760,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2888;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd25754;
 				extracted_data[85:80] = 6'd1;
@@ -774,7 +774,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2926;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd43754;
 				extracted_data[85:80] = 6'd1;
@@ -788,7 +788,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd2973;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd37758;
 				extracted_data[85:80] = 6'd1;
@@ -802,7 +802,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3015;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd62364;
 				extracted_data[85:80] = 6'd1;
@@ -816,7 +816,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3057;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd48200;
 				extracted_data[85:80] = 6'd1;
@@ -830,7 +830,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3100;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd56276;
 				extracted_data[85:80] = 6'd1;
@@ -844,7 +844,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3146;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd59933;
 				extracted_data[85:80] = 6'd1;
@@ -858,7 +858,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd101;
 				extracted_data[47:32] = 16'd3184;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd30250;
 				extracted_data[85:80] = 6'd1;
@@ -872,7 +872,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3233;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd49966;
 				extracted_data[85:80] = 6'd1;
@@ -886,7 +886,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3267;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd662;
 				extracted_data[85:80] = 6'd1;
@@ -900,7 +900,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3308;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd47031;
 				extracted_data[85:80] = 6'd1;
@@ -914,7 +914,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd178;
 				extracted_data[31:24] = 8'd100;
 				extracted_data[47:32] = 16'd3349;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd2734;
 				extracted_data[85:80] = 6'd1;
@@ -928,7 +928,7 @@ module ion(clock, resetn, ready, data_out);
 				extracted_data[23:16] = 8'd177;
 				extracted_data[31:24] = 8'd101;
 				extracted_data[47:32] = 16'd3390;
-				extracted_data[55:48] = 8'd239
+				extracted_data[55:48] = 8'd239;
 				extracted_data[63:56] = 8'd17;
 				extracted_data[79:64] = 15'd36121;
 				extracted_data[85:80] = 6'd1;

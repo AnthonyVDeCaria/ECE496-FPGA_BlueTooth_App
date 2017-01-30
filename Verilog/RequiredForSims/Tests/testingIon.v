@@ -8,14 +8,16 @@ module testingIon;
 
 	// Outputs
 	wire [7:0] sensor_stream_ready;
-	wire [109:0] data_out;
+	wire [109:0] data_out, extracted_data;
 
 	// Instantiate the Unit Under Test (UUT)
 	ion uut(
 		.clock(clock),
 		.resetn(resetn),
 		.ready(sensor_stream_ready),
-		.data_out(data_out)
+		.data_out(data_out),
+		
+		.extracted_data(extracted_data)
 	);
 	
 	always begin
