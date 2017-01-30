@@ -68,8 +68,8 @@ module receiver_centre(
 	
 	input RFIFO_rd_en;
 	output [15:0] RFIFO_out;
-	output [12:0] RFIFO_wr_count;
-	output [11:0] RFIFO_rd_count; 
+	output [6:0] RFIFO_rd_count;
+	output [7:0] RFIFO_wr_count; 
 	output RFIFO_full;
 	output RFIFO_empty;
 	
@@ -115,7 +115,7 @@ module receiver_centre(
 	wire RFIFO_wr_en;
 	assign RFIFO_wr_en = rx_done & at_mode;
 	
-	FIFO_8192_8in_16out RFIFO(
+	FIFO_256_8in_16out RFIFO(
 		.rst(reset),
 		
 		.wr_clk(clock),

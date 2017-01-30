@@ -27,7 +27,7 @@ module testingMS;
 		.sending_flag(sending_flag), 
 		.selected_streams(selected_streams),
 		.empty_fifo_flags(empty_fifo_flags),
-		.mux_select(mux_select), 
+		.mux_select(mux_select),
 		.select_ready(select_ready),
 		.DS0_rd_count(DS0_rd_count), .DS1_rd_count(DS1_rd_count), .DS2_rd_count(DS2_rd_count), .DS3_rd_count(DS3_rd_count), 
 		.DS4_rd_count(DS4_rd_count), .DS5_rd_count(DS5_rd_count), .DS6_rd_count(DS6_rd_count), .DS7_rd_count(DS7_rd_count),
