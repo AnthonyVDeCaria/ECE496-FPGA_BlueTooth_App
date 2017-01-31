@@ -44,12 +44,12 @@ module ion(clock, resetn, ready, data_out);
 				if (timer_done)
 				begin
 					next <= Read_Packet;
-					index <= 6'b0;
+					index <= index + 6'b0;
 				end
 				else 
 				begin
 					next <= Idle;
-					index <= 6'b0;
+					index <= index + 6'b0;
 				end
 			end 
 			Read_Packet:
@@ -60,7 +60,7 @@ module ion(clock, resetn, ready, data_out);
 			Send_Packet:
 			begin
 				next <= Idle;
-				index <= 6'b0;
+				index <= index + 6'b0;
 			end
 			default: 
 			begin
@@ -77,17 +77,18 @@ module ion(clock, resetn, ready, data_out);
 		case(index)
 			6'b000000:
 			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd881;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd56110;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;		
+				extracted_data = 110'b1;
+				//extracted_data[6:0] = 7'd77;
+				//extracted_data[7] = 1'd0;
+				//extracted_data[15:8] = 8'd255;
+				//extracted_data[23:16] = 8'd177;
+				//extracted_data[31:24] = 8'd100;
+				//extracted_data[47:32] = 16'd881;
+				//extracted_data[55:48] = 8'd239;
+				//extracted_data[63:56] = 8'd17;
+				//extracted_data[79:64] = 16'd56110;
+				//extracted_data[85:80] = 6'd1;
+				//extracted_data[109:86] = 24'd4272433;		
 			end
 			6'b000001:
 			begin
