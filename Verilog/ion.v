@@ -3,7 +3,7 @@
 	Ion sensor simulator
 */
 
-module ion(clock, resetn, ready, data_out);
+module ion(clock, resetn, ready, data_out, extracted_data);
 
 	input clock, resetn;
 	output [7:0] ready;
@@ -12,10 +12,10 @@ module ion(clock, resetn, ready, data_out);
 	//integer data_file; // file handler
 	//integer scan_file; // file handler
 
-	reg [109:0] extracted_data; 
+	output reg [109:0] extracted_data; 
 	parameter timer_cap = 16'hFFFF; //16'd500000;
 
-	wire [9:0] timer, n_timer;
+	wire [15:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
 	assign l_r_timer = (curr == Idle);
@@ -937,7 +937,7 @@ module ion(clock, resetn, ready, data_out);
 	end
 	
 	//data_read begin sent out
-	assign data_out = (curr == Send_Packet) ? extracted_data : 110'd0;
+	mux_2_110bit m_data_out(.data0(110'd0), .data1(extracted_data), .sel((curr == Send_Packet)), .result(data_out));
 	assign ready = (curr == Send_Packet) ? 8'b00000001 : 8'b00000000;
 	/*
 		Reset or Update Curr
