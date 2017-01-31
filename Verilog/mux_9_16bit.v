@@ -1,13 +1,13 @@
 /*
-Anthony De Caria - December 24, 2016
+Anthony De Caria - December 1, 2016
 
-This module creates a 8-bit nine input Mux.
+This module creates a 16-bit nine input Mux.
 */
 
-module mux_9_8bit(data0, data1, data2, data3, data4, data5, data6, data7, data8, sel, result);
-	input [7:0] data0, data1, data2, data3, data4, data5, data6, data7, data8;
+module mux_9_16bit(data0, data1, data2, data3, data4, data5, data6, data7, data8, sel, result);
+	input [15:0] data0, data1, data2, data3, data4, data5, data6, data7, data8;
 	input [3:0] sel;
-	output reg [7:0] result;
+	output reg [15:0] result;
 	
 	always@(*)
 	begin
@@ -49,7 +49,7 @@ module mux_9_8bit(data0, data1, data2, data3, data4, data5, data6, data7, data8,
 		end
 		else
 		begin
-			result = 8'hzz;
+			result = 16'hzzzz;
 		end
 	end
 endmodule

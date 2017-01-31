@@ -3,7 +3,7 @@
 	Ion sensor simulator
 */
 
-module ion(clock, resetn, ready, data_out, extracted_data, index, timer, n_timer, timer_done, curr, next);
+module ion(clock, resetn, ready, data_out);
 
 	input clock, resetn;
 	output [7:0] ready;
@@ -12,12 +12,11 @@ module ion(clock, resetn, ready, data_out, extracted_data, index, timer, n_timer
 	//integer data_file; // file handler
 	//integer scan_file; // file handler
 
-	output reg [109:0] extracted_data; 
+	reg [109:0] extracted_data; 
 	parameter timer_cap = 16'haaaa; //16'd500000;
 
-	output [16:0] timer, n_timer;
-	output timer_done;
-	wire l_r_timer, r_r_timer;
+	wire [16:0] timer, n_timer;
+	wire l_r_timer, r_r_timer, timer_done;
 	
 	assign l_r_timer = (curr == Idle);
 	assign r_r_timer = ~( ~resetn | (curr == Read_Packet) );
@@ -31,8 +30,8 @@ module ion(clock, resetn, ready, data_out, extracted_data, index, timer, n_timer
 		FSM Wires
 	*/
 	parameter Start = 2'b00, Idle = 2'b01, Read_Packet = 2'b10, Send_Packet = 2'b11;
-	output reg [1:0] curr, next;
-	output reg [5:0] index = 6'b0;
+	reg [1:0] curr, next;
+	reg [5:0] index = 6'd0;
 	
 	/*
 		State Machine for sending and reading
@@ -42,36 +41,34 @@ module ion(clock, resetn, ready, data_out, extracted_data, index, timer, n_timer
 		case(curr)
 			Start:
 			begin
-				index = 6'b0;
+				index = 6'd0;
 				
 				next = Idle;
 			end
 			Idle: 
 			begin
-				index = index + 6'b0;
+				index = index + 6'd0;
 				
-				if (timer_done)
-					next = Read_Packet;
-				else 
+				if (!timer_done)
 					next = Idle;
+				else 
+					next = Read_Packet;
 			end 
 			Read_Packet:
 			begin
-				index = index + 6'b1;
+				index = index + 6'd1;
 				
 				next = Send_Packet;
 			end
 			Send_Packet:
 			begin
-				index = index + 6'b0;
+				index = index + 6'd0;
 				
 				next = Idle;
-
-				timer = 10'b0;
 			end
 			default: 
 			begin
-				index = 6'b0;
+				index = 6'd0;
 				
 				next = Start;
 			end

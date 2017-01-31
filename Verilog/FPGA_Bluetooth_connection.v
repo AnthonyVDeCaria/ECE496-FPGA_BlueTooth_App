@@ -138,7 +138,7 @@ module FPGA_Bluetooth_connection(
 	
 	reg [3:0] fbc_curr, fbc_next;
 	
-	parameter Nothing_Sent = 2'b00, One_Sent = 2'b01, Two_Sent = 2'b10;
+	parameter No_Char_Sent = 2'b00, One_Char_Sent = 2'b01, Two_Char_Sent = 2'b10;
 	
 	reg [1:0] sent_c, sent_n;
 	
@@ -224,7 +224,7 @@ module FPGA_Bluetooth_connection(
 	
 	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(sending_flag) );
 	
-	assign both_chars_sent = (sent_c == Two_Sent);
+	assign both_chars_sent = (sent_c == Two_Char_Sent);
 	
 	master_switch_ece496 control_valve(
 		.clock(clock),
@@ -238,7 +238,7 @@ module FPGA_Bluetooth_connection(
 		.select_ready(select_ready)
 	);
 
-	mux_9_8bit m_datastream(
+	mux_9_16bit m_datastream(
 		.data0(datastream0), 
 		.data1(datastream1), 
 		.data2(datastream2), 
@@ -256,9 +256,9 @@ module FPGA_Bluetooth_connection(
 	wire l_r_datastream, r_r_datastream, send_high;
 	assign l_r_datastream = (fbc_curr == Load_Transmission);
 	assign r_r_datastream = ~(reset | (fbc_curr == Rest_Transmission));
-	assign send_high = (sent_c == One_Sent);
-	register_8bit_enable_async r_datastream_high(.clk(clock), .resetn(r_r_uart_input), .enable(l_r_uart_input), .select(l_r_uart_input), .d(datastream[15:8]), .q(datastream_high_8) );
-	register_8bit_enable_async r_datastream_low(.clk(clock), .resetn(r_r_uart_input), .enable(l_r_uart_input), .select(l_r_uart_input), .d(datastream[7:0]), .q(datastream_low_8) );
+	assign send_high = (sent_c == One_Char_Sent);
+	register_8bit_enable_async r_datastream_high(.clk(clock), .resetn(r_r_datastream), .enable(l_r_datastream), .select(l_r_datastream), .d(datastream[15:8]), .q(datastream_high_8) );
+	register_8bit_enable_async r_datastream_low(.clk(clock), .resetn(r_r_datastream), .enable(l_r_datastream), .select(l_r_datastream), .d(datastream[7:0]), .q(datastream_low_8) );
 	mux_2_8bit ds_select(.data0(datastream_low_8), .data1(datastream_high_8), .sel(send_high), .result(uart_input) );
 	
 	//	UART Timer
@@ -407,15 +407,25 @@ module FPGA_Bluetooth_connection(
 			begin
 				if(uart_timer_done)
 				begin
-					if(all_data_sent)
+					if(!want_at)
 					begin
-						if(want_at)
-							fbc_next = Receive_AT_Response; 
+						if(sent_c == One_Char_Sent)
+						begin
+							if(all_data_sent)
+								fbc_next = Idle;
+							else
+								fbc_next = Wait_for_MS;
+						end
 						else
-							fbc_next = Idle;
+							fbc_next = Load_Transmission;
 					end
 					else
-						fbc_next = Wait_for_MS;
+					begin
+						if(all_data_sent)
+							fbc_next = Receive_AT_Response; 
+						else
+							fbc_next = Wait_for_MS;
+					end
 				end
 				else
 					fbc_next = Rest_Transmission;
@@ -465,23 +475,23 @@ module FPGA_Bluetooth_connection(
 	always@(*)
 	begin
 		case(sent_c)
-			Nothing_Sent:
+			No_Char_Sent:
 			begin
 				if( (fbc_curr == Rest_Transmission) && !want_at)
-					sent_n = One_Sent;
+					sent_n = One_Char_Sent;
 				else
-					sent_n = Nothing_Sent;
+					sent_n = No_Char_Sent;
 			end
-			One_Sent:
+			One_Char_Sent:
 			begin
-				if(fbc_curr == Idle)
-					sent_n = Two_Sent;
+				if(fbc_curr == Rest_Transmission)
+					sent_n = Two_Char_Sent;
 				else
-					sent_n = One_Sent;
+					sent_n = One_Char_Sent;
 			end
-			Two_Sent:
+			Two_Char_Sent:
 			begin
-				sent_n = Nothing_Sent;
+				sent_n = No_Char_Sent;
 			end
 		endcase
 	end
@@ -491,7 +501,7 @@ module FPGA_Bluetooth_connection(
 		if(reset)
 		begin
 			fbc_curr <= Idle;
-			sent_c <= Nothing_Sent;
+			sent_c <= No_Char_Sent;
 		end
 		else
 		begin
@@ -537,17 +547,20 @@ module FPGA_Bluetooth_connection(
 	assign ep26wireOut[10] = command_from_app;
 	assign ep26wireOut[9] = access_datastreams;
 	assign ep26wireOut[8] = ds_sending_flag;
-	assign ep26wireOut[7:0] = datastream;
+	assign ep26wireOut[7:0] = 8'h00;
 	
 	assign ep28wireOut[15:8] = uart_input;
-	assign ep28wireOut[7] = r_r_uart_input;
-	assign ep28wireOut[6] = l_r_uart_input;
+	assign ep28wireOut[7] = r_r_datastream;
+	assign ep28wireOut[6] = l_r_datastream;
 	assign ep28wireOut[5] = select_ready;
 	assign ep28wireOut[4] = send_high; 
-	assign ep28wireOut[3:0] = 4'h00;
+	assign ep28wireOut[3:2] = sent_n;
+	assign ep28wireOut[1:0] = sent_c;
 	
 	assign ep29wireOut[7:0] = sensor_stream_ready;
 	assign ep29wireOut[15:8] = fifo_state_empty[7:0];
+	
+	assign ep30wireOut = datastream;
 
 endmodule
 
