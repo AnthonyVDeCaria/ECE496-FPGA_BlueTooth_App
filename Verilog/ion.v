@@ -66,6 +66,8 @@ module ion(clock, resetn, ready, data_out, extracted_data, index, timer, n_timer
 				index = index + 6'b0;
 				
 				next = Idle;
+
+				timer = 10'b0;
 			end
 			default: 
 			begin
