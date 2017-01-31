@@ -3,7 +3,7 @@
 	Ion sensor simulator
 */
 
-module ion(clock, resetn, ready, data_out, extracted_data, index);
+module ion(clock, resetn, ready, data_out);
 
 	input clock, resetn;
 	output [7:0] ready;
@@ -12,10 +12,10 @@ module ion(clock, resetn, ready, data_out, extracted_data, index);
 	//integer data_file; // file handler
 	//integer scan_file; // file handler
 
-	output reg [109:0] extracted_data; 
+	reg [109:0] extracted_data; 
 	parameter timer_cap = 16'hFFFF; //16'd500000;
 
-	wire [15:0] timer, n_timer;
+	wire [9:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
 	assign l_r_timer = (curr == Idle);
@@ -29,9 +29,9 @@ module ion(clock, resetn, ready, data_out, extracted_data, index);
 	/*
 		FSM Wires
 	*/
-	parameter Idle = 2'b00, Read_Packet = 2'b01, Send_Packet = 2'b10;
+	parameter Start = 2'b00, Idle = 2'b01, Read_Packet = 2'b10, Send_Packet = 2'b11;
 	reg [1:0] curr, next;
-	output reg [5:0] index = 6'd0;
+	reg [5:0] index = 6'b0;
 	
 	/*
 		State Machine for sending and reading
@@ -39,6 +39,11 @@ module ion(clock, resetn, ready, data_out, extracted_data, index);
 	always@(*)
 	begin
 		case(curr)
+			Start:
+			begin
+				next <= Idle;
+				index <= 6'b0;
+			end
 			Idle: 
 			begin
 				if (timer_done)
@@ -77,18 +82,17 @@ module ion(clock, resetn, ready, data_out, extracted_data, index);
 		case(index)
 			6'b000000:
 			begin
-				extracted_data = 110'b1;
-				//extracted_data[6:0] = 7'd77;
-				//extracted_data[7] = 1'd0;
-				//extracted_data[15:8] = 8'd255;
-				//extracted_data[23:16] = 8'd177;
-				//extracted_data[31:24] = 8'd100;
-				//extracted_data[47:32] = 16'd881;
-				//extracted_data[55:48] = 8'd239;
-				//extracted_data[63:56] = 8'd17;
-				//extracted_data[79:64] = 16'd56110;
-				//extracted_data[85:80] = 6'd1;
-				//extracted_data[109:86] = 24'd4272433;		
+				extracted_data[6:0] = 7'd77;
+				extracted_data[7] = 1'd0;
+				extracted_data[15:8] = 8'd255;
+				extracted_data[23:16] = 8'd177;
+				extracted_data[31:24] = 8'd100;
+				extracted_data[47:32] = 16'd881;
+				extracted_data[55:48] = 8'd239;
+				extracted_data[63:56] = 8'd17;
+				extracted_data[79:64] = 16'd56110;
+				extracted_data[85:80] = 6'd1;
+				extracted_data[109:86] = 24'd4272433;		
 			end
 			6'b000001:
 			begin
@@ -938,7 +942,6 @@ module ion(clock, resetn, ready, data_out, extracted_data, index);
 	end
 	
 	//data_read begin sent out
-	//mux_2_110bit m_data_out(.data0(110'd0), .data1(extracted_data), .sel((curr == Send_Packet)), .result(data_out));
 	assign data_out = (curr == Send_Packet) ? extracted_data : 110'd0;
 	assign ready = (curr == Send_Packet) ? 8'b00000001 : 8'b00000000;
 	/*
