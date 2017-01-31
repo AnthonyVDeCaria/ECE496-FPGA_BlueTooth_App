@@ -3,7 +3,7 @@
 	Ion sensor simulator
 */
 
-module ion(clock, resetn, ready, data_out);
+module ion(clock, resetn, ready, data_out, extracted_data, index, timer, n_timer, timer_done, curr, next);
 
 	input clock, resetn;
 	output [7:0] ready;
@@ -12,11 +12,12 @@ module ion(clock, resetn, ready, data_out);
 	//integer data_file; // file handler
 	//integer scan_file; // file handler
 
-	reg [109:0] extracted_data; 
-	parameter timer_cap = 16'hFFFF; //16'd500000;
+	output reg [109:0] extracted_data; 
+	parameter timer_cap = 16'haaaa; //16'd500000;
 
-	wire [9:0] timer, n_timer;
-	wire l_r_timer, r_r_timer, timer_done;
+	output [16:0] timer, n_timer;
+	output timer_done;
+	wire l_r_timer, r_r_timer;
 	
 	assign l_r_timer = (curr == Idle);
 	assign r_r_timer = ~( ~resetn | (curr == Read_Packet) );
@@ -30,8 +31,8 @@ module ion(clock, resetn, ready, data_out);
 		FSM Wires
 	*/
 	parameter Start = 2'b00, Idle = 2'b01, Read_Packet = 2'b10, Send_Packet = 2'b11;
-	reg [1:0] curr, next;
-	reg [5:0] index = 6'b0;
+	output reg [1:0] curr, next;
+	output reg [5:0] index = 6'b0;
 	
 	/*
 		State Machine for sending and reading
@@ -41,38 +42,49 @@ module ion(clock, resetn, ready, data_out);
 		case(curr)
 			Start:
 			begin
-				next <= Idle;
-				index <= 6'b0;
+				index = 6'b0;
+				
+				next = Idle;
 			end
 			Idle: 
 			begin
+				index = index + 6'b0;
+				
 				if (timer_done)
-				begin
-					next <= Read_Packet;
-					index <= index + 6'b0;
-				end
+					next = Read_Packet;
 				else 
-				begin
-					next <= Idle;
-					index <= index + 6'b0;
-				end
+					next = Idle;
 			end 
 			Read_Packet:
 			begin
-				next <= Send_Packet;
-				index <= index + 6'b1;
+				index = index + 6'b1;
+				
+				next = Send_Packet;
 			end
 			Send_Packet:
 			begin
-				next <= Idle;
-				index <= index + 6'b0;
+				index = index + 6'b0;
+				
+				next = Idle;
 			end
 			default: 
 			begin
-				next <= Idle;
-				index <= 6'b0;
+				index = 6'b0;
+				
+				next = Start;
 			end
 		endcase
+	end
+	
+	/*
+		Reset or Update Curr
+	*/
+	always@(posedge clock or negedge resetn)
+	begin
+		if(!resetn)
+			curr <= Start;
+		else
+			curr <= next;
 	end
 	
 	//reading data
@@ -944,12 +956,5 @@ module ion(clock, resetn, ready, data_out);
 	//data_read begin sent out
 	assign data_out = (curr == Send_Packet) ? extracted_data : 110'd0;
 	assign ready = (curr == Send_Packet) ? 8'b00000001 : 8'b00000000;
-	/*
-		Reset or Update Curr
-	*/
-	always@(posedge clock or negedge resetn)
-	begin
-		if(!resetn) curr <= Idle; else curr <= next;
-	end
 
 endmodule
