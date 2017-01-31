@@ -3,7 +3,7 @@
 	Ion sensor simulator
 */
 
-module ion(clock, resetn, ready, data_out, extracted_data);
+module ion(clock, resetn, ready, data_out, extracted_data, index);
 
 	input clock, resetn;
 	output [7:0] ready;
@@ -31,7 +31,7 @@ module ion(clock, resetn, ready, data_out, extracted_data);
 	*/
 	parameter Idle = 2'b00, Read_Packet = 2'b01, Send_Packet = 2'b10;
 	reg [1:0] curr, next;
-	reg [5:0] index;
+	output reg [5:0] index = 6'd0;
 	
 	/*
 		State Machine for sending and reading
@@ -938,7 +938,8 @@ module ion(clock, resetn, ready, data_out, extracted_data);
 	end
 	
 	//data_read begin sent out
-	mux_2_110bit m_data_out(.data0(110'd0), .data1(extracted_data), .sel((curr == Send_Packet)), .result(data_out));
+	//mux_2_110bit m_data_out(.data0(110'd0), .data1(extracted_data), .sel((curr == Send_Packet)), .result(data_out));
+	assign data_out = (curr == Send_Packet) ? extracted_data : 110'd0;
 	assign ready = (curr == Send_Packet) ? 8'b00000001 : 8'b00000000;
 	/*
 		Reset or Update Curr
