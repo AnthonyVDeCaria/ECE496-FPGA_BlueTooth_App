@@ -101,13 +101,14 @@ module FPGA_Bluetooth_connection(
 	// FIFO Wires
 	wire [15:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
 	wire [7:0] at;
+	wire [5:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
 	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;
 	
 	// Datastream Selector Wires
 	wire [15:0] datastream;
 	wire [7:0] uart_input;
 	wire [7:0] streams_selected;
-	wire [3:0] m_datastream_select;
+	wire [2:0] m_datastream_select;
 	
 	// UART Timer Wires
 	wire [9:0] uart_timer, n_uart_timer;
@@ -153,7 +154,17 @@ module FPGA_Bluetooth_connection(
 		.data_out(data_out)
 	);
 	
-	assign sensor_stream0[109:0] = data_out[109:0];
+	assign sensor_stream0[6:0] = 7'd77;
+	assign sensor_stream0[7] = 1'd0;
+	assign sensor_stream0[15:8] = 8'd255;
+	assign sensor_stream0[23:16] = 8'd177;
+	assign sensor_stream0[31:24] = 8'd100;
+	assign sensor_stream0[47:32] = 16'd881;
+	assign sensor_stream0[55:48] = 8'd239;
+	assign sensor_stream0[63:56] = 8'd17;
+	assign sensor_stream0[79:64] = 16'd56110;
+	assign sensor_stream0[85:80] = 6'd1;
+	assign sensor_stream0[109:86] = 24'd4272433;
 	assign sensor_stream0[124:110] = 15'd0;
 	assign sensor_stream0[127:125] = 3'b000;
 	
@@ -197,8 +208,8 @@ module FPGA_Bluetooth_connection(
 		.DS4_in(sensor_stream4), .DS5_in(sensor_stream5), .DS6_in(sensor_stream6), .DS7_in(sensor_stream7),
 		.DS0_out(datastream0), .DS1_out(datastream1), .DS2_out(datastream2), .DS3_out(datastream3), 
 		.DS4_out(datastream4), .DS5_out(datastream5), .DS6_out(datastream6), .DS7_out(datastream7),
-		.DS0_rd_count(), .DS1_rd_count(), .DS2_rd_count(), .DS3_rd_count(), 
-		.DS4_rd_count(), .DS5_rd_count(), .DS6_rd_count(), .DS7_rd_count(),
+		.DS0_rd_count(DS0_rd_count), .DS1_rd_count(DS1_rd_count), .DS2_rd_count(DS2_rd_count), .DS3_rd_count(DS3_rd_count), 
+		.DS4_rd_count(DS4_rd_count), .DS5_rd_count(DS5_rd_count), .DS6_rd_count(DS6_rd_count), .DS7_rd_count(DS7_rd_count),
 		.DS0_wr_count(), .DS1_wr_count(), .DS2_wr_count(), .DS3_wr_count(), 
 		.DS4_wr_count(), .DS5_wr_count(), .DS6_wr_count(), .DS7_wr_count(),
 		
@@ -229,16 +240,18 @@ module FPGA_Bluetooth_connection(
 	master_switch_ece496 control_valve(
 		.clock(clock),
 		.resetn(~reset),
-		.want_at(want_at),
 		.sending_flag(sending_flag),
 		.both_chars_sent(both_chars_sent),
 		.selected_streams(streams_selected),
 		.empty_fifo_flags(fifo_state_empty[7:0]),
 		.mux_select(m_datastream_select),
-		.select_ready(select_ready)
+		.select_ready(select_ready),
+		
+		.DS0_rd_count(DS0_rd_count), .DS1_rd_count(DS1_rd_count), .DS2_rd_count(DS2_rd_count), .DS3_rd_count(DS3_rd_count), 
+		.DS4_rd_count(DS4_rd_count), .DS5_rd_count(DS5_rd_count), .DS6_rd_count(DS6_rd_count), .DS7_rd_count(DS7_rd_count)
 	);
 
-	mux_9_16bit m_datastream(
+	mux_8_16bit m_datastream(
 		.data0(datastream0), 
 		.data1(datastream1), 
 		.data2(datastream2), 
@@ -247,19 +260,22 @@ module FPGA_Bluetooth_connection(
 		.data5(datastream5), 
 		.data6(datastream6), 
 		.data7(datastream7),
-		.data8(at),
 		.sel(m_datastream_select), 
 		.result(datastream) 
 	);
 	
 	wire [7:0] datastream_high_8, datastream_low_8;
+	wire [1:0] uart_select;
 	wire l_r_datastream, r_r_datastream, send_high;
 	assign l_r_datastream = (fbc_curr == Load_Transmission);
 	assign r_r_datastream = ~(reset | (fbc_curr == Rest_Transmission));
 	assign send_high = (sent_c == One_Char_Sent);
+	assign uart_select[0] = send_high;
+	assign uart_select[1] = want_at;
+	
 	register_8bit_enable_async r_datastream_high(.clk(clock), .resetn(r_r_datastream), .enable(l_r_datastream), .select(l_r_datastream), .d(datastream[15:8]), .q(datastream_high_8) );
 	register_8bit_enable_async r_datastream_low(.clk(clock), .resetn(r_r_datastream), .enable(l_r_datastream), .select(l_r_datastream), .d(datastream[7:0]), .q(datastream_low_8) );
-	mux_2_8bit ds_select(.data0(datastream_low_8), .data1(datastream_high_8), .sel(send_high), .result(uart_input) );
+	mux_3_8bit m_uart_select(.data0(datastream_low_8), .data1(datastream_high_8), .data2(at), .sel(uart_select), .result(uart_input) );
 	
 	//	UART Timer
 	assign l_r_uart_timer = (fbc_curr == Rest_Transmission);
@@ -477,14 +493,14 @@ module FPGA_Bluetooth_connection(
 		case(sent_c)
 			No_Char_Sent:
 			begin
-				if( (fbc_curr == Rest_Transmission) && !want_at)
+				if( (fbc_curr == Rest_Transmission) && !want_at && uart_timer_done)
 					sent_n = One_Char_Sent;
 				else
 					sent_n = No_Char_Sent;
 			end
 			One_Char_Sent:
 			begin
-				if(fbc_curr == Rest_Transmission)
+				if(fbc_curr == Rest_Transmission && uart_timer_done)
 					sent_n = Two_Char_Sent;
 				else
 					sent_n = One_Char_Sent;
@@ -540,7 +556,8 @@ module FPGA_Bluetooth_connection(
 	assign ep25wireOut[7] = fbc_next[3];
 	assign ep25wireOut[8] = data_stored_for_user;
 	assign ep25wireOut[9] = data_ready_for_user;
-	assign ep25wireOut[15:10] = 6'h00;
+	assign ep25wireOut[11:10] = uart_select;
+	assign ep25wireOut[15:12] = 4'h00;
 	
 	assign ep26wireOut[15:12] = m_datastream_select;
 	assign ep26wireOut[11] = ds_data_exists;

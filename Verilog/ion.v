@@ -15,7 +15,7 @@ module ion(clock, resetn, ready, data_out);
 	reg [109:0] extracted_data; 
 	parameter timer_cap = 16'haaaa; //16'd500000;
 
-	wire [16:0] timer, n_timer;
+	wire [15:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
 	assign l_r_timer = (curr == Idle);

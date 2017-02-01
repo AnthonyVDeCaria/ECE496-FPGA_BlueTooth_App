@@ -6,35 +6,31 @@
 	Algorithm
 		See if we sending at all
 			If we are
-				and we're in AT
-					Set the mux_select to 4'b1000
-					Until we're not sending anymore
-				and we're in DS
-					Load the Shift Register
-					Then - #Find
-						Assuming we're still sending
-							Determine the packet complete pc_rd_count values
-							If the first bit in the shift register is 0 or has no data
-								Loop to the next bit
-								Add 1 to i
-							If the first bit in the shift register is 1 and it has data
-								Set the mux_select to the index - #Run
-								Set a timer
-								If we've sent both chars
-									Do some checking - #Check
-									If we've finished sending the packet
-										And there's nothing left or the timer is finished
-											Add 1 to i
-											And go back to #Find
-										Otherwise
-											Keep the channel open for the next packet - #Run
-									Else
-										We keep the line open to send the next one - #Run
+				Load the Shift Register
+				Then - #Find
+					Assuming we're still sending
+						Determine the packet complete pc_rd_count values
+						If the first bit in the shift register is 0 or has no data
+							Loop to the next bit
+							Add 1 to i
+						If the first bit in the shift register is 1 and it has data
+							Set the mux_select to the index - #Run
+							Set a timer
+							If we've sent both chars
+								Do some checking - #Check
+								If we've finished sending the packet
+									And there's nothing left or the timer is finished
+										Add 1 to i
+										And go back to #Find
+									Otherwise
+										Keep the channel open for the next packet - #Run
 								Else
-									Do nothing
-						If we aren't
-							Do nothing
-							Reset everything
+									We keep the line open to send the next one - #Run
+							Else
+								Do nothing
+					If we aren't
+						Do nothing
+						Reset everything
 			If we aren't
 				Do nothing
 				Reset everything
@@ -44,22 +40,24 @@
 */
 module master_switch_ece496(
 		clock, resetn, 
-		want_at, sending_flag, both_chars_sent,
+		sending_flag, both_chars_sent,
 		empty_fifo_flags, 
 		selected_streams, 
 		DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count,
-		mux_select, select_ready
+		mux_select, select_ready,
+		
+		ms_curr, ms_next
 	);
 	/*
 		I/O
 	*/
 	input clock, resetn;
-	input want_at, sending_flag, both_chars_sent;
+	input sending_flag, both_chars_sent;
 	input [7:0] empty_fifo_flags;
 	input [7:0] selected_streams;
 	input [5:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
 	
-	output reg [3:0] mux_select;
+	output reg [2:0] mux_select;
 	output reg select_ready;
 	
 	parameter timer_cap = 10'd1000;
@@ -67,8 +65,8 @@ module master_switch_ece496(
 	/*
 		FSM Wires
 	*/
-	parameter Idle = 3'b000, AT = 3'b111, Load_Shift = 3'b001, Find = 3'b010, Run = 3'b011, Check = 3'b100;
-	reg [2:0] ms_curr, ms_next;
+	parameter Idle = 3'b000, Load_Shift = 3'b001, Find = 3'b010, Run = 3'b011, Check = 3'b100;
+	output reg [2:0] ms_curr, ms_next;
 	
 	/*
 		Interal Flags
@@ -233,39 +231,24 @@ module master_switch_ece496(
 		case(ms_curr)
 			Idle: 
 			begin
-				mux_select = 4'bZZZZ;
+				mux_select = 3'bZZZ;
 				select_ready = 1'b0;
 				
 				if(sending_flag)
-				begin
-					if(want_at)
-						ms_next = AT;
-					else
-						ms_next = Load_Shift;
-				end
-				else
-					ms_next = Idle;
-			end
-			AT:
-			begin
-				mux_select = 4'b1000;
-				select_ready = 1'b1;
-				
-				if(sending_flag)
-					ms_next = AT;
+					ms_next = Load_Shift;
 				else
 					ms_next = Idle;
 			end
 			Load_Shift:
 			begin
-				mux_select = 4'bZZZZ;
+				mux_select = 3'bZZZ;
 				select_ready = 1'b0;
 				
 				ms_next = Find;
 			end
 			Find:
 			begin
-				mux_select = 4'bZZZZ;
+				mux_select = 3'bZZZ;
 				select_ready = 1'b0;
 	
 				if(sending_flag)
@@ -285,8 +268,7 @@ module master_switch_ece496(
 			end
 			Run:
 			begin
-				mux_select[3] = 1'b0;
-				mux_select[2:0] = i;
+				mux_select = i;
 				select_ready = 1'b1;
 				
 				if(both_chars_sent)
@@ -296,7 +278,7 @@ module master_switch_ece496(
 			end
 			Check:
 			begin
-				mux_select = 4'bZZZZ;
+				mux_select = 3'bZZZ;
 				select_ready = 1'b0;
 				
 				if(rd_equals_pc[i])
@@ -316,7 +298,7 @@ module master_switch_ece496(
 			end
 			default:
 			begin
-				mux_select = 4'bzzzz;
+				mux_select = 3'bZZZ;
 				select_ready = 1'b0;
 				ms_next = Idle;
 			end
