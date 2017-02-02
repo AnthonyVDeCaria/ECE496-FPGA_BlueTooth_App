@@ -294,7 +294,12 @@ module master_switch_ece496(
 						ms_next = Find;
 				end
 				else
-					ms_next = Run;
+				begin
+					if(both_chars_sent)
+						ms_next = Check;
+					else
+						ms_next = Run;	
+				end
 			end
 			default:
 			begin
