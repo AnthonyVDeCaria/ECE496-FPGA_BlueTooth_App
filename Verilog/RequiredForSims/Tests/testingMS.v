@@ -6,17 +6,16 @@ module testingMS;
 	reg clock;
 	reg resetn;
 	reg [7:0] selected_streams;
+	reg [8:0] rd_en;
 	
-	wire [8:0] rd_en;
 	wire [5:0] DS0_rd_count;
 	wire [127:0] sensor_stream0;
-	wire [7:0] empty_fifo_flags, ready;
+	wire [7:0] empty_fifo_flags, data_exists;
 	wire sending_flag;
 	assign sending_flag = (empty_fifo_flags != 8'hFF) ? 1'b1 : 1'b0;
-	assign rd_en[0] = sending_flag;
 
 	// Outputs
-	wire [3:0] mux_select;
+	wire [2:0] mux_select;
 	wire select_ready;
 	wire [15:0] datastream0;
 	wire [7:0] rd_count_equals_trig, ds_rd_count_not_0;
@@ -38,7 +37,7 @@ module testingMS;
 		.ms_curr(curr), .ms_next(next)
 	);
 	
-	ion helper1(.clock(clock), .resetn(resetn), .ready(ready), .data_out());
+	ion helper1(.clock(clock), .resetn(resetn), .ready(data_exists), .data_out());
 	
 	assign sensor_stream0[6:0] = 7'd77;
 	assign sensor_stream0[7] = 1'd0;
@@ -51,7 +50,7 @@ module testingMS;
 	assign sensor_stream0[79:64] = 16'd56110;
 	assign sensor_stream0[85:80] = 6'd1;
 	assign sensor_stream0[109:86] = 24'd4272433;
-	assign sensor_stream0[127:110] = 17'd0;
+	assign sensor_stream0[127:110] = 17'hFFFFF;
 	
 	FIFO_centre warehouse(
 		.read_clock(clock),
@@ -63,7 +62,7 @@ module testingMS;
 		.DS0_rd_count(DS0_rd_count), 
 		.DS0_wr_count(), 
 		
-		.write_enable(ready),
+		.write_enable(data_exists),
 		.read_enable(rd_en),
 		
 		.full_flag(), 
@@ -79,6 +78,7 @@ module testingMS;
 		clock = 0;
 		resetn = 1'b0;
 		selected_streams = 8'h00;
+		rd_en = 8'h00;
 
 		// Wait 100 us for global reset to finish
 		#100;
@@ -86,6 +86,9 @@ module testingMS;
 		// Add stimulus here
 		#100 resetn = 1'b1;
 		#100 selected_streams = 8'hFF;
+		
+		#20000 rd_en[0] = 8'h01;
+		#20001 rd_en[0] = 8'h00;
 	end
 	
 endmodule
