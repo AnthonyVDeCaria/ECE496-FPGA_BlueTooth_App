@@ -31,7 +31,7 @@ module ion(clock, resetn, ready, data_out);
 	*/
 	parameter Start = 2'b00, Idle = 2'b01, Read_Packet = 2'b10, Send_Packet = 2'b11;
 	reg [1:0] curr, next;
-	reg [5:0] index = 6'b0;
+	reg [5:0] index = 6'd0;
 	
 	/*
 		State Machine for sending and reading
@@ -42,66 +42,39 @@ module ion(clock, resetn, ready, data_out);
 			Start:
 			begin
 				next = Idle;
+				index = 6'b0;
 			end
 			Idle: 
 			begin
-				if (timer_done)
+				index = index + 6'b0;
+				if (!timer_done)
 				begin
-					next = Read_Packet;
+					next = Idle;
+					
 				end
 				else 
 				begin
-					next = Idle;
+					next = Read_Packet;
 				end
 			end 
 			Read_Packet:
 			begin
+				index = index + 6'b1;
 				next = Send_Packet;
 			end
 			Send_Packet:
 			begin
+				index = index + 6'b0;
 				next = Idle;
 			end
 			default: 
 			begin
-				next = Idle;
+				index = 6'b0;
+				next = Start;
 			end
 		endcase
 	end
 
-	always@(*)
-	begin
-		case(curr)
-			Start:
-			begin
-				index <= 6'b0;
-			end
-			Idle: 
-			begin
-				if (timer_done)
-				begin
-					index <= index + 6'b0;
-				end
-				else 
-				begin
-					index <= index + 6'b0;
-				end
-			end 
-			Read_Packet:
-			begin
-				index <= index + 6'b1;
-			end
-			Send_Packet:
-			begin
-				index <= index + 6'b0;
-			end
-			default: 
-			begin
-				index <= 6'b0;
-			end
-		endcase
-	end
-	
 	//reading data
 
 	always @(*)
@@ -976,7 +949,7 @@ module ion(clock, resetn, ready, data_out);
 	*/
 	always@(posedge clock or negedge resetn)
 	begin
-		if(!resetn) curr <= Idle; else curr <= next;
+		if(!resetn) curr <= Start; else curr <= next;
 	end
 
 endmodule
