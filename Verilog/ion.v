@@ -7,12 +7,13 @@ module ion(clock, resetn, ready, data_out);
 
 	input clock, resetn;
 	output [7:0] ready;
-	output [109:0] data_out;
+	output [109:0] data_out; 
+	reg [109:0]  extracted_data;
+	reg [5:0]  index;
 
 	//integer data_file; // file handler
 	//integer scan_file; // file handler
-
-	reg [109:0] extracted_data; 
+	
 	parameter timer_cap = 16'haaaa; //16'd500000;
 
 	wire [15:0] timer, n_timer;
@@ -31,7 +32,6 @@ module ion(clock, resetn, ready, data_out);
 	*/
 	parameter Start = 2'b00, Idle = 2'b01, Read_Packet = 2'b10, Send_Packet = 2'b11;
 	reg [1:0] curr, next;
-	reg [5:0] index = 6'd0;
 	
 	/*
 		State Machine for sending and reading
@@ -42,11 +42,11 @@ module ion(clock, resetn, ready, data_out);
 			Start:
 			begin
 				next = Idle;
-				index = 6'b0;
+				index = 6'd0;
 			end
 			Idle: 
 			begin
-				index = index + 6'b0;
+				index = index + 6'd0;
 				if (!timer_done)
 				begin
 					next = Idle;
@@ -59,17 +59,17 @@ module ion(clock, resetn, ready, data_out);
 			end 
 			Read_Packet:
 			begin
-				index = index + 6'b1;
+				index = index + 6'd0;
 				next = Send_Packet;
 			end
 			Send_Packet:
 			begin
-				index = index + 6'b0;
+				index = index + 6'd1;
 				next = Idle;
 			end
 			default: 
 			begin
-				index = 6'b0;
+				index = 6'd0;
 				next = Start;
 			end
 		endcase
@@ -942,8 +942,8 @@ module ion(clock, resetn, ready, data_out);
 	end
 	
 	//data_read begin sent out
-	assign data_out = (curr == Send_Packet) ? extracted_data : 110'd0;
-	assign ready = (curr == Send_Packet) ? 8'b00000001 : 8'b00000000;
+	assign data_out = (curr == Read_Packet) ? extracted_data : 110'd0;
+	assign ready = (curr == Read_Packet) ? 8'b00000001 : 8'b00000000;
 	/*
 		Reset or Update Curr
 	*/
