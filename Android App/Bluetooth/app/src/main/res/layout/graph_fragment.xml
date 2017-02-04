@@ -13,7 +13,7 @@
         ap:rangeTitle="Voltage"
         ap:domainTitle="Time"
         ap:lineLabels="left|bottom"
-        ap:lineLabelRotationBottom="0"
+        ap:lineLabelRotationBottom="-45"
         ap:renderMode="use_background_thread"/>
 
 

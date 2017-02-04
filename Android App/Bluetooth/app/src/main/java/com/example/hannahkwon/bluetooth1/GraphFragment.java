@@ -29,7 +29,7 @@ public class GraphFragment extends Fragment {
 
     private SimpleXYSeries ISE1_Series = null;
     private SimpleXYSeries ISE2_Series = null;
-    private SimpleXYSeries Temp_Series = null;
+//    private SimpleXYSeries Temp_Series = null;
 
     public static ReentrantLock DataLock = null;
 
@@ -39,7 +39,7 @@ public class GraphFragment extends Fragment {
 
         ISE1_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "ISE1_Series");
         ISE2_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "ISE2_Series");
-        Temp_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Temp_Series");
+//        Temp_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Temp_Series");
 
         DataLock = new ReentrantLock();
 
@@ -57,17 +57,17 @@ public class GraphFragment extends Fragment {
         plot = (XYPlot) view.findViewById(R.id.plot);
         if(plot == null)
             Log.d(TAG, "plot is null!");
-        LineAndPointFormatter ISE1_format = new LineAndPointFormatter(Color.BLUE, Color.BLUE, null, null);
-        LineAndPointFormatter ISE2_format = new LineAndPointFormatter(Color.GREEN, Color.GREEN, null, null);
-        LineAndPointFormatter Temp_format = new LineAndPointFormatter(Color.RED, Color.RED, null,null);
+        LineAndPointFormatter ISE1_format = new LineAndPointFormatter(Color.RED, Color.RED, null, null);
+        LineAndPointFormatter ISE2_format = new LineAndPointFormatter(Color.BLUE, Color.BLUE, null, null);
+//        LineAndPointFormatter Temp_format = new LineAndPointFormatter(Color.RED, Color.RED, null,null);
         // disabling legends
         ISE1_format.setLegendIconEnabled(false);
         ISE2_format.setLegendIconEnabled(false);
-        Temp_format.setLegendIconEnabled(false);
+//        Temp_format.setLegendIconEnabled(false);
 
         plot.addSeries(ISE1_Series, ISE1_format);
         plot.addSeries(ISE2_Series, ISE2_format);
-        plot.addSeries(Temp_Series, Temp_format);
+//        plot.addSeries(Temp_Series, Temp_format);
 
         PanZoom.attach(plot);   // enable zooming
 
@@ -108,14 +108,24 @@ public class GraphFragment extends Fragment {
 
                     Log.d(TAG, "Current ISE1: " + ISE1_Series.getyVals().toString());
                     Log.d(TAG, "Current ISE2: " + ISE2_Series.getyVals().toString());
-                    Log.d(TAG, "Current Temp: " + Temp_Series.getyVals().toString());
+//                    Log.d(TAG, "Current Temp: " + Temp_Series.getyVals().toString());
                     ISE1_Series.addLast(null, ISE1_val);
                     ISE2_Series.addLast(null, ISE2_val);
-                    Temp_Series.addLast(null, Temp_val);
+//                    Temp_Series.addLast(null, Temp_val);
                     addDone = true;
                     Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
                     Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
-                    Log.d(TAG, "Updated Temp: " + Temp_Series.getyVals().toString());
+//                    Log.d(TAG, "Updated Temp: " + Temp_Series.getyVals().toString());
+
+                    if(Temp_val >= Constants.TEMP_THRESHOLD) {
+                        Log.d(TAG, "Temp is above threshold");
+                        plot.getGraph().getGridBackgroundPaint().setColor(Color.GREEN);
+                    }
+                    else{
+                        Log.d(TAG, "Temp is below threshold");
+                        plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
+                    }
+
             } finally {
                 DataLock.unlock();
                 if(addDone) {

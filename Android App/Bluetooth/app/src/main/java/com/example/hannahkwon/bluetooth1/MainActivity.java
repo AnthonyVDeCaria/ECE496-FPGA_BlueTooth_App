@@ -79,6 +79,9 @@ public class MainActivity extends AppCompatActivity
 
     private ProcessingThread mProcessingThread;
     private GraphFragment mGraph_1;
+    private GraphFragment mGraph_2;
+    private GraphFragment mGraph_3;
+    private GraphFragment mGraph_4;
 
     private final Handler mHandler = new Handler(){
         @Override
@@ -323,6 +326,9 @@ public class MainActivity extends AppCompatActivity
         manager = LocalBroadcastManager.getInstance(this);
 
         mGraph_1 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_1);
+        mGraph_2 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_2);
+        mGraph_3 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_3);
+        mGraph_4 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_4);
     }
 
     @Override
@@ -764,17 +770,32 @@ public class MainActivity extends AppCompatActivity
                         mmRetrievedData = retrieveData(mmTempData);
                     else {
                         mmRetrievedData = new int[4];
-                        mmRetrievedData[0] = 1;
-                        mmRetrievedData[1] = mmTempData[0];
-                        mmRetrievedData[2] = mmTempData[1];
-                        mmRetrievedData[3] = mmTempData[2];
+                        mmRetrievedData[0] = mmTempData[0];
+                        mmRetrievedData[1] = mmTempData[1];
+                        mmRetrievedData[2] = mmTempData[2];
+                        mmRetrievedData[3] = mmTempData[3];
                     }
                     //TODO alter this
                     // For now, it displays data in the textview as well as in graph
-                    if(mmRetrievedData[0] == 1){    // display only DS1
+                    if(mmRetrievedData[0] == 49){    // display only DS1
                         Log.d(TAG, "Packaged data corresponds to datastream 1");
                         // for graph
                         mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                    }
+                    else if(mmRetrievedData[0] == 50) {
+                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+                        // for graph
+                        mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                    }
+                    else if(mmRetrievedData[0] == 51) {
+                        Log.d(TAG, "Packaged data corresponds to datastream 3");
+                        // for graph
+                        mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                    }
+                    else if(mmRetrievedData[0] == 52) {
+                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+                        // for graph
+                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
                     }
                 }
             }

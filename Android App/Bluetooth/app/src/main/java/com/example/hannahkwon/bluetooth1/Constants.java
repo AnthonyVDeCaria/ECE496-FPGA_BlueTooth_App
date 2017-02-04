@@ -47,4 +47,6 @@ public class Constants {
     public static final int DS6 = 0b00100000;
     public static final int DS7 = 0b01000000;
     public static final int DS8 = 0b10000000;
+
+    public static final int TEMP_THRESHOLD = 35;
 }

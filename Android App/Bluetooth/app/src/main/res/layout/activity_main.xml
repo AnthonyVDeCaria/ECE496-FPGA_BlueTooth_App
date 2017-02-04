@@ -167,16 +167,64 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <fragment
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_width="0px"
-                    android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
-                    android:id="@+id/graph_1"
-                    android:tag="Fragment1"
-                    android:layout_weight="1" />
+                    android:layout_weight="1">
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1">
+
+                        <fragment
+                            android:layout_height="match_parent"
+                            android:layout_width="0dp"
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
+                            android:id="@+id/graph_1"
+                            android:tag="Fragment1"
+                            android:layout_weight="1" />
+
+                        <fragment
+                            android:layout_height="match_parent"
+                            android:layout_width="0dp"
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
+                            android:id="@+id/graph_2"
+                            android:tag="Fragment2"
+                            android:layout_weight="1" />
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:orientation="horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1">
+
+                        <fragment
+                            android:layout_height="match_parent"
+                            android:layout_width="0dp"
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
+                            android:id="@+id/graph_3"
+                            android:tag="Fragment3"
+                            android:layout_weight="1" />
+
+                        <fragment
+                            android:layout_height="match_parent"
+                            android:layout_width="0dp"
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
+                            android:id="@+id/graph_4"
+                            android:tag="Fragment4"
+                            android:layout_weight="1" />
+
+                    </LinearLayout>
+                </LinearLayout>
 
                 <ScrollView
-                    android:layout_width="0px"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1">
 
@@ -186,6 +234,7 @@
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:id="@+id/txt_DataReceived" />
                 </ScrollView>
+
             </LinearLayout>
 
             <View
