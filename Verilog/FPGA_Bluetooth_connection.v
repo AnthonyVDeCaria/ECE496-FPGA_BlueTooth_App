@@ -154,10 +154,10 @@ module FPGA_Bluetooth_connection(
 		.data_out(data_out)
 	);
 	
-	assign sensor_stream0[2:0] = 3'b111;
-	assign sensor_stream0[7:3] = 5'b0000; 
+	assign sensor_stream0[7:0] = 8'h00;
 	assign sensor_stream0[117:8] = data_out;
-	assign sensor_stream0[127:118] = 10'h000;
+	assign sensor_stream0[119:118] = 2'b00;
+	assign sensor_stream0[127:120] = 8'h00;
 	
 	/*
 		Output to Bluetooth
@@ -262,13 +262,13 @@ module FPGA_Bluetooth_connection(
 	wire l_r_datastream, r_r_datastream, send_high;
 	assign l_r_datastream = (fbc_curr == Load_Transmission);
 	assign r_r_datastream = ~(reset | (fbc_curr == Wait_for_MS));
-	assign send_high = (sent_c == One_Char_Sent);
-	assign uart_select[0] = send_high;
+	assign send_low = (sent_c == One_Char_Sent);
+	assign uart_select[0] = send_low;
 	assign uart_select[1] = want_at;
 	
 	register_8bit_enable_async r_datastream_high(.clk(clock), .resetn(r_r_datastream), .enable(l_r_datastream), .select(l_r_datastream), .d(datastream[15:8]), .q(datastream_high_8) );
 	register_8bit_enable_async r_datastream_low(.clk(clock), .resetn(r_r_datastream), .enable(l_r_datastream), .select(l_r_datastream), .d(datastream[7:0]), .q(datastream_low_8) );
-	mux_3_8bit m_uart_select(.data0(datastream_low_8), .data1(datastream_high_8), .data2(at), .sel(uart_select), .result(uart_input) );
+	mux_3_8bit m_uart_select(.data0(datastream_high_8), .data1(datastream_low_8), .data2(at), .sel(uart_select), .result(uart_input) );
 	
 	//	UART Timer
 	assign l_r_uart_timer = (fbc_curr == Rest_Transmission);
