@@ -95,19 +95,19 @@ public class GraphFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
     }
 
-    public void addData(int ISE1_val, int ISE2_val, int Temp_val) {
+    public synchronized void addData(int ISE1_val, int ISE2_val, int Temp_val) {
         if(DataLock == null)
             Log.e(TAG, "Lock for Data add is not initialized!");
         boolean addDone = false;
         Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
-                + ISE2_val + ", " + Temp_val);
+                + ISE2_val);
         while(true) {
             DataLock.lock();
             try {
                     // adding data into corresponding series
 
-                    Log.d(TAG, "Current ISE1: " + ISE1_Series.getyVals().toString());
-                    Log.d(TAG, "Current ISE2: " + ISE2_Series.getyVals().toString());
+//                    Log.d(TAG, "Current ISE1: " + ISE1_Series.getyVals().toString());
+//                    Log.d(TAG, "Current ISE2: " + ISE2_Series.getyVals().toString());
 //                    Log.d(TAG, "Current Temp: " + Temp_Series.getyVals().toString());
                     ISE1_Series.addLast(null, ISE1_val);
                     ISE2_Series.addLast(null, ISE2_val);

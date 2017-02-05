@@ -565,20 +565,28 @@ public class BluetoothLeService extends Service {
 
                     mmTempData = mmPackagedData;
                     mmDataAvailable = mmFIFOQueue.remove();
-                    mmPackagedData = new byte[mmTempData.length + mmDataAvailable.length];
-                    System.arraycopy(mmTempData, 0, mmPackagedData, 0, mmTempData.length);
-                    System.arraycopy(mmDataAvailable, 0, mmPackagedData, mmTempData.length, mmDataAvailable.length);
-                    Log.d(TAG, "Packaged data is " + String.format("%s", new String(mmPackagedData)));
+                    if(mmTempData == null) {    // at the very first packaging
+                        Log.d(TAG, "At the very first packaging");
+                        mmPackagedData = new byte[mmDataAvailable.length];
+                        System.arraycopy(mmDataAvailable, 0, mmPackagedData, 0, mmDataAvailable.length);
+                    }
+                    else {
+                        mmPackagedData = new byte[mmTempData.length + mmDataAvailable.length];
+                        System.arraycopy(mmTempData, 0, mmPackagedData, 0, mmTempData.length);
+                        System.arraycopy(mmDataAvailable, 0, mmPackagedData, mmTempData.length, mmDataAvailable.length);
+                    }
+                    Log.d(TAG, "Packaged data is " + new String(mmPackagedData));
 
                     mmPacketCount++;
 
-                    if(mmPacketCount == 15) {   // received full packet (120 bits)
+                    if(mmPacketCount == 16) {   // received full packet (128 bits)
                         Log.d(TAG, "Got the full packet");
                         Intent intent = new Intent(ACTION_DATA_AVAILABLE);
-                        Log.d(TAG, String.format("%s", new String(mmPackagedData)));
                         intent.putExtra(EXTRA_DATA, mmPackagedData);
                         manager.sendBroadcast(intent);
 
+                        // resetting
+                        mmPackagedData = null;
                         mmPacketCount = 0;
                     }
                 }
@@ -586,7 +594,7 @@ public class BluetoothLeService extends Service {
         }
 
         public synchronized void add (byte[] data) {
-            Log.i(TAG, "Adding into FIFO queue " + data);
+            Log.i(TAG, "Adding into FIFO queue " + Integer.toHexString(data[0]));
             mmFIFOQueue.add(data);
         }
     }

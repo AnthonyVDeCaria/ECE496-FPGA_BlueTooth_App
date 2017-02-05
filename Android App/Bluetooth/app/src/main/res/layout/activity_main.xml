@@ -187,40 +187,40 @@
                             android:tag="Fragment1"
                             android:layout_weight="1" />
 
-                        <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
-                            android:id="@+id/graph_2"
-                            android:tag="Fragment2"
-                            android:layout_weight="1" />
+                        <!--<fragment-->
+                            <!--android:layout_height="match_parent"-->
+                            <!--android:layout_width="0dp"-->
+                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment"-->
+                            <!--android:id="@+id/graph_2"-->
+                            <!--android:tag="Fragment2"-->
+                            <!--android:layout_weight="1" />-->
 
 
                     </LinearLayout>
 
-                    <LinearLayout
-                        android:orientation="horizontal"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_weight="1">
+                    <!--<LinearLayout-->
+                        <!--android:orientation="horizontal"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="0dp"-->
+                        <!--android:layout_weight="1">-->
 
-                        <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
-                            android:id="@+id/graph_3"
-                            android:tag="Fragment3"
-                            android:layout_weight="1" />
+                        <!--<fragment-->
+                            <!--android:layout_height="match_parent"-->
+                            <!--android:layout_width="0dp"-->
+                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment"-->
+                            <!--android:id="@+id/graph_3"-->
+                            <!--android:tag="Fragment3"-->
+                            <!--android:layout_weight="1" />-->
 
-                        <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment"
-                            android:id="@+id/graph_4"
-                            android:tag="Fragment4"
-                            android:layout_weight="1" />
+                        <!--<fragment-->
+                            <!--android:layout_height="match_parent"-->
+                            <!--android:layout_width="0dp"-->
+                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment"-->
+                            <!--android:id="@+id/graph_4"-->
+                            <!--android:tag="Fragment4"-->
+                            <!--android:layout_weight="1" />-->
 
-                    </LinearLayout>
+                    <!--</LinearLayout>-->
                 </LinearLayout>
 
                 <ScrollView
@@ -236,24 +236,6 @@
                 </ScrollView>
 
             </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/divider"/>
-
-            <Button
-                android:text="Save"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:id="@+id/btn_Save"
-                android:layout_alignParentRight = "true"
-                android:layout_gravity="center_horizontal"
-                android:paddingRight="16dp"
-                android:paddingLeft="16dp"
-                android:layout_marginBottom="6dp"
-                android:layout_marginTop="6dp"
-                android:textSize="12sp" />
 
         </LinearLayout>
     </LinearLayout>

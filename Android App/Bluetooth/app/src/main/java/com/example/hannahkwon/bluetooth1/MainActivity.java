@@ -51,8 +51,6 @@ public class MainActivity extends AppCompatActivity
     private TextView txt_BtStatus;
     private TextView txt_DataReceived;
 
-    private Button bt_Save;
-
     private GridLayout gridLayout_Channels;
     private CheckBox checkBox_DS1;
     private CheckBox checkBox_DS2;
@@ -79,9 +77,9 @@ public class MainActivity extends AppCompatActivity
 
     private ProcessingThread mProcessingThread;
     private GraphFragment mGraph_1;
-    private GraphFragment mGraph_2;
-    private GraphFragment mGraph_3;
-    private GraphFragment mGraph_4;
+//    private GraphFragment mGraph_2;
+//    private GraphFragment mGraph_3;
+//    private GraphFragment mGraph_4;
 
     private final Handler mHandler = new Handler(){
         @Override
@@ -208,8 +206,14 @@ public class MainActivity extends AppCompatActivity
             }
             if (ACTION_DATA_AVAILABLE.equals(action)) {
                 Log.d(TAG, "Received data");
-                displayData(String.format("%s", new String(intent.getStringExtra(EXTRA_DATA))));
-                mProcessingThread.add(false, intent.getByteArrayExtra(EXTRA_DATA));
+                byte [] data = intent.getByteArrayExtra(EXTRA_DATA);
+                if (data != null && data.length > 0) {
+                    final StringBuilder stringBuilder = new StringBuilder(data.length);
+                    for(byte byteChar : data)
+                        stringBuilder.append(String.format("%02X ", byteChar));
+                        displayData(stringBuilder.toString());
+                    mProcessingThread.add(false, data);
+                }
             }
         }
     };
@@ -255,8 +259,6 @@ public class MainActivity extends AppCompatActivity
         txt_BtStatus = (TextView) findViewById(R.id.txt_BtStatus);
         txt_DataReceived = (TextView) findViewById(R.id.txt_DataReceived);
 
-        bt_Save = (Button) findViewById(R.id.btn_Save);
-
         gridLayout_Channels = (GridLayout) findViewById(R.id.gridLayout_Channels);
         checkBox_DS1 = (CheckBox) findViewById(R.id.checkBox_DS1);
         checkBox_DS2 = (CheckBox) findViewById(R.id.checkBox_DS2);
@@ -290,16 +292,17 @@ public class MainActivity extends AppCompatActivity
             mFileManager = new FileManager(this);
         }
 
-        bt_Save.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                if(mFileManager.isExternalStorageAvailable()) { // External storage is available
-                    verifyWriteStoragePermission(MainActivity.this);
-                }
-                else { // External storage is not available
-                    showStorageNotWorkingDialog();
-                }
-            }
-        });
+        //TODO make it automatic
+//        bt_Save.setOnClickListener(new View.OnClickListener(){
+//            public void onClick(View v){
+//                if(mFileManager.isExternalStorageAvailable()) { // External storage is available
+//                    verifyWriteStoragePermission(MainActivity.this);
+//                }
+//                else { // External storage is not available
+//                    showStorageNotWorkingDialog();
+//                }
+//            }
+//        });
 
         bt_Start.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
@@ -326,9 +329,9 @@ public class MainActivity extends AppCompatActivity
         manager = LocalBroadcastManager.getInstance(this);
 
         mGraph_1 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_1);
-        mGraph_2 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_2);
-        mGraph_3 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_3);
-        mGraph_4 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_4);
+//        mGraph_2 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_2);
+//        mGraph_3 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_3);
+//        mGraph_4 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_4);
     }
 
     @Override
@@ -570,36 +573,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    /*
-     * Retrieve datastream, ISE 1, ISE 2, and temp
-     */
-    public int[] retrieveData(byte[] packet) {
-        int[] ret = new int[4];
-        int temp1 = packet[0] << 24 | (packet[1] & 0xFF) << 16 | (packet[2] & 0xFF) << 8 | (packet[3] & 0xFF);
-        int temp2 = packet[4] << 24 | (packet[5] & 0xFF) << 16 | (packet[6] & 0xFF) << 8 | (packet[7] & 0xFF);
-        ret[0] = retrieveBits(temp1, 0, 3); // datastream
-        ret[1] = retrieveBits(temp1, 11, 8);    // ISE 1
-        ret[2] = retrieveBits(temp1, 20, 8);    // ISE 2
-        ret[3] = retrieveBits(temp1, 27, 6) | retrieveBits(temp2, 0, 2) << 6;   // temp
-        Log.d(TAG, "Retrieved following data: " + ret.toString());
-        return ret;
-    }
-
-    /*
-     * Retrieve certain bit sequence from the chopped up packaged data
-     */
-    private int retrieveBits (int n, int offset, int length)
-    {
-        //shift the bits rightward, so that the desired chunk is at the right end
-        n = n >> (31 - offset - length);
-
-        //prepare a mask where only the rightmost `length`  bits are 1's
-        int mask = ~(-1 << length);
-
-        //zero out all bits but the right chunk
-        return n & mask;
-    }
-
     /**
      * Checks if the app has permission to write to device storage
      *
@@ -750,7 +723,7 @@ public class MainActivity extends AppCompatActivity
         Queue<byte []> mmFIFOQueue = new LinkedList<byte []>();
         private int [] mmRetrievedData = null;
         private byte [] mmTempData = null;
-        private int mmPacketCount = 0;
+        private int datastream = -1;
         //TODO delete this
         private boolean mmTestPurponse = false; // for testing graph (to be deleted later)
 
@@ -766,8 +739,14 @@ public class MainActivity extends AppCompatActivity
                     Log.d(TAG, "Processing data: " + mmTempData);
                     //TODO add in code for auto logging
                     Log.d(TAG, "Retrieving data from packaged data");
-                    if(!mmTestPurponse)
-                        mmRetrievedData = retrieveData(mmTempData);
+                    if(!mmTestPurponse) {
+//                        mmRetrievedData = retrieveData(mmTempData);
+                        mmRetrievedData = new int[4];
+                        mmRetrievedData[0] = mmTempData[0];
+                        mmRetrievedData[3] = mmTempData[11] & 0xff;
+                        mmRetrievedData[2] = mmTempData[12] & 0xff;
+                        mmRetrievedData[1] = mmTempData[13] & 0xff;
+                    }
                     else {
                         mmRetrievedData = new int[4];
                         mmRetrievedData[0] = mmTempData[0];
@@ -777,26 +756,27 @@ public class MainActivity extends AppCompatActivity
                     }
                     //TODO alter this
                     // For now, it displays data in the textview as well as in graph
-                    if(mmRetrievedData[0] == 49){    // display only DS1
+                    datastream = mmRetrievedData[0] & 0b00000111;
+                    if(datastream == 0){    // display only DS1
                         Log.d(TAG, "Packaged data corresponds to datastream 1");
                         // for graph
                         mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
                     }
-                    else if(mmRetrievedData[0] == 50) {
-                        Log.d(TAG, "Packaged data corresponds to datastream 2");
-                        // for graph
-                        mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                    }
-                    else if(mmRetrievedData[0] == 51) {
-                        Log.d(TAG, "Packaged data corresponds to datastream 3");
-                        // for graph
-                        mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                    }
-                    else if(mmRetrievedData[0] == 52) {
-                        Log.d(TAG, "Packaged data corresponds to datastream 4");
-                        // for graph
-                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                    }
+//                    else if(mmRetrievedData[0] == 1) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+//                        // for graph
+//                        mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(mmRetrievedData[0] == 2) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 3");
+//                        // for graph
+//                        mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(mmRetrievedData[0] == 3) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+//                        // for graph
+//                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
                 }
             }
         }
