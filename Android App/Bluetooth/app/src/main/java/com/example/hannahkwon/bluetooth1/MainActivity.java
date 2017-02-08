@@ -757,11 +757,18 @@ public class MainActivity extends AppCompatActivity
                     //TODO alter this
                     // For now, it displays data in the textview as well as in graph
                     datastream = mmRetrievedData[0] & 0b00000111;
+                    //TODO uncomment below
                     if(datastream == 0){    // display only DS1
                         Log.d(TAG, "Packaged data corresponds to datastream 1");
                         // for graph
                         mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
                     }
+                    //TODO delete below
+//                    if(mmRetrievedData[0] == 49){    // display only DS1
+//                        Log.d(TAG, "Packaged data corresponds to datastream 1");
+//                        // for graph
+//                        mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
 //                    else if(mmRetrievedData[0] == 1) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 2");
 //                        // for graph
