@@ -32,9 +32,11 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.LinkedList;
+import java.util.Queue;
+
+import static com.example.hannahkwon.bluetooth1.BluetoothLeService.ACTION_DATA_AVAILABLE;
 import static com.example.hannahkwon.bluetooth1.BluetoothLeService.EXTRA_DATA;
-import static com.example.hannahkwon.bluetooth1.BluetoothLeService.GattLock;
-import static com.example.hannahkwon.bluetooth1.BluetoothLeService.NoGattOperation;
 import static com.example.hannahkwon.bluetooth1.DeviceListActivity.EXTRA_DEVICE_ADDRESS;
 import static com.example.hannahkwon.bluetooth1.DeviceListActivity.EXTRA_DEVICE_NAME;
 
@@ -49,8 +51,6 @@ public class MainActivity extends AppCompatActivity
     private TextView txt_BtStatus;
     private TextView txt_DataReceived;
 
-    private Button bt_Save;
-
     private GridLayout gridLayout_Channels;
     private CheckBox checkBox_DS1;
     private CheckBox checkBox_DS2;
@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity
     private Button bt_Start;
     private Button bt_Cancel;
 
-    private BluetoothService btService = null;
+    private BluetoothService mBtService = null;
 
     private BluetoothLeService mBluetoothLeService;
     private boolean mBound = false;
@@ -73,7 +73,13 @@ public class MainActivity extends AppCompatActivity
 
     LocalBroadcastManager manager;
 
-    private FileManager fileManager = null;
+    private FileManager mFileManager = null;
+
+    private ProcessingThread mProcessingThread;
+    private GraphFragment mGraph_1;
+//    private GraphFragment mGraph_2;
+//    private GraphFragment mGraph_3;
+//    private GraphFragment mGraph_4;
 
     private final Handler mHandler = new Handler(){
         @Override
@@ -98,12 +104,11 @@ public class MainActivity extends AppCompatActivity
                 // Add data received to textview
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
-//                    final StringBuilder stringBuilder = new StringBuilder(msg.arg1);
-//                    stringBuilder.append(String.format("%02X ", readBuf[0]));
                     String writeMessage = new String(readBuf, 0, msg.arg1);
-//                    Log.d(TAG, "Data recevied " + writeMessage);
+                    Log.d(TAG, "Data recevied " + writeMessage);
                     txt_DataReceived.append(writeMessage);
-//                    txt_DataReceived.append(stringBuilder.toString());
+
+                    mProcessingThread.add(true, readBuf);
                     break;
                 // Device connected. Now sharing data is possible.
                 case Constants.MESSAGE_DEVICE_NAME:
@@ -149,7 +154,7 @@ public class MainActivity extends AppCompatActivity
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
-        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+        intentFilter.addAction(ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
 
@@ -199,9 +204,16 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "Discovered GATT services");
                 mBluetoothLeService.displayGattServices(mBluetoothLeService.getSupportedGattServices());
             }
-            if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+            if (ACTION_DATA_AVAILABLE.equals(action)) {
                 Log.d(TAG, "Received data");
-                displayData(intent.getStringExtra(EXTRA_DATA));
+                byte [] data = intent.getByteArrayExtra(EXTRA_DATA);
+                if (data != null && data.length > 0) {
+                    final StringBuilder stringBuilder = new StringBuilder(data.length);
+                    for(byte byteChar : data)
+                        stringBuilder.append(String.format("%02X ", byteChar));
+                        displayData(stringBuilder.toString());
+                    mProcessingThread.add(false, data);
+                }
             }
         }
     };
@@ -247,8 +259,6 @@ public class MainActivity extends AppCompatActivity
         txt_BtStatus = (TextView) findViewById(R.id.txt_BtStatus);
         txt_DataReceived = (TextView) findViewById(R.id.txt_DataReceived);
 
-        bt_Save = (Button) findViewById(R.id.btn_Save);
-
         gridLayout_Channels = (GridLayout) findViewById(R.id.gridLayout_Channels);
         checkBox_DS1 = (CheckBox) findViewById(R.id.checkBox_DS1);
         checkBox_DS2 = (CheckBox) findViewById(R.id.checkBox_DS2);
@@ -263,12 +273,12 @@ public class MainActivity extends AppCompatActivity
 
         // TODO scale the gridlayout
 
-        if(btService == null){
-            btService = new BluetoothService(this, mHandler);
+        if(mBtService == null){
+            mBtService = new BluetoothService(this, mHandler);
         }
-        if(btService.getDeviceState()){
+        if(mBtService.getDeviceState()){
             // the device supports Bluetooth
-            btService.enableBluetooth();
+            mBtService.enableBluetooth();
 
 //            IntentFilter filter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
 //            registerReceiver(mReceiver,filter);
@@ -278,20 +288,21 @@ public class MainActivity extends AppCompatActivity
             showNotSupportBtDialog();
         }
 
-        if(fileManager == null){
-            fileManager = new FileManager(this);
+        if(mFileManager == null){
+            mFileManager = new FileManager(this);
         }
 
-        bt_Save.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                if(fileManager.isExternalStorageAvailable()) { // External storage is available
-                    verifyWriteStoragePermission(MainActivity.this);
-                }
-                else { // External storage is not available
-                    showStorageNotWorkingDialog();
-                }
-            }
-        });
+        //TODO make it automatic
+//        bt_Save.setOnClickListener(new View.OnClickListener(){
+//            public void onClick(View v){
+//                if(mFileManager.isExternalStorageAvailable()) { // External storage is available
+//                    verifyWriteStoragePermission(MainActivity.this);
+//                }
+//                else { // External storage is not available
+//                    showStorageNotWorkingDialog();
+//                }
+//            }
+//        });
 
         bt_Start.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v){
@@ -316,6 +327,11 @@ public class MainActivity extends AppCompatActivity
             }
         });
         manager = LocalBroadcastManager.getInstance(this);
+
+        mGraph_1 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_1);
+//        mGraph_2 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_2);
+//        mGraph_3 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_3);
+//        mGraph_4 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_4);
     }
 
     @Override
@@ -366,9 +382,9 @@ public class MainActivity extends AppCompatActivity
 
         Log.d(TAG, "MainActivity is getting destroyed");
 
-        if (btService != null) {
+        if (mBtService != null) {
             // Stops ConnectThread and ConnectedThread
-            btService.stop();
+            mBtService.stop();
         }
         if(mBound) {
             unbindService(mServiceConnection);
@@ -392,7 +408,7 @@ public class MainActivity extends AppCompatActivity
                     txt_BtStatus.setText(R.string.bluetooth_on);
 
                     // Scan for devices
-                    btService.scanDevice();
+                    mBtService.scanDevice();
                 }
                 else{ // user pressed "No"
                     Log.d(TAG,"Bluetooth is not enabled");
@@ -421,8 +437,9 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                     else {
-                        btService.getDeviceInfo(data);
+                        mBtService.getDeviceInfo(data);
                     }
+                    startProcessing();
                 }
                 break;
         }
@@ -438,7 +455,7 @@ public class MainActivity extends AppCompatActivity
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted
                     Log.d(TAG, "User granted the permission");
-                    if(!fileManager.createStorageDir()) {   // failed creating parent directory
+                    if(!mFileManager.createStorageDir()) {   // failed creating parent directory
                         Toast.makeText(this, R.string.failed_creating_parent_directory,
                                 Toast.LENGTH_SHORT).show();
                     }
@@ -543,23 +560,7 @@ public class MainActivity extends AppCompatActivity
         Log.d(TAG, "Command packet created is " + commandPacket);
         if(mBound) { // When BLE
             if(mBluetoothLeService.checkCharacteristic()) {
-                if(GattLock == null)
-                    Log.e(TAG, "Lock for Gatt operation is not initialized!");
-                boolean writeDone = false;
-                while(true) {
-                    GattLock.lock();
-                    try {
-                        if(NoGattOperation) { // No Gatt operation is being processed at the moment
-                            NoGattOperation = false;
-                            mBluetoothLeService.writeCharacteristic(commandPacket);
-                            writeDone = true;
-                        }
-                    } finally {
-                        GattLock.unlock();
-                        if(writeDone)
-                            return;
-                    }
-                }
+                mBluetoothLeService.write(commandPacket);
             }
             else{
                 Log.d(TAG, "Characteristics are not set yet");
@@ -568,7 +569,7 @@ public class MainActivity extends AppCompatActivity
             }
         }
         else {  // When Classic Bluetooth
-            btService.sendMessage(commandPacket);
+            mBtService.sendMessage(commandPacket);
         }
     }
 
@@ -596,14 +597,14 @@ public class MainActivity extends AppCompatActivity
             }
             else {
                 Log.d(TAG, "Permission already granted");
-                fileManager.createStorageDir();
+                mFileManager.createStorageDir();
                 // Get file name and save
                 showGetFileNameDialog();
             }
         }
         else {
             Log.d(TAG, "Android version is under 6.0 (No need for Runtime Permission");
-            fileManager.createStorageDir();
+            mFileManager.createStorageDir();
             // Get file name and save
             showGetFileNameDialog();
         }
@@ -653,7 +654,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDialogConnectClick(DialogFragment dialog) {
         dialog.dismiss();
-        btService.enableBluetooth();
+        mBtService.enableBluetooth();
     }
 
     @Override
@@ -683,7 +684,7 @@ public class MainActivity extends AppCompatActivity
         String fileName = edittxt_FileName.getText().toString();
 
         // Checks if given file name already exists
-        if(fileManager.checkFileExists(fileName)) {
+        if(mFileManager.checkFileExists(fileName)) {
             // flushes edit text where user enters file name
             edittxt_FileName.setText("");
 
@@ -696,13 +697,101 @@ public class MainActivity extends AppCompatActivity
         else { // file name is unique
             dialog.dismiss();
 
-            if(!fileManager.saveFile(fileName, txt_DataReceived.getText().toString())) { // failed saving data
+            if(!mFileManager.saveFile(fileName, txt_DataReceived.getText().toString())) { // failed saving data
                 Toast.makeText(this, R.string.failed_saving_data,
                         Toast.LENGTH_SHORT).show();
             }
             else {
                 Log.d(TAG, "Successfully saved data");
             }
+        }
+    }
+
+    public synchronized void startProcessing() {
+        Log.d(TAG, "Start Processing");
+
+        // Start the thread to manage the connection and perform transmission
+        mProcessingThread = new ProcessingThread();
+        mProcessingThread.start();
+    }
+
+    /*
+    * This is the thread where it sends off the packets to the correct Fragments for graph display
+    * It also do auto logging when 5th data is received.
+    */
+    private class ProcessingThread extends Thread {
+        Queue<byte []> mmFIFOQueue = new LinkedList<byte []>();
+        private int [] mmRetrievedData = null;
+        private byte [] mmTempData = null;
+        private int datastream = -1;
+        //TODO delete this
+        private boolean mmTestPurponse = false; // for testing graph (to be deleted later)
+
+        public ProcessingThread() {
+            Log.d(TAG, "Creating ProcessingThread");
+        }
+
+        public void run() {
+            Log.i(TAG, "Beginning mProcessingThread");
+            while (true) {
+                if (!mmFIFOQueue.isEmpty()) {
+                    mmTempData = mmFIFOQueue.remove();
+                    Log.d(TAG, "Processing data: " + mmTempData);
+                    //TODO add in code for auto logging
+                    Log.d(TAG, "Retrieving data from packaged data");
+                    if(!mmTestPurponse) {
+//                        mmRetrievedData = retrieveData(mmTempData);
+                        mmRetrievedData = new int[4];
+                        mmRetrievedData[0] = mmTempData[0];
+                        mmRetrievedData[3] = mmTempData[11] & 0xff;
+                        mmRetrievedData[2] = mmTempData[12] & 0xff;
+                        mmRetrievedData[1] = mmTempData[13] & 0xff;
+                    }
+                    else {
+                        mmRetrievedData = new int[4];
+                        mmRetrievedData[0] = mmTempData[0];
+                        mmRetrievedData[1] = mmTempData[1];
+                        mmRetrievedData[2] = mmTempData[2];
+                        mmRetrievedData[3] = mmTempData[3];
+                    }
+                    //TODO alter this
+                    // For now, it displays data in the textview as well as in graph
+                    datastream = mmRetrievedData[0] & 0b00000111;
+                    //TODO uncomment below
+                    if(datastream == 0){    // display only DS1
+                        Log.d(TAG, "Packaged data corresponds to datastream 1");
+                        // for graph
+                        mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                    }
+                    //TODO delete below
+//                    if(mmRetrievedData[0] == 49){    // display only DS1
+//                        Log.d(TAG, "Packaged data corresponds to datastream 1");
+//                        // for graph
+//                        mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(mmRetrievedData[0] == 1) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+//                        // for graph
+//                        mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(mmRetrievedData[0] == 2) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 3");
+//                        // for graph
+//                        mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(mmRetrievedData[0] == 3) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+//                        // for graph
+//                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+                }
+            }
+        }
+
+        public synchronized void add (boolean testPurpose, byte[] data) {
+            mmTestPurponse = testPurpose;
+            Log.i(TAG, "Adding into FIFO queue " + data);
+            mmFIFOQueue.add(data);
         }
     }
 }
