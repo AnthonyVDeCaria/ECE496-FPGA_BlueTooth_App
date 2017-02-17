@@ -59,8 +59,8 @@ module FPGA_Bluetooth_connection(
 		clock, 
 		bt_state, fpga_txd, fpga_rxd,
 		uart_cpd, uart_timer_cap,
-//		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
-//		sensor_stream_ready,
+		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
+		sensor_stream_ready,
 		ep01wireIn, ep02wireIn, 
 		ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, 
 		ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut,
@@ -84,8 +84,8 @@ module FPGA_Bluetooth_connection(
 	output [15:0] ep30wireOut;
 	
 	// Sensor
-	wire [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
-	wire [7:0] sensor_stream_ready;
+	output [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
+	output [7:0] sensor_stream_ready;
 	
 	/*
 		Wires 
@@ -146,18 +146,60 @@ module FPGA_Bluetooth_connection(
 	/*
 		Ion Sensor
 	*/	
-	wire[109:0] data_out;
+	wire[109:0] data_out0, data_out1, data_out2, data_out3, data_out4, data_out5, data_out6, data_out7;
 	ion sensor0(
 		.clock(clock),
 		.resetn(~reset),
 		.ready(sensor_stream_ready),
-		.data_out(data_out)
+		.data_out0(data_out0),
+		.data_out1(data_out1),
+		.data_out2(data_out2),
+		.data_out3(data_out3),
+		.data_out4(data_out4),
+		.data_out5(data_out5),
+		.data_out6(data_out6),
+		.data_out7(data_out7)
 	);
 	
 	assign sensor_stream0[7:0] = 8'h00;
-	assign sensor_stream0[117:8] = data_out;
+	assign sensor_stream0[117:8] = data_out0;
 	assign sensor_stream0[119:118] = 2'b00;
 	assign sensor_stream0[127:120] = 8'h00;
+	
+	assign sensor_stream1[7:0] = 8'h01;
+	assign sensor_stream1[117:8] = data_out1;
+	assign sensor_stream1[119:118] = 2'b00;
+	assign sensor_stream1[127:120] = 8'h01;
+	
+	assign sensor_stream2[7:0] = 8'h02;
+	assign sensor_stream2[117:8] = data_out2;
+	assign sensor_stream2[119:118] = 2'b00;
+	assign sensor_stream2[127:120] = 8'h02;
+	
+	assign sensor_stream3[7:0] = 8'h03;
+	assign sensor_stream3[117:8] = data_out3;
+	assign sensor_stream3[119:118] = 2'b00;
+	assign sensor_stream3[127:120] = 8'h03;
+	
+	assign sensor_stream4[7:0] = 8'h04;
+	assign sensor_stream4[117:8] = data_out4;
+	assign sensor_stream4[119:118] = 2'b00;
+	assign sensor_stream4[127:120] = 8'h04;
+	
+	assign sensor_stream5[7:0] = 8'h05;
+	assign sensor_stream5[117:8] = data_out5;
+	assign sensor_stream5[119:118] = 2'b00;
+	assign sensor_stream5[127:120] = 8'h05;
+	
+	assign sensor_stream6[7:0] = 8'h06;
+	assign sensor_stream6[117:8] = data_out6;
+	assign sensor_stream6[119:118] = 2'b00;
+	assign sensor_stream6[127:120] = 8'h06;
+	
+	assign sensor_stream7[7:0] = 8'h07;
+	assign sensor_stream7[117:8] = data_out7;
+	assign sensor_stream7[119:118] = 2'b00;
+	assign sensor_stream7[127:120] = 8'h07;
 	
 	/*
 		Output to Bluetooth
