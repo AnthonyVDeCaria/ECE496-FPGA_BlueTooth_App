@@ -77,9 +77,9 @@ public class MainActivity extends AppCompatActivity
 
     private ProcessingThread mProcessingThread;
     private GraphFragment mGraph_1;
-//    private GraphFragment mGraph_2;
-//    private GraphFragment mGraph_3;
-//    private GraphFragment mGraph_4;
+    private GraphFragment mGraph_2;
+    private GraphFragment mGraph_3;
+    private GraphFragment mGraph_4;
 
     private final Handler mHandler = new Handler(){
         @Override
@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity
                     final StringBuilder stringBuilder = new StringBuilder(data.length);
                     for(byte byteChar : data)
                         stringBuilder.append(String.format("%02X ", byteChar));
-                        displayData(stringBuilder.toString());
+                    displayData(stringBuilder.toString());
                     mProcessingThread.add(false, data);
                 }
             }
@@ -769,17 +769,37 @@ public class MainActivity extends AppCompatActivity
 //                        // for graph
 //                        mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
 //                    }
-//                    else if(mmRetrievedData[0] == 1) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 2");
-//                        // for graph
-//                        mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                    }
-//                    else if(mmRetrievedData[0] == 2) {
+                    else if(datastream == 1) {
+                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+                        // for graph
+                        mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                    }
+//                    else if(datastream == 2) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 3");
 //                        // for graph
 //                        mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
 //                    }
-//                    else if(mmRetrievedData[0] == 3) {
+//                    else if(datastream == 3) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+//                        // for graph
+//                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(datastream == 4) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+//                        // for graph
+//                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(datastream == 5) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+//                        // for graph
+//                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(datastream == 6) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+//                        // for graph
+//                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    }
+//                    else if(datastream == 7) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 4");
 //                        // for graph
 //                        mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
