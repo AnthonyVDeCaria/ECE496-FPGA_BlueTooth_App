@@ -10,7 +10,7 @@ module testingAT;
 	reg [15:0] ep02wireIn;
 	
 	parameter uart_cpd = 10'd50;
-	parameter uart_timer_cap = 10'd12;
+	parameter uart_spacing_limit = 10'd12;
 	
 	reg [7:0] AT_response_byte;
 	reg start;
@@ -38,7 +38,7 @@ module testingAT;
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd), 
 		.uart_cpd(uart_cpd),
-		.uart_timer_cap(uart_timer_cap),
+		.uart_spacing_limit(uart_spacing_limit),
 		.ep01wireIn(ep01wireIn), 
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut), 

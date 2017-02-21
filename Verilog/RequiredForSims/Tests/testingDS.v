@@ -10,7 +10,7 @@ module testingDS;
 	reg [15:0] ep02wireIn;
 	
 	parameter uart_cpd = 10'd50;
-	parameter uart_timer_cap = 10'd12;
+	parameter uart_spacing_limit = 10'd12;
 	
 	reg [7:0] App_command_byte;
 	reg start;
@@ -29,8 +29,8 @@ module testingDS;
 	wire [15:0] ep28wireOut;
 	wire [15:0] ep29wireOut;
 	wire [15:0] ep30wireOut;
-	wire [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
-	wire [7:0] sensor_stream_ready;
+//	wire [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
+//	wire [7:0] sensor_stream_ready;
 
 	// Instantiate the Unit Under Test (UUT)
 	FPGA_Bluetooth_connection uut (
@@ -39,7 +39,16 @@ module testingDS;
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd),
 		.uart_cpd(uart_cpd),
-		.uart_timer_cap(uart_timer_cap),
+		.uart_spacing_limit(uart_spacing_limit),
+//		.sensor_stream0(sensor_stream0), 
+//		.sensor_stream1(sensor_stream1), 
+//		.sensor_stream2(sensor_stream2), 
+//		.sensor_stream3(sensor_stream3), 
+//		.sensor_stream4(sensor_stream4), 
+//		.sensor_stream5(sensor_stream5), 
+//		.sensor_stream6(sensor_stream6), 
+//		.sensor_stream7(sensor_stream7),
+//		.sensor_stream_ready(sensor_stream_ready)
 		.ep01wireIn(ep01wireIn), 
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut), 
@@ -52,16 +61,7 @@ module testingDS;
 		.ep27wireOut(ep27wireOut),
 		.ep28wireOut(ep28wireOut),
 		.ep29wireOut(ep29wireOut),
-		.ep30wireOut(ep30wireOut),
-		.sensor_stream0(sensor_stream0), 
-		.sensor_stream1(sensor_stream1), 
-		.sensor_stream2(sensor_stream2), 
-		.sensor_stream3(sensor_stream3), 
-		.sensor_stream4(sensor_stream4), 
-		.sensor_stream5(sensor_stream5), 
-		.sensor_stream6(sensor_stream6), 
-		.sensor_stream7(sensor_stream7),
-		.sensor_stream_ready(sensor_stream_ready)
+		.ep30wireOut(ep30wireOut)
 	);
 	
 	UART_tx santas_little_helper(
@@ -101,7 +101,7 @@ module testingDS;
 		#200 start = 1'b1;
 		#205 start = 1'b0;
 		
-		#600 App_command_byte = 8'h55;
+		#600 App_command_byte = 8'h01;
 		#600 start = 1'b1;
 		#605 start = 1'b0;
 	end

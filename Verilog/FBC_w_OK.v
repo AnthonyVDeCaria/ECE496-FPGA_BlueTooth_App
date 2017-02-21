@@ -6,7 +6,7 @@ As well as providing the FPGA pins.
 */
 
 module FBC_w_OK(
-		clock, bt_state, bt_txd, bt_rxd, lights, uart_cpd, uart_timer_cap,
+		clock, bt_state, bt_txd, bt_rxd, lights, uart_cpd, uart_spacing_limit,
 		hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel
 	);
 	
@@ -18,7 +18,7 @@ module FBC_w_OK(
 	output bt_rxd;
 	output [7:0] lights;
 	
-	input [9:0] uart_cpd, uart_timer_cap;
+	input [9:0] uart_cpd, uart_spacing_limit;
 	
 	input wire [7:0] hi_in;
 	output wire [1:0] hi_out;
@@ -109,7 +109,7 @@ module FBC_w_OK(
 		.fpga_txd(bt_rxd),
 		.fpga_rxd(bt_txd),
 		.uart_cpd(uart_cpd),
-		.uart_timer_cap(uart_timer_cap),
+		.uart_spacing_limit(uart_spacing_limit),
 		.ep01wireIn(ep01wireIn),
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut),

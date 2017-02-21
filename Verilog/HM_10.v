@@ -18,7 +18,7 @@ module HM_10(CLK1MHZ, LED, HM_10_STATE, HM_10_TXD, HM_10_BREAK, HM_10_RXD, hi_in
 	assign HM_10_BREAK = 1'b0;
 	
 	parameter uart_cpd = 10'd50;
-	parameter uart_timer_cap = 10'd12;
+	parameter uart_spacing_limit = 10'd12;
 	
 	/*
 		Opal Kelly
@@ -42,7 +42,7 @@ module HM_10(CLK1MHZ, LED, HM_10_STATE, HM_10_TXD, HM_10_BREAK, HM_10_RXD, hi_in
 		.bt_rxd(HM_10_RXD), 
 		.lights(LED),
 		.uart_cpd(uart_cpd),
-		.uart_timer_cap(uart_timer_cap),
+		.uart_spacing_limit(uart_spacing_limit),
 		.hi_in(hi_in), 
 		.hi_out(hi_out), 
 		.hi_inout(hi_inout), 

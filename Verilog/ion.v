@@ -57,28 +57,28 @@ i0, i1, i2, i3, i4, i5, i6, i7, ion_curr, ion_next, timer_done, timer0, timer1, 
 	assign r_r_timer[6] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[6] | (ion_curr == Start) );
 	assign r_r_timer[7] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[7] | (ion_curr == Start) );
 	
-	adder_subtractor_16bit a_timer0(.a(timer0), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer0) );
+	adder_subtractor_16bit a_timer0(.a(timer0), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer0) );
 	register_16bit_enable_async r_timer0(.clk(clock), .resetn(r_r_timer[0]), .enable(l_r_timer[0]), .select(l_r_timer[0]), .d(n_timer0), .q(timer0) );
 	
-	adder_subtractor_16bit a_timer1(.a(timer1), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer1) );
+	adder_subtractor_16bit a_timer1(.a(timer1), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer1) );
 	register_16bit_enable_async r_timer1(.clk(clock), .resetn(r_r_timer[1]), .enable(l_r_timer[1]), .select(l_r_timer[1]), .d(n_timer1), .q(timer1) );
 	
-	adder_subtractor_16bit a_timer2(.a(timer2), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer2) );
+	adder_subtractor_16bit a_timer2(.a(timer2), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer2) );
 	register_16bit_enable_async r_timer2(.clk(clock), .resetn(r_r_timer[2]), .enable(l_r_timer[2]), .select(l_r_timer[2]), .d(n_timer2), .q(timer2) );
 	
-	adder_subtractor_16bit a_timer3(.a(timer3), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer3) );
+	adder_subtractor_16bit a_timer3(.a(timer3), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer3) );
 	register_16bit_enable_async r_timer3(.clk(clock), .resetn(r_r_timer[3]), .enable(l_r_timer[3]), .select(l_r_timer[3]), .d(n_timer3), .q(timer3) );
 	
-	adder_subtractor_16bit a_timer4(.a(timer4), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer4) );
+	adder_subtractor_16bit a_timer4(.a(timer4), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer4) );
 	register_16bit_enable_async r_timer4(.clk(clock), .resetn(r_r_timer[4]), .enable(l_r_timer[4]), .select(l_r_timer[4]), .d(n_timer4), .q(timer4) );
 	
-	adder_subtractor_16bit a_timer5(.a(timer5), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer5) );
+	adder_subtractor_16bit a_timer5(.a(timer5), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer5) );
 	register_16bit_enable_async r_timer5(.clk(clock), .resetn(r_r_timer[5]), .enable(l_r_timer[5]), .select(l_r_timer[5]), .d(n_timer5), .q(timer5) );
 	
-	adder_subtractor_16bit a_timer6(.a(timer6), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer6) );
+	adder_subtractor_16bit a_timer6(.a(timer6), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer6) );
 	register_16bit_enable_async r_timer6(.clk(clock), .resetn(r_r_timer[6]), .enable(l_r_timer[6]), .select(l_r_timer[6]), .d(n_timer6), .q(timer6) );
 	
-	adder_subtractor_16bit a_timer7(.a(timer7), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer7) );
+	adder_subtractor_16bit a_timer7(.a(timer7), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_timer7) );
 	register_16bit_enable_async r_timer7(.clk(clock), .resetn(r_r_timer[7]), .enable(l_r_timer[7]), .select(l_r_timer[7]), .d(n_timer7), .q(timer7) );
 	
 	assign timer_done[0] = (timer0 == timer_cap0) ? 1'b1 : 1'b0;
@@ -201,7 +201,7 @@ i0, i1, i2, i3, i4, i5, i6, i7, ion_curr, ion_next, timer_done, timer0, timer1, 
 	
 	
 	wire r_r_ready, l_r_ready;
-	assign r_r_ready = ~(~resetn |(ion_curr == Send_Packet));
+	assign r_r_ready = ~(~resetn | (ion_curr == Send_Packet));
 	assign l_r_ready = (ion_curr == Idle);
 	register_8bit_enable_async r_ready(.clk(clock), .resetn(r_r_ready), .enable(l_r_ready), .select(l_r_ready), .d(timer_done), .q(ready) );
 	

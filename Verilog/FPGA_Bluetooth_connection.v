@@ -58,9 +58,9 @@
 module FPGA_Bluetooth_connection(
 		clock, 
 		bt_state, fpga_txd, fpga_rxd,
-		uart_cpd, uart_timer_cap,
-		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
-		sensor_stream_ready,
+		uart_cpd, uart_spacing_limit,
+//		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
+//		sensor_stream_ready,
 		ep01wireIn, ep02wireIn, 
 		ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, 
 		ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut,
@@ -71,7 +71,7 @@ module FPGA_Bluetooth_connection(
 		I/Os
 	*/
 	input clock;
-	input [9:0] uart_cpd, uart_timer_cap;
+	input [9:0] uart_cpd, uart_spacing_limit;
 	
 	//	FPGA
 	input fpga_rxd, bt_state;
@@ -84,8 +84,8 @@ module FPGA_Bluetooth_connection(
 	output [15:0] ep30wireOut;
 	
 	// Sensor
-	output [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
-	output [7:0] sensor_stream_ready;
+	wire [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
+	wire [7:0] sensor_stream_ready;
 	
 	/*
 		Wires 
@@ -148,6 +148,8 @@ module FPGA_Bluetooth_connection(
 	*/	
 	wire[109:0] data_out0, data_out1, data_out2, data_out3, data_out4, data_out5, data_out6, data_out7;
 	ion sensor0(
+		.i0(ep28wireOut[13:8]),
+		
 		.clock(clock),
 		.resetn(~reset),
 		.ready(sensor_stream_ready),
@@ -319,7 +321,7 @@ module FPGA_Bluetooth_connection(
 	adder_subtractor_10bit a_uart_timer(.a(uart_timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_uart_timer) );
 	register_10bit_enable_async r_uart_timer(.clk(clock), .resetn(r_r_uart_timer), .enable(l_r_uart_timer), .select(l_r_uart_timer), .d(n_uart_timer), .q(uart_timer) );
 	
-	assign uart_timer_done = (uart_timer == uart_timer_cap) ? 1'b1 : 1'b0;
+	assign uart_timer_done = (uart_timer == uart_spacing_limit) ? 1'b1 : 1'b0;
 
 	//	UART
 	wire start_tx;
@@ -352,7 +354,7 @@ module FPGA_Bluetooth_connection(
 		.fpga_rxd(fpga_rxd),
 
 		.uart_cpd(uart_cpd),
-		.uart_timer_cap(uart_timer_cap),
+		.uart_spacing_limit(uart_spacing_limit),
 		
 		.at_response_flag(have_at_response),
 		
@@ -376,7 +378,7 @@ module FPGA_Bluetooth_connection(
 	*/
 	// Idle Signals
 	wire datastream_ready;
-	assign datastream_ready = ds_sending_flag & ds_data_exists;
+	assign datastream_ready = ds_sending_flag;
 	
 	// Begin_Transmission Signals
 	wire is_bt_done;
