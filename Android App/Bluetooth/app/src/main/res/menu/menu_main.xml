@@ -3,6 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_bluetooth_connect"
+        android:icon="@drawable/ic_bluetooth_connect"
+        android:title="@string/action_connect_bluetooth"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/action_open_file"
         android:icon="@drawable/ic_folder_open"
         android:title="@string/action_open_file"

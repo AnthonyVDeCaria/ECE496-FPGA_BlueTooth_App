@@ -4,6 +4,7 @@
     <string name="app_name">Bluetooth1</string>
 
     <!--Toolbar actions-->
+    <string name='action_connect_bluetooth'>Connect to device</string>
     <string name="action_open_file">Open file</string>
     <string name="action_settings">Settings</string>
 
@@ -27,9 +28,9 @@
     <string name="btn_OK">OK</string>
 
     - <!--   RepromptBtDialogFragment   -->
-    <string name="dialog_need_bluetooth">This app needs Bluetooth to run. Press connect to instantiate connection again or press exit to quit.</string>
+    <string name="dialog_need_bluetooth">This app needs Bluetooth for data transmission. Press connect to instantiate connection.</string>
     <string name="btn_Connect">Connect</string>
-    <string name="btn_Exit">Exit</string>
+    <string name="btn_I_ll_do_it_later">I\'ll do it later</string>
 
     - <!--   StorageNotWorkingDialogFragment   -->
     <string name="dialog_unavailable_external_storage">This apps need external storage to save data. Please check if it is available.</string>

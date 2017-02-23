@@ -76,14 +76,14 @@ public class GraphFragment extends Fragment {
             @Override
             public void onBeforeDraw(Plot source, Canvas canvas) {
                 // write-lock each active series for writes
-                Log.d(TAG, "Before redraw");
+//                Log.d(TAG, "Before redraw");
                 DataLock.lock();
             }
 
             @Override
             public void onAfterDraw(Plot source, Canvas canvas) {
                 // unlock any locked series
-                Log.d(TAG, "Done redraw");
+//                Log.d(TAG, "Done redraw");
                 DataLock.unlock();
             }
         });
@@ -100,8 +100,8 @@ public class GraphFragment extends Fragment {
         if(DataLock == null)
             Log.e(TAG, "Lock for Data add is not initialized!");
         boolean addDone = false;
-        Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
-                + ISE2_val);
+//        Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
+//                + ISE2_val);
         while(true) {
             DataLock.lock();
             try {
@@ -114,22 +114,22 @@ public class GraphFragment extends Fragment {
 
                     addDone = true;
 
-                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
-                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
+//                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
+//                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
 
                     if(Temp_val >= Constants.TEMP_THRESHOLD) {
-                        Log.d(TAG, "Temp is above threshold");
+//                        Log.d(TAG, "Temp is above threshold");
                         plot.getGraph().getGridBackgroundPaint().setColor(Color.GREEN);
                     }
                     else{
-                        Log.d(TAG, "Temp is below threshold");
+//                        Log.d(TAG, "Temp is below threshold");
                         plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
                     }
 
             } finally {
                 DataLock.unlock();
                 if(addDone) {
-                    Log.d(TAG, "Redraw plot");
+//                    Log.d(TAG, "Redraw plot");
                     plot.redraw();
                     return;
                 }

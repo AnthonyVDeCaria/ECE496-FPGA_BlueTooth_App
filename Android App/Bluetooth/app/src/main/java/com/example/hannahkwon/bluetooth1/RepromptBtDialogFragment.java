@@ -17,7 +17,7 @@ public class RepromptBtDialogFragment extends DialogFragment {
 
     public interface RepromptBtDialogListener {
         void onDialogConnectClick(DialogFragment dialog);
-        void onDialogExitClick(DialogFragment dialog);
+        void onDialogIllDoItLaterClick(DialogFragment dialog);
     }
 
     // Use this instance of the interface to deliver action events to host activity
@@ -48,10 +48,10 @@ public class RepromptBtDialogFragment extends DialogFragment {
                         mListener.onDialogConnectClick(RepromptBtDialogFragment.this);
                     }
                 })
-                .setNegativeButton(R.string.btn_Exit, new DialogInterface.OnClickListener() {
+                .setNegativeButton(R.string.btn_I_ll_do_it_later, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        Log.d(TAG,"Send the Exit button event back to the host activity");
-                        mListener.onDialogExitClick(RepromptBtDialogFragment.this);
+                        Log.d(TAG,"Send the I'll do it later button event back to the host activity");
+                        mListener.onDialogIllDoItLaterClick(RepromptBtDialogFragment.this);
                     }
                 });
         return builder.create();

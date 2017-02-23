@@ -563,42 +563,6 @@ public class BluetoothLeService extends Service {
         public void run(){
             Log.i(TAG, "Beginning mPackagingThread");
             while (true) {
-                // getting one byte at a time
-//                if (!mmFIFOQueue.isEmpty()) {
-//                    Log.d(TAG, "Sending ACK");
-//                    write(commandPacket);
-//
-//                    mmTempData = mmPackagedData;
-//                    mmDataAvailable = mmFIFOQueue.remove();
-//                    if(mmTempData == null) {    // at the very first packaging
-//                        Log.d(TAG, "At the very first packaging");
-//                        mmPackagedData = new byte[mmDataAvailable.length_left];
-//                        System.arraycopy(mmDataAvailable, 0, mmPackagedData, 0, mmDataAvailable.length_left);
-//                    }
-//                    else {
-//                        mmPackagedData = new byte[mmTempData.length_left + mmDataAvailable.length_left];
-//                        System.arraycopy(mmTempData, 0, mmPackagedData, 0, mmTempData.length_left);
-//                        System.arraycopy(mmDataAvailable, 0, mmPackagedData, mmTempData.length_left, mmDataAvailable.length_left);
-//                    }
-//                    mmPacketCount++;
-//
-//                    if(mmPacketCount == 16) {   // received full packet (128 bits)
-//                        Log.d(TAG, "Got the full packet");
-//                        if (mmPackagedData != null && mmPackagedData.length_left > 0) {
-//                            final StringBuilder stringBuilder = new StringBuilder(mmPackagedData.length_left);
-//                            for(byte byteChar : mmPackagedData)
-//                                stringBuilder.append(String.format("%02X ", byteChar));
-//                            Log.d(TAG, "Full packet data is " + stringBuilder.toString());
-//                        }
-//                        Intent intent = new Intent(ACTION_DATA_AVAILABLE);
-//                        intent.putExtra(EXTRA_DATA, mmPackagedData);
-//                        manager.sendBroadcast(intent);
-//
-//                        // resetting
-//                        mmPackagedData = null;
-//                        mmPacketCount = 0;
-//                    }
-//                }
                 // getting arbitrary length_left of bytes
                 if (!mmFIFOQueue.isEmpty()) {
                     mmTempData = mmPackagedData;
@@ -608,7 +572,7 @@ public class BluetoothLeService extends Service {
                         length_used = mmDataAvailable.length;
                     else
                         length_used = length_left;
-                    Log.d(TAG, "Length used is " + length_used);
+//                    Log.d(TAG, "Length used is " + length_used);
                     if(mmTempData == null) {    // at the very first packaging
                         if (length_left == 0) {
                             if (mmDataAvailable.length > 16) {
@@ -625,23 +589,23 @@ public class BluetoothLeService extends Service {
                             System.arraycopy(mmDataAvailable, offset, mmPackagedData, 0, length_left);
                         }
 
-                        Log.d(TAG, "At the very first packaging");
+//                        Log.d(TAG, "At the very first packaging");
                         if (length_used > 16) {   // the packet received was more than full packet
-                            Log.d(TAG, "There are more bytes than full packet");
+//                            Log.d(TAG, "There are more bytes than full packet");
                             offset = offset + 16;
                             length_left = length_used - 16;
                             read_left = 0;
                             more_to_read = false;
 
-                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+//                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
                         }
                         else if (length_used < 16){  // the packet received was partial packet
-                            Log.d(TAG, "There are bytes missing");
+//                            Log.d(TAG, "There are bytes missing");
                             offset = 0;
                             length_left = 0;
                             read_left = 16 - length_used;
                             more_to_read = true;
-                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+//                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
 
                             mmFIFOQueue.remove();
                         }
@@ -653,7 +617,7 @@ public class BluetoothLeService extends Service {
                             read_left = 0;
                             more_to_read = false;
 
-                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+//                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
                         }
                     }
                     else {
@@ -676,24 +640,24 @@ public class BluetoothLeService extends Service {
                                 System.arraycopy(mmDataAvailable, offset, mmPackagedData, mmTempData.length, length_left);
                             }
 
-                            Log.d(TAG, "At the next packaging");
+//                            Log.d(TAG, "At the next packaging");
                             if (length_used > read_left) {
-                                Log.d(TAG, "There are more bytes than full packet");
+//                                Log.d(TAG, "There are more bytes than full packet");
                                 offset = offset + read_left;
                                 length_left = length_used - read_left;
                                 read_left = 0;
                                 more_to_read = false;
 
-                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+//                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
                             }
                             else if (length_used < read_left){  // the packet received was partial packet
-                                Log.d(TAG, "There are bytes missing");
+//                                Log.d(TAG, "There are bytes missing");
                                 offset = 0;
                                 length_left = 0;
                                 read_left = read_left - length_used;
                                 more_to_read = true;
 
-                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+//                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
 
                                 mmFIFOQueue.remove();
                             }
@@ -705,7 +669,7 @@ public class BluetoothLeService extends Service {
                                 read_left = 0;
                                 more_to_read = false;
 
-                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+//                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
                             }
 
                         }
@@ -714,13 +678,13 @@ public class BluetoothLeService extends Service {
                     mmByteCount = 0;
 
                     if(!more_to_read) {   // received full packet (128 bits)
-                        Log.d(TAG, "Got the full packet");
-                        if (mmPackagedData != null && mmPackagedData.length > 0) {
-                            final StringBuilder stringBuilder = new StringBuilder(mmPackagedData.length);
-                            for(byte byteChar : mmPackagedData)
-                                stringBuilder.append(String.format("%02X ", byteChar));
-                            Log.d(TAG, "Full packet data is " + stringBuilder.toString());
-                        }
+//                        Log.d(TAG, "Got the full packet");
+//                        if (mmPackagedData != null && mmPackagedData.length > 0) {
+//                            final StringBuilder stringBuilder = new StringBuilder(mmPackagedData.length);
+//                            for(byte byteChar : mmPackagedData)
+//                                stringBuilder.append(String.format("%02X ", byteChar));
+//                            Log.d(TAG, "Full packet data is " + stringBuilder.toString());
+//                        }
                         Intent intent = new Intent(ACTION_DATA_AVAILABLE);
                         intent.putExtra(EXTRA_DATA, mmPackagedData);
                         manager.sendBroadcast(intent);
@@ -734,12 +698,12 @@ public class BluetoothLeService extends Service {
 
         public synchronized void add (byte[] data) {
 //            Log.i(TAG, "Adding into FIFO queue " + data);
-            if (data != null && data.length > 0) {
-                final StringBuilder stringBuilder = new StringBuilder(data.length);
-                for(byte byteChar : data)
-                    stringBuilder.append(String.format("%02X ", byteChar));
-                Log.d(TAG, "Adding into FIFO queue "  + stringBuilder.toString() + "(" + mmPacketCount + ")");
-            }
+//            if (data != null && data.length > 0) {
+//                final StringBuilder stringBuilder = new StringBuilder(data.length);
+//                for(byte byteChar : data)
+//                    stringBuilder.append(String.format("%02X ", byteChar));
+//                Log.d(TAG, "Adding into FIFO queue "  + stringBuilder.toString() + "(" + mmPacketCount + ")");
+//            }
             mmPacketCount++;
             mmFIFOQueue.add(data);
         }
