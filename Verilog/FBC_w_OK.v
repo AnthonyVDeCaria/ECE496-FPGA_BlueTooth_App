@@ -109,7 +109,7 @@ module FBC_w_OK(
 		.fpga_txd(bt_rxd),
 		.fpga_rxd(bt_txd),
 		.uart_cpd(uart_cpd),
-		.uart_spacing_limit(uart_spacing_limit),
+		.uart_byte_spacing_limit(uart_spacing_limit),
 		.ep01wireIn(ep01wireIn),
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut),

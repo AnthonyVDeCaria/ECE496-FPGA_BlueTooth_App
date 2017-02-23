@@ -1,10 +1,10 @@
 /*
 Feb 23, 2017 Ming
 
-This module creates a 16-bit eight input Mux.
+This module creates a 128-bit eight input Mux.
 */
 
-module mux_8_16bit(data0, data1, data2, data3, data4, data5, data6, data7, sel, result);
+module mux_8_128bit(data0, data1, data2, data3, data4, data5, data6, data7, sel, result);
 	input [127:0] data0, data1, data2, data3, data4, data5, data6, data7;
 	input [2:0] sel;
 	output reg [127:0] result;

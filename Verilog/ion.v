@@ -32,11 +32,11 @@ i0,/* i1, i2, i3, i4, i5, i6, i7,*/ ion_curr, ion_next, timer_done, timer0 /*, t
 	/*
 		Timers
 	*/
-	input [15:0] timer_cap0;//, timer_cap1 = 16'd35000, timer_cap2 = 16'd40000, timer_cap3 = 16'd45000;
+	input [19:0] timer_cap0;//, timer_cap1 = 16'd35000, timer_cap2 = 16'd40000, timer_cap3 = 16'd45000;
 //	parameter timer_cap4 = 16'd50000, timer_cap5 = 16'd55000, timer_cap6 = 16'd60000, timer_cap7 = 16'd65000;
 
-	output [15:0] timer0;//, timer1, timer2, timer3, timer4, timer5, timer6, timer7;
-	wire [15:0] n_timer0;//, n_timer1, n_timer2, n_timer3, n_timer4, n_timer5, n_timer6, n_timer7;
+	output [19:0] timer0;//, timer1, timer2, timer3, timer4, timer5, timer6, timer7;
+	wire [19:0] n_timer0;//, n_timer1, n_timer2, n_timer3, n_timer4, n_timer5, n_timer6, n_timer7;
 	wire l_r_timer, r_r_timer;
 	output timer_done;
 	
@@ -58,8 +58,8 @@ i0,/* i1, i2, i3, i4, i5, i6, i7,*/ ion_curr, ion_next, timer_done, timer0 /*, t
 //	assign r_r_timer[6] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[6] | (ion_curr == Start) );
 //	assign r_r_timer[7] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[7] | (ion_curr == Start) );
 
-	adder_subtractor_16bit a_timer0(.a(timer0), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer0) );
-	register_16bit_enable_async r_timer0(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer0), .q(timer0) );
+	adder_subtractor_20bit a_timer0(.a(timer0), .b(20'd1), .want_subtract(1'b0), .c_out(), .s(n_timer0) );
+	register_20bit_enable_async r_timer0(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer0), .q(timer0) );
 	
 //	adder_subtractor_16bit a_timer1(.a(timer1), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer1) );
 //	register_16bit_enable_async r_timer1(.clk(clock), .resetn(r_r_timer[1]), .enable(l_r_timer[1]), .select(l_r_timer[1]), .d(n_timer1), .q(timer1) );

@@ -13,7 +13,7 @@ module testingIon;
 //	wire [5:0] i4, i5, i6, i7;
 	wire [1:0] ion_curr, ion_next;
 	wire timer_done;
-	wire [15:0] timer0;//, timer1, timer2, timer3, timer4, timer5, timer6, timer7;
+	wire [19:0] timer0;//, timer1, timer2, timer3, timer4, timer5, timer6, timer7;
 
 	// Instantiate the Unit Under Test (UUT)
 	ion uut(
@@ -30,7 +30,7 @@ module testingIon;
 //		.data_out7(data_out7),
 		.i0(i0),
 		.data_in(data_in),
-		.timer_cap0(16'd30000),
+		.timer_cap0(20'h77800),
 //		.i1(i1),
 //		.i2(i2),
 //		.i3(i3),

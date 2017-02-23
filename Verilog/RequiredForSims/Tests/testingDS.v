@@ -39,7 +39,7 @@ module testingDS;
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd),
 		.uart_cpd(uart_cpd),
-		.uart_spacing_limit(uart_spacing_limit),
+		.uart_byte_spacing_limit(uart_spacing_limit),
 //		.sensor_stream0(sensor_stream0), 
 //		.sensor_stream1(sensor_stream1), 
 //		.sensor_stream2(sensor_stream2), 

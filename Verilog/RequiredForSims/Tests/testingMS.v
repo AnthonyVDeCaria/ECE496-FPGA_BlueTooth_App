@@ -17,9 +17,7 @@ module testingMS;
 	// Outputs
 	wire [2:0] mux_select;
 	wire select_ready;
-	wire [15:0] datastream0;
-	wire [7:0] rd_count_equals_trig, ds_rd_count_not_0;
-	wire [5:0] trig_DS0;
+	wire [127:0] datastream0;
 	
 	wire [2:0] curr, next;
 
@@ -32,7 +30,6 @@ module testingMS;
 		.empty_fifo_flags(empty_fifo_flags),
 		.mux_select(mux_select),
 		.select_ready(select_ready),
-		.DS0_rd_count(DS0_rd_count),
 		
 		.ms_curr(curr), .ms_next(next)
 	);
@@ -59,7 +56,7 @@ module testingMS;
 		
 		.DS0_in(sensor_stream0), 
 		.DS0_out(datastream0), 
-		.DS0_rd_count(DS0_rd_count), 
+		.DS0_rd_count(), 
 		.DS0_wr_count(), 
 		
 		.write_enable(data_exists),
