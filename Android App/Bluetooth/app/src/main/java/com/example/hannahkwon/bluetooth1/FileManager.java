@@ -19,6 +19,8 @@ public class FileManager {
     private final String PARENT_DIR;
     private static String path = null;
 
+    private static String logFilePath;
+
     public FileManager(FragmentActivity ac){
         mActivity= ac;
 
@@ -43,6 +45,8 @@ public class FileManager {
     */
     public boolean createStorageDir() {
         path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + PARENT_DIR;
+        logFilePath = path + File.separator + R.string.log_file;
+
         File file = new File(path);
         if(!file.exists()) {
             try {
@@ -91,4 +95,65 @@ public class FileManager {
         }
         return true;
     }
+
+    /*
+    * This is the thread where logs data
+    * For now, it's logging every 10 data
+    */
+    public class LoggingThread extends Thread {
+        private FileOutputStream logfos = null;
+        public LoggingThread() {
+            Log.d(TAG, "Creating LoggingThread");
+        }
+
+        public void run() {
+            Log.i(TAG, "Beginning mLoggingThread");
+            while (true) {
+            }
+        }
+
+        // To be called when user pressed Start
+        public void startLog() {
+            Log.d(TAG, "Starting log");
+            try {
+                clearLogFile();
+                File logFile = new File(logFilePath);
+                logfos = new FileOutputStream(logFile, true);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed starting log", e);
+            }
+        }
+
+        // To be called when user pressed Cancel or after data saving or at Activity destroy
+        public void cancelLog() {
+            Log.d(TAG, "Canceling log");
+            try {
+                if(logfos != null)
+                    logfos.close();
+            } catch (Exception e) {
+                Log.e(TAG, "Failed canceling log", e);
+            }
+        }
+
+        public synchronized void log (byte[] data) {
+            Log.d(TAG, "Logging");
+            try {
+                logfos.write(data);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed logging", e);
+            }
+        }
+
+        private void clearLogFile() {
+            Log.d(TAG, "Clearing log file");
+            File logFile = new File(logFilePath);
+           try {
+               FileOutputStream fos = new FileOutputStream(logFile);
+               fos.close();
+           } catch (Exception e) {
+               Log.e(TAG, "Failed clearing log file", e);
+           }
+        }
+    }
+
 }

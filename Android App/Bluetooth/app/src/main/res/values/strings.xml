@@ -2,6 +2,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">Bluetooth1</string>
+    <string name="log_file">Log.txt</string>
 
     <!--Toolbar actions-->
     <string name='action_connect_bluetooth'>Connect to device</string>
@@ -34,9 +35,6 @@
 
     - <!--   StorageNotWorkingDialogFragment   -->
     <string name="dialog_unavailable_external_storage">This apps need external storage to save data. Please check if it is available.</string>
-
-    - <!--   GetFileNameDialogFragment   -->
-    <string name="txt_Warn_Duplicate">\"<xliff:g id="device_name">%1$s</xliff:g>\" file name already exists. Please enter another one.</string>
 
     - <!--   BluetoothService   -->
     <string name="send">Send</string>

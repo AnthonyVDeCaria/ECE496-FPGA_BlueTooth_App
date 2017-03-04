@@ -1,6 +1,5 @@
 package com.example.hannahkwon.bluetooth1;
 
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.androidplot.Plot;
-import com.androidplot.PlotListener;
+import com.androidplot.util.Redrawer;
 import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.PanZoom;
@@ -31,7 +30,9 @@ public class GraphFragment extends Fragment {
     private SimpleXYSeries ISE1_Series = null;
     private SimpleXYSeries ISE2_Series = null;
 
-    public static ReentrantLock DataLock = null;
+    private Redrawer redrawer;
+
+    private static ReentrantLock DataLock = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +57,9 @@ public class GraphFragment extends Fragment {
         plot = (XYPlot) view.findViewById(R.id.plot);
         if(plot == null)
             Log.d(TAG, "plot is null!");
+
+        plot.setRenderMode(Plot.RenderMode.USE_BACKGROUND_THREAD);
+
         LineAndPointFormatter ISE1_format = new LineAndPointFormatter(Color.RED, Color.RED, null, null);
         LineAndPointFormatter ISE2_format = new LineAndPointFormatter(Color.BLUE, Color.BLUE, null, null);
 
@@ -72,21 +76,24 @@ public class GraphFragment extends Fragment {
         //TODO Need to be deleted
         plot.setRangeBoundaries(170, 260, BoundaryMode.FIXED);
 
-        plot.addListener(new PlotListener() { // to synchronize data with rendering loop
-            @Override
-            public void onBeforeDraw(Plot source, Canvas canvas) {
-                // write-lock each active series for writes
-//                Log.d(TAG, "Before redraw");
-                DataLock.lock();
-            }
+//        plot.addListener(new PlotListener() { // to synchronize data with rendering loop
+//            @Override
+//            public void onBeforeDraw(Plot source, Canvas canvas) {
+//                // write-lock each active series for writes
+////                Log.d(TAG, "Before redraw");
+//                DataLock.lock();
+//            }
+//
+//            @Override
+//            public void onAfterDraw(Plot source, Canvas canvas) {
+//                // unlock any locked series
+////                Log.d(TAG, "Done redraw");
+//                DataLock.unlock();
+//            }
+//        });
 
-            @Override
-            public void onAfterDraw(Plot source, Canvas canvas) {
-                // unlock any locked series
-//                Log.d(TAG, "Done redraw");
-                DataLock.unlock();
-            }
-        });
+        // set a redraw rate of 85 Hz (at every 12 ms)
+        redrawer = new Redrawer(plot, 70, true);
 
         return view;
     }
@@ -96,45 +103,39 @@ public class GraphFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
     }
 
+    @Override
+    public void onDestroy() {
+        redrawer.finish();
+        super.onDestroy();
+    }
+
     public synchronized void addData(int ISE1_val, int ISE2_val, int Temp_val) {
-        if(DataLock == null)
-            Log.e(TAG, "Lock for Data add is not initialized!");
-        boolean addDone = false;
 //        Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
 //                + ISE2_val);
-        while(true) {
-            DataLock.lock();
-            try {
-                    // adding data into corresponding series
+        // adding data into corresponding series
 
 //                    Log.d(TAG, "Current ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Current ISE2: " + ISE2_Series.getyVals().toString());
-                    ISE1_Series.addLast(null, ISE1_val);
-                    ISE2_Series.addLast(null, ISE2_val);
+        ISE1_Series.addLast(null, ISE1_val);
+        ISE2_Series.addLast(null, ISE2_val);
 
-                    addDone = true;
 
 //                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
 
-                    if(Temp_val >= Constants.TEMP_THRESHOLD) {
+        if(Temp_val >= Constants.TEMP_THRESHOLD) {
 //                        Log.d(TAG, "Temp is above threshold");
-                        plot.getGraph().getGridBackgroundPaint().setColor(Color.GREEN);
-                    }
-                    else{
-//                        Log.d(TAG, "Temp is below threshold");
-                        plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
-                    }
-
-            } finally {
-                DataLock.unlock();
-                if(addDone) {
-//                    Log.d(TAG, "Redraw plot");
-                    plot.redraw();
-                    return;
-                }
-            }
+            plot.getGraph().getGridBackgroundPaint().setColor(Color.GREEN);
         }
+        else{
+//                        Log.d(TAG, "Temp is below threshold");
+            plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
+        }
+
+        return;
     }
 
+    public void clear() {
+        plot.clear();
+    }
 }
