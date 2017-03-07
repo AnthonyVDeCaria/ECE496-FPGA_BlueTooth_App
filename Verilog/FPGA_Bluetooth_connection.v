@@ -164,7 +164,7 @@ module FPGA_Bluetooth_connection(
 		.resetn(~reset),
 		.ready(sensor_stream_ready[0]),
 		.data_in(extracted_data0),
-		.timer_cap0(20'd1000),
+		.timer_cap0(20'd21600),
 		.i0(i0),
 		.data_out(data_out0)
 	);
@@ -174,7 +174,7 @@ module FPGA_Bluetooth_connection(
        .resetn(~reset),
        .ready(sensor_stream_ready[1]),
        .data_in(extracted_data1),
-       .timer_cap0(20'd30000),
+       .timer_cap0(20'd21600),
        .i0(i1),
        .data_out(data_out1)
 	);
@@ -184,7 +184,7 @@ module FPGA_Bluetooth_connection(
         .resetn(~reset),
         .ready(sensor_stream_ready[2]),
         .data_in(extracted_data2),
-        .timer_cap0(20'd35000),
+        .timer_cap0(20'd21600),
         .i0(i2),
         .data_out(data_out2)
     );
@@ -194,7 +194,7 @@ module FPGA_Bluetooth_connection(
         .resetn(~reset),
         .ready(sensor_stream_ready[3]),
         .data_in(extracted_data3),
-        .timer_cap0(20'd40000),
+        .timer_cap0(20'd21600),
         .i0(i3),
         .data_out(data_out3)
     );
@@ -204,7 +204,7 @@ module FPGA_Bluetooth_connection(
         .resetn(~reset),
         .ready(sensor_stream_ready[4]),
         .data_in(extracted_data4),
-        .timer_cap0(20'd45000),
+        .timer_cap0(20'd21600),
         .i0(i4),
         .data_out(data_out4)
     );
@@ -214,7 +214,7 @@ module FPGA_Bluetooth_connection(
         .resetn(~reset),
         .ready(sensor_stream_ready[5]),
         .data_in(extracted_data5),
-        .timer_cap0(20'd50000),
+        .timer_cap0(20'd21600),
         .i0(i5),
         .data_out(data_out5)
     );
@@ -224,7 +224,7 @@ module FPGA_Bluetooth_connection(
         .resetn(~reset),
         .ready(sensor_stream_ready[6]),
         .data_in(extracted_data6),
-        .timer_cap0(20'd55000),
+        .timer_cap0(20'd21600),
         .i0(i6),
         .data_out(data_out6)
     );
@@ -234,7 +234,7 @@ module FPGA_Bluetooth_connection(
         .resetn(~reset),
         .ready(sensor_stream_ready[7]),
         .data_in(extracted_data7),
-        .timer_cap0(20'd60000),
+        .timer_cap0(20'd21600),
         .i0(i7),
         .data_out(data_out7)
     );
@@ -341,7 +341,17 @@ module FPGA_Bluetooth_connection(
 	assign all_at_data_sent = fifo_state_empty[8];
 	assign ds_data_exists = (fifo_state_empty[7:0] != 8'hFF) ? 1'b1 : 1'b0;
 	
-	assign ds_sending_flag = access_datastreams & command_from_app & ds_data_exists;
+	wire [15:0] packet_counter, n_packet_counter;
+	wire l_r_packet_counter, r_r_packet_counter, packet_counter_done;
+	parameter packet_count_limit = 16'd14400;
+	assign l_r_packet_counter = ~want_at & packet_sent & uart_packet_timer_done;
+	assign r_r_packet_counter = ~(reset);
+	adder_subtractor_16bit a_packet_counter(.a(packet_counter), .b(16'd1), .want_subtract(1'b0), .c_out(), .s(n_packet_counter) );
+	register_16bit_enable_async r_packet_counter(.clk(clock), .resetn(r_r_packet_counter), .enable(l_r_packet_counter), .select(l_r_packet_counter), .d(n_packet_counter), .q(packet_counter) );
+	assign packet_counter_done = (packet_counter == packet_count_limit) ? 1'b1 : 1'b0;
+	assign ds_sending_flag = access_datastreams & command_from_app & ds_data_exists & ~packet_counter_done;
+	
+	//assign ds_sending_flag = access_datastreams & command_from_app & ds_data_exists;
 	assign at_sending_flag = ~all_at_data_sent;
 	
 	mux_2_1bit m_sending_flag(.data0(ds_sending_flag), .data1(at_sending_flag), .sel(want_at), .result(sending_flag) );
@@ -354,9 +364,7 @@ module FPGA_Bluetooth_connection(
 		.selected_streams(streams_selected),
 		.empty_fifo_flags(fifo_state_empty[7:0]),
 		.mux_select(m_datastream_select),
-		.select_ready(select_ready),
-		
-		.ms_curr(ep28wireOut[2:0]), .ms_next(ep28wireOut[6:4])
+		.select_ready(select_ready)
 	);
 
 	mux_8_128bit m_datastream(
@@ -750,9 +758,10 @@ module FPGA_Bluetooth_connection(
 	assign ep25wireOut[9] = data_ready_for_user;
 	assign ep25wireOut[15:10] = 6'd0;
 	
-	assign ep26wireOut[15:13] = m_datastream_select;
-	assign ep26wireOut[12:11] = rd_en[1:0];
-	assign ep26wireOut[10:6] = 0;
+	assign ep26wireOut[15] = 1'b0;
+	assign ep26wireOut[14:12] = m_datastream_select;
+	assign ep26wireOut[11:10] = rd_en[1:0];
+	assign ep26wireOut[9:6] = 0;
 	assign ep26wireOut[5] = uart_packet_timer_done;
 	assign ep26wireOut[4] = packet_sent;
 	assign ep26wireOut[3] = ds_data_exists;
@@ -760,14 +769,13 @@ module FPGA_Bluetooth_connection(
 	assign ep26wireOut[1] = access_datastreams;
 	assign ep26wireOut[0] = ds_sending_flag;
 
-	assign ep28wireOut[3] = 1'b0;
-	assign ep28wireOut[7] = 1'b0;
+	assign ep28wireOut[7:0] = 8'd0;
 	assign ep28wireOut[15:8] = uart_input;
 	
 	assign ep29wireOut[7:0] = sensor_stream_ready;
 	assign ep29wireOut[15:8] = fifo_state_empty[7:0];
 	
-	assign ep30wireOut = uart_packet_timer;
+	assign ep30wireOut = packet_counter;
 
 endmodule
 

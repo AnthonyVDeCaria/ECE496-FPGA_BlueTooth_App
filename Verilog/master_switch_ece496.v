@@ -62,7 +62,7 @@ module master_switch_ece496(
 		FSM Wires
 	*/
 	parameter Idle = 3'b000, Load_Shift = 3'b001, Find = 3'b010, Run = 3'b011, Check = 3'b100;
-	output reg [2:0] ms_curr, ms_next;
+	reg [2:0] ms_curr, ms_next;
 	
 	/*
 		Interal Flags
@@ -111,7 +111,7 @@ module master_switch_ece496(
 	/*
 		Timer
 	*/
-	output [31:0] timer, n_timer;
+	wire [31:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
 	assign l_r_timer = (ms_curr == Run) & ~timer_done;
