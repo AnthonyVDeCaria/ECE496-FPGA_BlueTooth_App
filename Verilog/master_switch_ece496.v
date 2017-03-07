@@ -43,9 +43,7 @@ module master_switch_ece496(
 		sending_flag, packet_sent,
 		empty_fifo_flags, 
 		selected_streams, 
-		mux_select, select_ready,
-		
-		ms_curr, ms_next
+		mux_select, select_ready
 	);
 	/*
 		I/O
@@ -113,10 +111,10 @@ module master_switch_ece496(
 	/*
 		Timer
 	*/
-	wire [31:0] timer, n_timer;
+	output [31:0] timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
-	assign l_r_timer = (ms_curr == Run);
+	assign l_r_timer = (ms_curr == Run) & ~timer_done;
 	assign r_r_timer = ~( ~resetn | (ms_curr == Find) );
 	
 	adder_subtractor_32bit a_timer(.a(timer), .b(32'd1), .want_subtract(1'b0), .c_out(), .s(n_timer) );
