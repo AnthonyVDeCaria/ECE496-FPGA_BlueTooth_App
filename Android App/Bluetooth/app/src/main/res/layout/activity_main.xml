@@ -195,15 +195,6 @@
                             <!--android:tag="Fragment2"-->
                             <!--android:layout_weight="1" />-->
 
-
-                    </LinearLayout>
-
-                    <!--<LinearLayout-->
-                        <!--android:orientation="horizontal"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="0dp"-->
-                        <!--android:layout_weight="1">-->
-
                         <!--<fragment-->
                             <!--android:layout_height="match_parent"-->
                             <!--android:layout_width="0dp"-->
@@ -220,20 +211,61 @@
                             <!--android:tag="Fragment4"-->
                             <!--android:layout_weight="1" />-->
 
+
+                    </LinearLayout>
+
+                    <!--<LinearLayout-->
+                        <!--android:orientation="horizontal"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="0dp"-->
+                        <!--android:layout_weight="1">-->
+
+                        <!--<fragment-->
+                            <!--android:layout_height="match_parent"-->
+                            <!--android:layout_width="0dp"-->
+                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment"-->
+                            <!--android:id="@+id/graph_5"-->
+                            <!--android:tag="Fragment5"-->
+                            <!--android:layout_weight="1" />-->
+
+                        <!--<fragment-->
+                            <!--android:layout_height="match_parent"-->
+                            <!--android:layout_width="0dp"-->
+                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment"-->
+                            <!--android:id="@+id/graph_6"-->
+                            <!--android:tag="Fragment6"-->
+                            <!--android:layout_weight="1" />-->
+
+                        <!--<fragment-->
+                            <!--android:layout_height="match_parent"-->
+                            <!--android:layout_width="0dp"-->
+                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment"-->
+                            <!--android:id="@+id/graph_7"-->
+                            <!--android:tag="Fragment7"-->
+                            <!--android:layout_weight="1" />-->
+
+                        <!--<fragment-->
+                            <!--android:layout_height="match_parent"-->
+                            <!--android:layout_width="0dp"-->
+                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment"-->
+                            <!--android:id="@+id/graph_8"-->
+                            <!--android:tag="Fragment8"-->
+                            <!--android:layout_weight="1" />-->
+
                     <!--</LinearLayout>-->
                 </LinearLayout>
 
-                <ScrollView
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1">
+                <!--<ScrollView-->
+                    <!--android:layout_width="0dp"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:layout_weight="1">-->
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:id="@+id/txt_DataReceived" />
-                </ScrollView>
+                    <!--<TextView-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:textAppearance="?android:attr/textAppearanceMedium"-->
+                        <!--android:id="@+id/txt_DataReceived" />-->
+                <!--</ScrollView>-->
 
             </LinearLayout>
 

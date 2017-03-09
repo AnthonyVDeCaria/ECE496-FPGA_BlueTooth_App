@@ -22,10 +22,9 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.example.hannahkwon.bluetooth1.Constants.ACK;
@@ -149,6 +148,7 @@ public class BluetoothLeService extends Service {
                                             BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "Received characteristic notification");
 //            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+
             mPackagingThread.add(characteristic.getValue());
         }
     };
@@ -540,15 +540,17 @@ public class BluetoothLeService extends Service {
     * Once the packet is formed, it is transferred to the MainActivity
     */
     private class PackagingThread extends Thread {
-        Queue<byte []> mmFIFOQueue = new LinkedList<byte []>();
-        private int mmPacketCount = 0;
-        private byte [] mmPackagedData = null;
-        private byte [] mmTempData = null;
+        LinkedBlockingQueue<byte []> mmFIFOQueue = new LinkedBlockingQueue<byte []>();
+        private byte [] mmPackagedData = new byte[16];
         private byte [] mmDataAvailable = null;
-        //        StringBuilder buffer = null;
-//        private String mmPackagedData = null;
-//        private String mmTempData = null;
         private byte[] commandPacket = null;
+        private int offset = 0; // starting point of read left
+        private int length_left = 0; // length_left to be read in a single packet
+        private int read_left = 16; // more to be read to fill full packet
+        private int length_used = 0;
+        private boolean more_to_read = false;
+
+        private int position = 0;  // to keep track of starting point of saving
 
         public PackagingThread() {
             Log.d(TAG, "Creating PackagingThread");
@@ -556,46 +558,145 @@ public class BluetoothLeService extends Service {
             commandPacket[0] = ACK;
         }
 
-        public void run() {
+        public void run(){
             Log.i(TAG, "Beginning mPackagingThread");
             while (true) {
-                if (!mmFIFOQueue.isEmpty()) {
-                    Log.d(TAG, "Sending ACK");
-                    write(commandPacket);
+                // getting arbitrary length_left of bytes
+                mmDataAvailable = mmFIFOQueue.peek();
+                if (mmDataAvailable != null) {
+                    if (length_left == 0)
+                        length_used = mmDataAvailable.length;
+                    else
+                        length_used = length_left;
+    //                    Log.d(TAG, "Length used is " + length_used);
+                    if(position == 0) {    // at the very first packaging
+                        if (length_left == 0) {
+                            if (mmDataAvailable.length > 16) {
+                                System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, 16);
+                            }
+                            else {
+                                System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, mmDataAvailable.length);
+                            }
+                        }
+                        else {
+                            System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, length_left);
+                        }
+                        position += offset;
 
-                    mmTempData = mmPackagedData;
-                    mmDataAvailable = mmFIFOQueue.remove();
-                    if(mmTempData == null) {    // at the very first packaging
-                        Log.d(TAG, "At the very first packaging");
-                        mmPackagedData = new byte[mmDataAvailable.length];
-                        System.arraycopy(mmDataAvailable, 0, mmPackagedData, 0, mmDataAvailable.length);
+    //                        Log.d(TAG, "At the very first packaging");
+                        if (length_used > 16) {   // the packet received was more than full packet
+    //                            Log.d(TAG, "There are more bytes than full packet");
+                            offset = offset + 16;
+                            length_left = length_used - 16;
+                            read_left = 0;
+                            more_to_read = false;
+
+    //                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                        }
+                        else if (length_used < 16){  // the packet received was partial packet
+    //                            Log.d(TAG, "There are bytes missing");
+                            offset = 0;
+                            length_left = 0;
+                            read_left = 16 - length_used;
+                            more_to_read = true;
+    //                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+
+                            mmFIFOQueue.remove();
+                        }
+                        else {  // the packet received was full packet
+                            mmFIFOQueue.remove();
+
+                            offset = 0;
+                            length_left = 0;
+                            read_left = 0;
+                            more_to_read = false;
+
+    //                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                        }
                     }
                     else {
-                        mmPackagedData = new byte[mmTempData.length + mmDataAvailable.length];
-                        System.arraycopy(mmTempData, 0, mmPackagedData, 0, mmTempData.length);
-                        System.arraycopy(mmDataAvailable, 0, mmPackagedData, mmTempData.length, mmDataAvailable.length);
+                        if(more_to_read) {   // at the next packaging
+                            if (length_left == 0) {
+                                if (mmDataAvailable.length > read_left) {
+                                    System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, read_left);
+                                }
+                                else {
+                                    System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, mmDataAvailable.length);
+                                }
+                            }
+                            else {
+                                System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, length_left);
+                            }
+                            position += offset;
+
+    //                            Log.d(TAG, "At the next packaging");
+                            if (length_used > read_left) {
+    //                                Log.d(TAG, "There are more bytes than full packet");
+                                offset = offset + read_left;
+                                length_left = length_used - read_left;
+                                read_left = 0;
+                                more_to_read = false;
+
+    //                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                            }
+                            else if (length_used < read_left){  // the packet received was partial packet
+    //                                Log.d(TAG, "There are bytes missing");
+                                offset = 0;
+                                length_left = 0;
+                                read_left = read_left - length_used;
+                                more_to_read = true;
+
+    //                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+
+                                mmFIFOQueue.remove();
+                            }
+                            else {  // the packet received was full packet
+                                mmFIFOQueue.remove();
+
+                                offset = 0;
+                                length_left = 0;
+                                read_left = 0;
+                                more_to_read = false;
+
+    //                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                            }
+
+                        }
                     }
-                    Log.d(TAG, "Packaged data is " + new String(mmPackagedData));
 
-                    mmPacketCount++;
-
-                    if(mmPacketCount == 16) {   // received full packet (128 bits)
-                        Log.d(TAG, "Got the full packet");
+                    if(!more_to_read) {   // received full packet (128 bits)
+    //                        Log.d(TAG, "Got the full packet");
+    //                        if (mmPackagedData != null && mmPackagedData.length > 0) {
+    //                            final StringBuilder stringBuilder = new StringBuilder(mmPackagedData.length);
+    //                            for(byte byteChar : mmPackagedData)
+    //                                stringBuilder.append(String.format("%02X ", byteChar));
+    //                            Log.d(TAG, "Full packet data is " + stringBuilder.toString());
+    //                        }
                         Intent intent = new Intent(ACTION_DATA_AVAILABLE);
                         intent.putExtra(EXTRA_DATA, mmPackagedData);
                         manager.sendBroadcast(intent);
 
                         // resetting
-                        mmPackagedData = null;
-                        mmPacketCount = 0;
+                        mmPackagedData = new byte[16];
                     }
                 }
             }
         }
 
         public synchronized void add (byte[] data) {
-            Log.i(TAG, "Adding into FIFO queue " + Integer.toHexString(data[0]));
-            mmFIFOQueue.add(data);
+//            Log.i(TAG, "Adding into FIFO queue " + data);
+//            if (data != null && data.length > 0) {
+//                final StringBuilder stringBuilder = new StringBuilder(data.length);
+//                for(byte byteChar : data)
+//                    stringBuilder.append(String.format("%02X ", byteChar));
+//                Log.d(TAG, "Adding into FIFO queue "  + stringBuilder.toString() + "(" + mmPacketCount + ")");
+//            }
+//            mmPacketCount++;
+            try {
+                mmFIFOQueue.put(data);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed adding into Packaging FIFO queue", e);
+            }
         }
     }
 }

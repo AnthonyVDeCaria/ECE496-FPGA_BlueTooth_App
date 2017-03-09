@@ -1,6 +1,5 @@
 package com.example.hannahkwon.bluetooth1;
 
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -10,7 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.androidplot.Plot;
-import com.androidplot.PlotListener;
+import com.androidplot.util.Redrawer;
+import com.androidplot.xy.BoundaryMode;
 import com.androidplot.xy.LineAndPointFormatter;
 import com.androidplot.xy.PanZoom;
 import com.androidplot.xy.SimpleXYSeries;
@@ -29,9 +29,10 @@ public class GraphFragment extends Fragment {
 
     private SimpleXYSeries ISE1_Series = null;
     private SimpleXYSeries ISE2_Series = null;
-//    private SimpleXYSeries Temp_Series = null;
 
-    public static ReentrantLock DataLock = null;
+    private Redrawer redrawer;
+
+    private static ReentrantLock DataLock = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -39,7 +40,6 @@ public class GraphFragment extends Fragment {
 
         ISE1_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "ISE1_Series");
         ISE2_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "ISE2_Series");
-//        Temp_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "Temp_Series");
 
         DataLock = new ReentrantLock();
 
@@ -57,35 +57,43 @@ public class GraphFragment extends Fragment {
         plot = (XYPlot) view.findViewById(R.id.plot);
         if(plot == null)
             Log.d(TAG, "plot is null!");
+
+        plot.setRenderMode(Plot.RenderMode.USE_BACKGROUND_THREAD);
+
         LineAndPointFormatter ISE1_format = new LineAndPointFormatter(Color.RED, Color.RED, null, null);
         LineAndPointFormatter ISE2_format = new LineAndPointFormatter(Color.BLUE, Color.BLUE, null, null);
-//        LineAndPointFormatter Temp_format = new LineAndPointFormatter(Color.RED, Color.RED, null,null);
+
         // disabling legends
         ISE1_format.setLegendIconEnabled(false);
         ISE2_format.setLegendIconEnabled(false);
-//        Temp_format.setLegendIconEnabled(false);
 
         plot.addSeries(ISE1_Series, ISE1_format);
         plot.addSeries(ISE2_Series, ISE2_format);
-//        plot.addSeries(Temp_Series, Temp_format);
 
         PanZoom.attach(plot);   // enable zooming
 
-        plot.addListener(new PlotListener() { // to synchronize data with rendering loop
-            @Override
-            public void onBeforeDraw(Plot source, Canvas canvas) {
-                // write-lock each active series for writes
-                Log.d(TAG, "Before redraw");
-                DataLock.lock();
-            }
+        // Sets up range of Y-axis
+        //TODO Need to be deleted
+        plot.setRangeBoundaries(170, 260, BoundaryMode.FIXED);
 
-            @Override
-            public void onAfterDraw(Plot source, Canvas canvas) {
-                // unlock any locked series
-                Log.d(TAG, "Done redraw");
-                DataLock.unlock();
-            }
-        });
+//        plot.addListener(new PlotListener() { // to synchronize data with rendering loop
+//            @Override
+//            public void onBeforeDraw(Plot source, Canvas canvas) {
+//                // write-lock each active series for writes
+////                Log.d(TAG, "Before redraw");
+//                DataLock.lock();
+//            }
+//
+//            @Override
+//            public void onAfterDraw(Plot source, Canvas canvas) {
+//                // unlock any locked series
+////                Log.d(TAG, "Done redraw");
+//                DataLock.unlock();
+//            }
+//        });
+
+        // set a redraw rate of 85 Hz (at every 12 ms)
+        redrawer = new Redrawer(plot, 150, true);
 
         return view;
     }
@@ -95,46 +103,48 @@ public class GraphFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
     }
 
+    @Override
+    public void onDestroy() {
+        redrawer.finish();
+        super.onDestroy();
+    }
+
     public synchronized void addData(int ISE1_val, int ISE2_val, int Temp_val) {
-        if(DataLock == null)
-            Log.e(TAG, "Lock for Data add is not initialized!");
-        boolean addDone = false;
-        Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
-                + ISE2_val);
-        while(true) {
-            DataLock.lock();
-            try {
-                    // adding data into corresponding series
+//        Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
+//                + ISE2_val);
+        // adding data into corresponding series
 
 //                    Log.d(TAG, "Current ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Current ISE2: " + ISE2_Series.getyVals().toString());
-//                    Log.d(TAG, "Current Temp: " + Temp_Series.getyVals().toString());
-                    ISE1_Series.addLast(null, ISE1_val);
-                    ISE2_Series.addLast(null, ISE2_val);
-//                    Temp_Series.addLast(null, Temp_val);
-                    addDone = true;
-                    Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
-                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
-//                    Log.d(TAG, "Updated Temp: " + Temp_Series.getyVals().toString());
+        ISE1_Series.addLast(null, ISE1_val);
+        ISE2_Series.addLast(null, ISE2_val);
 
-                    if(Temp_val >= Constants.TEMP_THRESHOLD) {
-                        Log.d(TAG, "Temp is above threshold");
-                        plot.getGraph().getGridBackgroundPaint().setColor(Color.GREEN);
-                    }
-                    else{
-                        Log.d(TAG, "Temp is below threshold");
-                        plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
-                    }
 
-            } finally {
-                DataLock.unlock();
-                if(addDone) {
-                    Log.d(TAG, "Redraw plot");
-                    plot.redraw();
-                    return;
-                }
-            }
+//                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
+//                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
+
+        if(Temp_val >= Constants.TEMP_THRESHOLD) {
+//                        Log.d(TAG, "Temp is above threshold");
+            plot.getGraph().getGridBackgroundPaint().setColor(Color.GREEN);
         }
+        else{
+//                        Log.d(TAG, "Temp is below threshold");
+            plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
+        }
+
+        return;
     }
 
+    public void clear() {
+        int i = ISE1_Series.size();
+        int j =100;
+
+        Log.d(TAG, "ISE series size is " + i);
+        for (; j > 0; j--) {
+            Log.d(TAG, "Current ISE: " + ISE1_Series.getY(i - j).toString() + ", " + ISE2_Series.getY(i - j).toString());
+        }
+        Log.d(TAG, "Clearing up the ISE series and graph");
+        plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
+        plot.clear();
+    }
 }
