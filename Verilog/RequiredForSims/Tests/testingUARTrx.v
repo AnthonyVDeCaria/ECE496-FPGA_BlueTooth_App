@@ -13,11 +13,19 @@ module testingUARTrx;
 	wire collecting_data;
 	wire rx_data_valid;
 	wire tx_done;
+	wire [3:0] i, n_i;
 	
-	parameter cpd = 10'd50;
-	parameter timer_cap = 10'd12;
+//	parameter cpd = 10'd50;
+//	parameter timer_cap = 10'd12;
+
+	parameter cpd = 10'd11;
+	parameter timer_cap = 10'd385;
 	
 	UART_rx uut(
+			.i(i),
+			.n_i(n_i),
+	
+	
 			.clk(clock), 
 			.resetn(~reset), 
 			.cycles_per_databit(cpd), 

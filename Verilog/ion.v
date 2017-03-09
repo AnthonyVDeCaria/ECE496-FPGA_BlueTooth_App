@@ -1,996 +1,216 @@
 /*
 	Ming Chen Hsu Jan 20th 
 	Ion sensor simulator
+	
+	Edited - February 9th, Anthony De Caria
 */
 
-module ion(clock, resetn, ready, data_out);
-
-	input clock, resetn;
-	output [7:0] ready;
-	output [109:0] data_out; 
-	reg [109:0]  extracted_data;
-	reg [5:0]  index;
-
-	//integer data_file; // file handler
-	//integer scan_file; // file handler
-	
-	parameter timer_cap = 16'haaaa; //16'd500000;
-
-	wire [15:0] timer, n_timer;
-	wire l_r_timer, r_r_timer, timer_done;
-	
-	assign l_r_timer = (curr == Idle);
-	assign r_r_timer = ~( ~resetn | (curr == Read_Packet) );
-	
-	adder_subtractor_16bit a_timer(.a(timer), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
-	register_16bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
-	
-	assign timer_done = (timer == timer_cap) ? 1'b1 : 1'b0;
+module ion(clock, resetn, ready, data_out, data_in, timer_cap0,// data_out1, data_out2, data_out3, data_out4, data_out5, data_out6, data_out7,
+i0,/* i1, i2, i3, i4, i5, i6, i7,*/ ion_curr, ion_next, timer_done, timer0 /*, timer1, timer2, timer3, timer4, timer5, timer6, timer7*/);
 
 	/*
-		FSM Wires
+		I/Os
 	*/
+	input clock, resetn;
+	input [109:0] data_in;
+	output ready;
+	
+	output [109:0] data_out;//, data_out1, data_out2, data_out3, data_out4, data_out5, data_out6, data_out7; 
+	
+	/*
+		Interior Wires
+	*/
+	wire [109:0] extracted_data0;//, extracted_data1, extracted_data2, extracted_data3; 
+//	wire [109:0] extracted_data4, extracted_data5, extracted_data6, extracted_data7;
+	output reg [5:0] i0;//, i1, i2, i3, i4, i5, i6, i7;
+	//wire any_timer_done;
+	assign extracted_data0 = data_in;
+	// FSM
 	parameter Start = 2'b00, Idle = 2'b01, Read_Packet = 2'b10, Send_Packet = 2'b11;
-	reg [1:0] curr, next;
+	output reg [1:0] ion_curr, ion_next;
+	
+	/*
+		Timers
+	*/
+	input [19:0] timer_cap0;//, timer_cap1 = 16'd35000, timer_cap2 = 16'd40000, timer_cap3 = 16'd45000;
+//	parameter timer_cap4 = 16'd50000, timer_cap5 = 16'd55000, timer_cap6 = 16'd60000, timer_cap7 = 16'd65000;
+
+	output [19:0] timer0;//, timer1, timer2, timer3, timer4, timer5, timer6, timer7;
+	wire [19:0] n_timer0;//, n_timer1, n_timer2, n_timer3, n_timer4, n_timer5, n_timer6, n_timer7;
+	wire l_r_timer, r_r_timer;
+	output timer_done;
+	
+	assign l_r_timer = ~timer_done;
+//	assign l_r_timer[1] = ~timer_done[1];
+//	assign l_r_timer[2] = ~timer_done[2];
+//	assign l_r_timer[3] = ~timer_done[3];
+//	assign l_r_timer[4] = ~timer_done[4];
+//	assign l_r_timer[5] = ~timer_done[5];
+//	assign l_r_timer[6] = ~timer_done[6];
+//	assign l_r_timer[7] = ~timer_done[7];
+	
+	assign r_r_timer = ~( ~resetn | (ion_curr == Send_Packet) & timer_done | (ion_curr == Start) );
+//	assign r_r_timer[1] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[1] | (ion_curr == Start) );
+//	assign r_r_timer[2] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[2] | (ion_curr == Start) );
+//	assign r_r_timer[3] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[3] | (ion_curr == Start) );
+//	assign r_r_timer[4] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[4] | (ion_curr == Start) );
+//	assign r_r_timer[5] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[5] | (ion_curr == Start) );
+//	assign r_r_timer[6] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[6] | (ion_curr == Start) );
+//	assign r_r_timer[7] = ~( ~resetn | (ion_curr == Send_Packet) & timer_done[7] | (ion_curr == Start) );
+
+	adder_subtractor_20bit a_timer0(.a(timer0), .b(20'd1), .want_subtract(1'b0), .c_out(), .s(n_timer0) );
+	register_20bit_enable_async r_timer0(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer0), .q(timer0) );
+	
+//	adder_subtractor_16bit a_timer1(.a(timer1), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer1) );
+//	register_16bit_enable_async r_timer1(.clk(clock), .resetn(r_r_timer[1]), .enable(l_r_timer[1]), .select(l_r_timer[1]), .d(n_timer1), .q(timer1) );
+	
+//	adder_subtractor_16bit a_timer2(.a(timer2), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer2) );
+//	register_16bit_enable_async r_timer2(.clk(clock), .resetn(r_r_timer[2]), .enable(l_r_timer[2]), .select(l_r_timer[2]), .d(n_timer2), .q(timer2) );
+	
+//	adder_subtractor_16bit a_timer3(.a(timer3), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer3) );
+//	register_16bit_enable_async r_timer3(.clk(clock), .resetn(r_r_timer[3]), .enable(l_r_timer[3]), .select(l_r_timer[3]), .d(n_timer3), .q(timer3) );
+	
+//	adder_subtractor_16bit a_timer4(.a(timer4), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer4) );
+//	register_16bit_enable_async r_timer4(.clk(clock), .resetn(r_r_timer[4]), .enable(l_r_timer[4]), .select(l_r_timer[4]), .d(n_timer4), .q(timer4) );
+	
+//	adder_subtractor_16bit a_timer5(.a(timer5), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer5) );
+//	register_16bit_enable_async r_timer5(.clk(clock), .resetn(r_r_timer[5]), .enable(l_r_timer[5]), .select(l_r_timer[5]), .d(n_timer5), .q(timer5) );
+	
+//	adder_subtractor_16bit a_timer6(.a(timer6), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer6) );
+//	register_16bit_enable_async r_timer6(.clk(clock), .resetn(r_r_timer[6]), .enable(l_r_timer[6]), .select(l_r_timer[6]), .d(n_timer6), .q(timer6) );
+	
+//	adder_subtractor_16bit a_timer7(.a(timer7), .b(16'h0001), .want_subtract(1'b0), .c_out(), .s(n_timer7) );
+//	register_16bit_enable_async r_timer7(.clk(clock), .resetn(r_r_timer[7]), .enable(l_r_timer[7]), .select(l_r_timer[7]), .d(n_timer7), .q(timer7) );
+	
+	assign timer_done = (timer0 == timer_cap0) ? 1'b1 : 1'b0;
+//	assign timer_done[1] = (timer1 == timer_cap1) ? 1'b1 : 1'b0;	
+//	assign timer_done[2] = (timer2 == timer_cap2) ? 1'b1 : 1'b0;
+//	assign timer_done[3] = (timer3 == timer_cap3) ? 1'b1 : 1'b0;	
+//	assign timer_done[4] = (timer4 == timer_cap4) ? 1'b1 : 1'b0;
+//	assign timer_done[5] = (timer5 == timer_cap5) ? 1'b1 : 1'b0;
+//	assign timer_done[6] = (timer6 == timer_cap6) ? 1'b1 : 1'b0;
+//	assign timer_done[7] = (timer7 == timer_cap7) ? 1'b1 : 1'b0;
+	
+//	assign any_timer_done = (timer_done != 8'h00) ? 1'b1 : 1'b0;
 	
 	/*
 		State Machine for sending and reading
 	*/	
 	always@(*)
 	begin
-		case(curr)
+		case(ion_curr)
 			Start:
 			begin
-				next = Idle;
-				index = 6'd0;
+				i0 = 6'd0;
+//				i1 = 6'd0;
+//				i2 = 6'd0;
+//				i3 = 6'd0;
+//				i4 = 6'd0;
+//				i5 = 6'd0;
+//				i6 = 6'd0;
+//				i7 = 6'd0;
+				
+				ion_next = Idle;
 			end
 			Idle: 
 			begin
-				index = index + 6'd0;
+				i0 = i0 + 6'd0;
+//				i1 = i1 + 6'd0;
+//				i2 = i2 + 6'd0;
+//				i3 = i3 + 6'd0;
+//				i4 = i4 + 6'd0;
+//				i5 = i5 + 6'd0;
+//				i6 = i6 + 6'd0;
+//				i7 = i7 + 6'd0;
+				
 				if (!timer_done)
 				begin
-					next = Idle;
-					
+					ion_next = Idle;
 				end
 				else 
 				begin
-					next = Read_Packet;
+					ion_next = Read_Packet;
 				end
 			end 
 			Read_Packet:
 			begin
-				index = index + 6'd0;
-				next = Send_Packet;
+				i0 = i0 + 6'd1;
+//				i1 = i1 + 6'd0;
+//				i2 = i2 + 6'd0;
+//				i3 = i3 + 6'd0;
+//				i4 = i4 + 6'd0;
+//				i5 = i5 + 6'd0;
+//				i6 = i6 + 6'd0;
+//				i7 = i7 + 6'd0;
+				
+				ion_next = Send_Packet;
 			end
 			Send_Packet:
 			begin
-				index = index + 6'd1;
-				next = Idle;
+					i0 = i0 + 6'd0;
+//				else if(timer_done[1])
+//					i1 = i1 + 6'd1;
+//				else if(timer_done[2])
+//					i2 = i2 + 6'd1;
+//				else if(timer_done[3])
+//					i3 = i3 + 6'd1;
+//				else if(timer_done[4])
+//					i4 = i4 + 6'd1;
+//				else if(timer_done[5])
+//					i5 = i5 + 6'd1;
+//				else if(timer_done[6])
+//					i6 = i6 + 6'd1;
+//				else if(timer_done[7])
+//					i7 = i7 + 6'd1;
+				
+				ion_next = Idle;
 			end
 			default: 
 			begin
-				index = 6'd0;
-				next = Start;
+				i0 = 6'd0;
+//				i1 = 6'd0;
+//				i2 = 6'd0;
+//				i3 = 6'd0;
+//				i4 = 6'd0;
+//				i5 = 6'd0;
+//				i6 = 6'd0;
+//				i7 = 6'd0;
+				
+				ion_next = Start;
 			end
-		endcase
-	end
-
-	//reading data
-
-	always @(*)
-	begin
-		case(index)
-			6'b000000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd881;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd56110;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;		
-			end
-			6'b000001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd176;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd925;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd3791;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end 
-			6'b000010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd962;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd63275;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end 
-			6'b000011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1011;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd24574;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end 
-			6'b000100:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd185;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1045;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd40019;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end 
-			6'b000101:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd186;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1094;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd50527;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end 
-			6'b000110:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1136;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd60177;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end 
-			6'b000111:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1178;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd47222;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end 
-			6'b001000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1220;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd42756;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b001001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1262;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd61961;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b001010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd183;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1304;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd7993;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b001011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1346;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd17675;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b001100:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1380;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd57473;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b001101:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1430;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd53224;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b001110:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1472;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd61195;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b001111:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd185;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1514;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd46996;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b010000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1556;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd145;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b010001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1598;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd21191;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b010010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1635;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd610;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b010011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1679;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd4089;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b010100:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1729;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd20685;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b0010101:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1766;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd10459;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b0010110:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1815;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd57766;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b010111:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1857;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd48236;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1903;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd36453;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd183;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1945;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd22977;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd1987;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd13045;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2033;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd40993;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011100:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2075;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd45310;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011101:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2108;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd62988;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011110:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd101;
-				extracted_data[47:32] = 16'd2162;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd50032;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b011111:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2199;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd22312;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2248;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd48507;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd101;
-				extracted_data[47:32] = 16'd2286;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd3615;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2335;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd31043;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2381;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd65151;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100100:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2423;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd45123;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100101:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2465;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd47297;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100110:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2498;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd1374;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b100111:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd180;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2548;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd8510;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2581;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd3766;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2631;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd15678;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2670;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd46144;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd176;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2712;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd43275;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101100:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd185;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2758;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd6402;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101101:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2800;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd28324;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101110:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2842;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd41123;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b101111:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2888;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd25754;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2926;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd43754;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd2973;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd37758;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3015;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd62364;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3057;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd48200;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110100:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3100;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd56276;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110101:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3146;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd59933;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110110:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd101;
-				extracted_data[47:32] = 16'd3184;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd30250;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b110111:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3233;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd49966;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b111000:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3267;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd662;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b111001:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3308;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd47031;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b111010:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd1;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd178;
-				extracted_data[31:24] = 8'd100;
-				extracted_data[47:32] = 16'd3349;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd2734;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			6'b111011:
-			begin
-				extracted_data[6:0] = 7'd77;
-				extracted_data[7] = 1'd0;
-				extracted_data[15:8] = 8'd255;
-				extracted_data[23:16] = 8'd177;
-				extracted_data[31:24] = 8'd101;
-				extracted_data[47:32] = 16'd3390;
-				extracted_data[55:48] = 8'd239;
-				extracted_data[63:56] = 8'd17;
-				extracted_data[79:64] = 16'd36121;
-				extracted_data[85:80] = 6'd1;
-				extracted_data[109:86] = 24'd4272433;
-			end
-			//change all data below
-			6'b111100:
-			begin
-                extracted_data[6:0] = 7'd77;
-                extracted_data[7] = 1'd0;
-                extracted_data[15:8] = 8'd255;
-                extracted_data[23:16] = 8'd177;
-                extracted_data[31:24] = 8'd101;
-                extracted_data[47:32] = 16'd3431;
-                extracted_data[55:48] = 8'd239;
-                extracted_data[63:56] = 8'd17;
-                extracted_data[79:64] = 16'd3721;
-                extracted_data[85:80] = 6'd1;
-                extracted_data[109:86] = 24'd4272433;
-			end
-			6'b111101:
-			begin
-				extracted_data[6:0] = 7'd77;
-                extracted_data[7] = 1'd0;
-                extracted_data[15:8] = 8'd255;
-                extracted_data[23:16] = 8'd177;
-                extracted_data[31:24] = 8'd101;
-                extracted_data[47:32] = 16'd3472;
-                extracted_data[55:48] = 8'd239;
-                extracted_data[63:56] = 8'd17;
-                extracted_data[79:64] = 16'd36121;
-                extracted_data[85:80] = 6'd1;
-                extracted_data[109:86] = 24'd4272433;
-			end
-			6'b111110:
-			begin
-				extracted_data[6:0] = 7'd77;
-                extracted_data[7] = 1'd0;
-                extracted_data[15:8] = 8'd255;
-                extracted_data[23:16] = 8'd177;
-                extracted_data[31:24] = 8'd101;
-                extracted_data[47:32] = 16'd3513;
-                extracted_data[55:48] = 8'd239;
-                extracted_data[63:56] = 8'd17;
-                extracted_data[79:64] = 16'd31121;
-                extracted_data[85:80] = 6'd1;
-                extracted_data[109:86] = 24'd4272433;
-			end
-			6'b111111:
-			begin
-				extracted_data[6:0] = 7'd77;
-                extracted_data[7] = 1'd0;
-                extracted_data[15:8] = 8'd255;
-                extracted_data[23:16] = 8'd177;
-                extracted_data[31:24] = 8'd101;
-                extracted_data[47:32] = 16'd3554;
-                extracted_data[55:48] = 8'd239;
-                extracted_data[63:56] = 8'd17;
-                extracted_data[79:64] = 16'd3611;
-                extracted_data[85:80] = 6'd1;
-                extracted_data[109:86] = 24'd4272433;
-			end
-			default:
-				extracted_data = 110'd0;
 		endcase
 	end
 	
-	//data_read begin sent out
-	assign data_out = (curr == Read_Packet) ? extracted_data : 110'd0;
-	assign ready = (curr == Read_Packet) ? 8'b00000001 : 8'b00000000;
+	//DS0 stream0(.index(i0), .data(extracted_data0));
+	//DS1 stream1(.index(i1), .data(extracted_data1));
+	//DS2 stream2(.index(i2), .data(extracted_data2));
+	//DS3 stream3(.index(i3), .data(extracted_data3));
+	//DS4 stream4(.index(i4), .data(extracted_data4));
+	//DS5 stream5(.index(i5), .data(extracted_data5));
+	//DS6 stream6(.index(i6), .data(extracted_data6));
+	//DS7 stream7(.index(i7), .data(extracted_data7));
+	
+	mux_2_110bit m_ed0(.data0(110'd0), .data1(extracted_data0), .sel((ion_curr == Read_Packet)), .result(data_out) );
+	//mux_2_110bit m_ed1(.data0(110'd0), .data1(extracted_data1), .sel((ion_curr == Read_Packet)), .result(data_out1) );
+	//mux_2_110bit m_ed2(.data0(110'd0), .data1(extracted_data2), .sel((ion_curr == Read_Packet)), .result(data_out2) );
+	//mux_2_110bit m_ed3(.data0(110'd0), .data1(extracted_data3), .sel((ion_curr == Read_Packet)), .result(data_out3) );
+	//mux_2_110bit m_ed4(.data0(110'd0), .data1(extracted_data4), .sel((ion_curr == Read_Packet)), .result(data_out4) );
+	//mux_2_110bit m_ed5(.data0(110'd0), .data1(extracted_data5), .sel((ion_curr == Read_Packet)), .result(data_out5) );
+	//mux_2_110bit m_ed6(.data0(110'd0), .data1(extracted_data6), .sel((ion_curr == Read_Packet)), .result(data_out6) );
+	//mux_2_110bit m_ed7(.data0(110'd0), .data1(extracted_data7), .sel((ion_curr == Read_Packet)), .result(data_out7) );
+	
+	
+	wire r_r_ready, l_r_ready;
+	assign r_r_ready = ~(~resetn | (ion_curr == Send_Packet));
+	assign l_r_ready = (ion_curr == Idle);
+	register_1bit_enable_async r_ready(.clk(clock), .resetn(r_r_ready), .enable(l_r_ready), .select(l_r_ready), .d(timer_done), .q(ready) );
+	
 	/*
-		Reset or Update Curr
+		Reset or Update ion_curr
 	*/
 	always@(posedge clock or negedge resetn)
 	begin
-		if(!resetn) curr <= Start; else curr <= next;
+		if(!resetn) ion_curr <= Start; else ion_curr <= ion_next;
 	end
 
 endmodule

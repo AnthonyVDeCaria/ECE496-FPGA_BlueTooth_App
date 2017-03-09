@@ -11,7 +11,7 @@ module testingRC;
 	reg RFIFO_rd_en;
 	
 	parameter cpd = 10'd50;
-	parameter timer_cap = 10'd12;
+	parameter rc_timer_cap = 10'd12;
 	wire data_line;
 
 	// Outputs
@@ -25,7 +25,7 @@ module testingRC;
 	wire [7:0] commands, operands;
 	wire l_r_ds_sending_flag, r_r_ds_sending_flag, ds_sending_flag_value, c, n;
 	wire [1:0] rc_curr, rc_next;
-	wire [9:0] timer, n_timer;
+	wire [9:0] rc_timer, n_rc_timer;
 
 	// Instantiate the Unit Under Test (UUT)
 	receiver_centre uut(
@@ -33,7 +33,7 @@ module testingRC;
 		.reset(reset),
 		
 		.uart_cpd(cpd), 
-		.uart_timer_cap(timer_cap),
+		.uart_spacing_limit(rc_timer_cap),
 		 
 		.fpga_rxd(data_line),
 		
@@ -49,7 +49,7 @@ module testingRC;
 		
 		.commands(commands), .operands(operands), .l_r_ds_sending_flag(l_r_ds_sending_flag), .r_r_ds_sending_flag(r_r_ds_sending_flag), .ds_sending_flag_value(ds_sending_flag_value),
 		.rc_curr(rc_curr), .rc_next(rc_next), .c(c), .n(n),
-		.timer(timer), .n_timer(n_timer)
+		.rc_timer(rc_timer), .n_rc_timer(n_rc_timer)
 	);
 	
 	UART_tx santas_little_helper(
@@ -95,13 +95,14 @@ module testingRC;
 		#801 RFIFO_rd_en = 1'b0;
 		
 		#1000 want_at = 1'b0;
-		#1020 tx_data = 8'h00;
-		#1050 start = 1'b1;
-		#1075 start = 1'b0;
 		
-		#1220 tx_data = 8'h78;
-		#1250 start = 1'b1;
-		#1275 start = 1'b0;
+		#1020 tx_data = 8'h00;
+		#1021 start = 1'b1;
+		#1055 start = 1'b0;
+		
+		#1056 tx_data = 8'h78;
+		#1056 start = 1'b1;
+		#1075 start = 1'b0;
 		
 		#1420 tx_data = 8'h01;
 		#1450 start = 1'b1;
