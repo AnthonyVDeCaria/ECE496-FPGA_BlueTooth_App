@@ -93,7 +93,7 @@ public class GraphFragment extends Fragment {
 //        });
 
         // set a redraw rate of 85 Hz (at every 12 ms)
-        redrawer = new Redrawer(plot, 70, true);
+        redrawer = new Redrawer(plot, 150, true);
 
         return view;
     }
@@ -136,6 +136,15 @@ public class GraphFragment extends Fragment {
     }
 
     public void clear() {
+        int i = ISE1_Series.size();
+        int j =100;
+
+        Log.d(TAG, "ISE series size is " + i);
+        for (; j > 0; j--) {
+            Log.d(TAG, "Current ISE: " + ISE1_Series.getY(i - j).toString() + ", " + ISE2_Series.getY(i - j).toString());
+        }
+        Log.d(TAG, "Clearing up the ISE series and graph");
+        plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
         plot.clear();
     }
 }

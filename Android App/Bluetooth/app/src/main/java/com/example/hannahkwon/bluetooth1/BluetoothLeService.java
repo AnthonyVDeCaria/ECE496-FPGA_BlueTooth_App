@@ -541,8 +541,6 @@ public class BluetoothLeService extends Service {
     */
     private class PackagingThread extends Thread {
         LinkedBlockingQueue<byte []> mmFIFOQueue = new LinkedBlockingQueue<byte []>();
-        private int mmByteCount = 0;
-        private int mmPacketCount = 1;
         private byte [] mmPackagedData = new byte[16];
         private byte [] mmDataAvailable = null;
         private byte[] commandPacket = null;
@@ -665,8 +663,6 @@ public class BluetoothLeService extends Service {
 
                         }
                     }
-
-                    mmByteCount = 0;
 
                     if(!more_to_read) {   // received full packet (128 bits)
     //                        Log.d(TAG, "Got the full packet");

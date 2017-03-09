@@ -117,28 +117,34 @@ public class FileManager {
             Log.d(TAG, "Starting log");
             try {
                 clearLogFile();
-                File logFile = new File(logFilePath);
-                logfos = new FileOutputStream(logFile, true);
+//                File logFile = new File(logFilePath);
+//                logfos = new FileOutputStream(logFile, true);
             } catch (Exception e) {
                 Log.e(TAG, "Failed starting log", e);
             }
         }
 
         // To be called when user pressed Cancel or after data saving or at Activity destroy
-        public void cancelLog() {
-            Log.d(TAG, "Canceling log");
-            try {
-                if(logfos != null)
-                    logfos.close();
-            } catch (Exception e) {
-                Log.e(TAG, "Failed canceling log", e);
-            }
-        }
+//        public void cancelLog() {
+//            Log.d(TAG, "Canceling log");
+//            try {
+//                if(logfos != null) {
+//                    logfos.flush();
+//                    logfos.close();
+//                    logfos = null;
+//                    Log.d(TAG, "Log file saved correctly");
+//                }
+//            } catch (Exception e) {
+//                Log.e(TAG, "Failed canceling log", e);
+//            }
+//        }
 
         public synchronized void log (byte[] data) {
             Log.d(TAG, "Logging");
             try {
+                logfos = new FileOutputStream(logFilePath, true);
                 logfos.write(data);
+                logfos.close();
             } catch (Exception e) {
                 Log.e(TAG, "Failed logging", e);
             }
@@ -148,6 +154,7 @@ public class FileManager {
             Log.d(TAG, "Clearing log file");
             File logFile = new File(logFilePath);
            try {
+               Log.d(TAG, "Log file path is " + logFilePath);
                FileOutputStream fos = new FileOutputStream(logFile);
                fos.close();
            } catch (Exception e) {
@@ -155,5 +162,4 @@ public class FileManager {
            }
         }
     }
-
 }

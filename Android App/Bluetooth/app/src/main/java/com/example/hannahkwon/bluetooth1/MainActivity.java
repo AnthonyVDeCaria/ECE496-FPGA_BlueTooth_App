@@ -307,7 +307,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 d(TAG, "Pressed Cancel");
                 // Wiping out log file
-                mLoggingThread.cancelLog();
+//                mLoggingThread.cancelLog();
 
                 commandPacketCreator((byte) Constants.CANCEL);
 
@@ -338,7 +338,7 @@ public class MainActivity extends AppCompatActivity
                     ) {
                         //Do your own error handling here
                         Log.e(TAG, "Something went wrong!\nThe App is going to crash!");
-                        mLoggingThread.cancelLog();
+//                        mLoggingThread.cancelLog();
 
                         if (oldHandler != null)
                             oldHandler.uncaughtException(
@@ -419,7 +419,7 @@ public class MainActivity extends AppCompatActivity
             mBluetoothLeService = null;
             mBound = false;
         }
-        mLoggingThread.cancelLog();
+//        mLoggingThread.cancelLog();
     }
 
     @Override
