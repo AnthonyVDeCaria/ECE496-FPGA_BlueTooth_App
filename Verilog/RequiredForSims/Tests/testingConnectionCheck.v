@@ -1,6 +1,6 @@
 `timescale 1us / 1ps
 
-module testingStateCheck;
+module testingConnectionCheck;
 
 	// Inputs
 	reg clock;
@@ -27,23 +27,15 @@ module testingStateCheck;
 	mux_2_1bit m_state_line(.data0(state_line_per), .data1(1'b1), .sel(connection_switch),. result(state_line));
 	
 	// Outputs
-	wire connection_flag;
-	wire [1:0] sc_curr, sc_next;
-	wire after_edge, before_edge, original_sl, new_sl;
+	wire connection_flag, connection_warning_flag;
 
 	// Instantiate the Unit Under Test (UUT)
-	HM_10_State_Check uut(
-		.sc_curr(sc_curr), 
-		.sc_next(sc_next),
-		.original_sl(original_sl), 
-		.new_sl(new_sl),
-		.after_edge(after_edge),
-		.before_edge(before_edge),
-	
+	HM_10_Connection_Check uut(
 		.reset(reset),
 		.clock(clock),
 		.state_line(state_line), 
-		.connection_flag(connection_flag)
+		.connection_flag(connection_flag),
+		.connection_warning_flag(connection_warning_flag)
 	);
 	
 	always begin
