@@ -123,7 +123,7 @@ public class GraphFragment_aChartEngine extends Fragment {
                     }
                 });
                 over_threshold = true;
-                Log.d(TAG, "Succeed changing graph background color");
+//                Log.d(TAG, "Succeed changing graph background color");
             }
         } else {
 //                        Log.d(TAG, "Temp is below threshold");
@@ -135,7 +135,7 @@ public class GraphFragment_aChartEngine extends Fragment {
                     }
                 });
                 over_threshold = true;
-                Log.d(TAG, "Succeed changing graph background color");
+//                Log.d(TAG, "Succeed changing graph background color");
             }
         }
         activity.runOnUiThread(new Runnable() {
@@ -144,7 +144,7 @@ public class GraphFragment_aChartEngine extends Fragment {
                 chartView.repaint();
             }
         });
-        Log.d(TAG, "Succeed updating graph");
+//        Log.d(TAG, "Succeed updating graph");
 
         return;
     }

@@ -49,4 +49,6 @@ public class Constants {
     public static final int DS8 = 0b10000000;
 
     public static final int TEMP_THRESHOLD = 35;
+
+    public static final String LOG_FILE = "Log.txt";
 }

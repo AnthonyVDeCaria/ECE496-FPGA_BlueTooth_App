@@ -85,13 +85,13 @@ public class MainActivity extends AppCompatActivity
     private GraphFragment_MPAndroidChart mGraph_1;
 //    private GraphFragment_aChartEngine mGraph_1;
 
-    private GraphFragment mGraph_2;
-    private GraphFragment mGraph_3;
-    private GraphFragment mGraph_4;
-    private GraphFragment mGraph_5;
-    private GraphFragment mGraph_6;
-    private GraphFragment mGraph_7;
-    private GraphFragment mGraph_8;
+    private GraphFragment_MPAndroidChart mGraph_2;
+    private GraphFragment_MPAndroidChart mGraph_3;
+    private GraphFragment_MPAndroidChart mGraph_4;
+    private GraphFragment_MPAndroidChart mGraph_5;
+    private GraphFragment_MPAndroidChart mGraph_6;
+    private GraphFragment_MPAndroidChart mGraph_7;
+    private GraphFragment_MPAndroidChart mGraph_8;
 
     private final Handler mHandler = new Handler(){
         @Override
@@ -264,13 +264,13 @@ public class MainActivity extends AppCompatActivity
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
 //        mGraph_1 = (GraphFragment_aChartEngine) getSupportFragmentManager().findFragmentById(R.id.graph_1);
 
-//        mGraph_2 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_2);
-//        mGraph_3 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_3);
-//        mGraph_4 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_4);
-//        mGraph_5 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_5);
-//        mGraph_6 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_6);
-//        mGraph_7 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_7);
-//        mGraph_8 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_8);
+        mGraph_2 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_2);
+        mGraph_3 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_3);
+        mGraph_4 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_4);
+        mGraph_5 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_5);
+        mGraph_6 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_6);
+        mGraph_7 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_7);
+        mGraph_8 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_8);
 
         // TODO scale the gridlayout
 
@@ -328,27 +328,35 @@ public class MainActivity extends AppCompatActivity
 
                 verifyWriteStoragePermission(MainActivity.this);
                 //TODO calculate required data points
+                int minCapacity = 1800;
 
-                mGraph_1.start();
+                mGraph_1.start(minCapacity);
+                mGraph_2.start(minCapacity);
+                mGraph_3.start(minCapacity);
+                mGraph_4.start(minCapacity);
+                mGraph_5.start(minCapacity);
+                mGraph_6.start(minCapacity);
+                mGraph_7.start(minCapacity);
+                mGraph_8.start(minCapacity);
             }
         });
         bt_Cancel.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 d(TAG, "Pressed Cancel");
                 // Wiping out log file
-//                mLoggingThread.cancelLog();
+                mLoggingThread.finishLog();
 
                 commandPacketCreator((byte) Constants.CANCEL);
 
                 // Wipes out the graphs
                 mGraph_1.clear();
-//                mGraph_2.clear();
-//                mGraph_3.clear();
-//                mGraph_4.clear();
-//                mGraph_5.clear();
-//                mGraph_6.clear();
-//                mGraph_7.clear();
-//                mGraph_8.clear();
+                mGraph_2.clear();
+                mGraph_3.clear();
+                mGraph_4.clear();
+                mGraph_5.clear();
+                mGraph_6.clear();
+                mGraph_7.clear();
+                mGraph_8.clear();
             }
         });
 
@@ -367,7 +375,7 @@ public class MainActivity extends AppCompatActivity
                     ) {
                         //Do your own error handling here
                         Log.e(TAG, "Something went wrong!\nThe App is going to crash!");
-//                        mLoggingThread.cancelLog();
+                        mLoggingThread.finishLog();
 
                         if (oldHandler != null)
                             oldHandler.uncaughtException(
@@ -448,7 +456,7 @@ public class MainActivity extends AppCompatActivity
             mBluetoothLeService = null;
             mBound = false;
         }
-//        mLoggingThread.cancelLog();
+        mLoggingThread.finishLog();
     }
 
     @Override
@@ -760,7 +768,7 @@ public class MainActivity extends AppCompatActivity
         private boolean mmTestPurponse = false; // for testing graph (to be deleted later)
 
         private int count = 0;  // used to count number of packets for logging
-        private byte[] mmDataToLog = new byte[200];
+        private byte[] mmDataToLog = new byte[201];
 
         public ProcessingThread() {
             d(TAG, "Creating ProcessingThread");
@@ -794,65 +802,66 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 for(int i = 0; i < 4; i++) {
-                    mmDataToLog[count * 4 + i] = mmTempData[i];
+                    mmDataToLog[count * 4 + i] = (byte) mmRetrievedData[i];
                 }
 
                 count++;
                 if(count == 50) {
+                    mmDataToLog[200] = (byte) 27;
                     mLoggingThread.log(mmDataToLog);
-                    mmDataToLog = new byte[200];
+                    mmDataToLog = new byte[201];
                     count = 0;
                 }
 
                 //TODO enable this
-//                datastream = mmRetrievedData[0] & 0b00000111;
+                datastream = mmRetrievedData[0] & 0b00000111;
                 //TODO uncomment below
-//                if(datastream == 0){    // display only DS1
-//                    Log.d(TAG, "Packaged data corresponds to datastream 1");
-//                    // for graph
-//                    mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                }
-                //TODO delete below
-                if(mmRetrievedData[0] == 49){    // display only DS1
+                if(datastream == 0){    // display only DS1
                     Log.d(TAG, "Packaged data corresponds to datastream 1");
                     // for graph
                     mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
                 }
-//                else if(datastream == 1) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+                //TODO delete below
+//                if(mmRetrievedData[0] == 49){    // display only DS1
+//                    Log.d(TAG, "Packaged data corresponds to datastream 1");
 //                    // for graph
-//                    mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
 //                }
-//                else if(datastream == 2) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 3");
-//                    // for graph
-//                    mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                }
-//                else if(datastream == 3) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 4");
-//                    // for graph
-//                    mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                }
-//                else if(datastream == 4) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 5");
-//                    // for graph
-//                    mGraph_5.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                }
-//                else if(datastream == 5) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 6");
-//                    // for graph
-//                    mGraph_6.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                }
-//                else if(datastream == 6) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 7");
-//                    // for graph
-//                    mGraph_7.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                }
-//                else if(datastream == 7) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 8");
-//                    // for graph
-//                    mGraph_8.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-//                }
+                else if(datastream == 1) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+                    // for graph
+                    mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                }
+                else if(datastream == 2) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 3");
+                    // for graph
+                    mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                }
+                else if(datastream == 3) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+                    // for graph
+                    mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                }
+                else if(datastream == 4) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 5");
+                    // for graph
+                    mGraph_5.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                }
+                else if(datastream == 5) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 6");
+                    // for graph
+                    mGraph_6.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                }
+                else if(datastream == 6) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 7");
+                    // for graph
+                    mGraph_7.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                }
+                else if(datastream == 7) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 8");
+                    // for graph
+                    mGraph_8.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                }
                 else {
                     Log.e(TAG, "Received data not corresponding to any datastreams");
                 }

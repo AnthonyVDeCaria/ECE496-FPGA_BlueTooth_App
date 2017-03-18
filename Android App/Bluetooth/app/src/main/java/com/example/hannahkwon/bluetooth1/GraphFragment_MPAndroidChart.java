@@ -37,7 +37,9 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     private ArrayList<Entry> ISE1_entries;
     private ArrayList<Entry> ISE2_entries;
 
-    private static boolean over_threshold = false;  // used to change background color
+    private boolean over_threshold = false;  // used to change background color
+
+    private long counter = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -53,6 +55,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         ISE1_dataset = new LineDataSet(ISE1_entries, "ISE1");
         ISE1_dataset.setColor(Color.RED);
         ISE1_dataset.setValueTextColor(Color.RED);
+        ISE1_dataset.setCircleRadius(2f);
         ISE1_dataset.setCircleColor(Color.RED);
         ISE1_dataset.setDrawCircleHole(false);  // circle will be filled up
         ISE1_dataset.setDrawValues(false);
@@ -60,6 +63,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         ISE2_dataset = new LineDataSet(ISE2_entries, "ISE2");
         ISE2_dataset.setColor(Color.BLUE);
         ISE2_dataset.setValueTextColor(Color.BLUE);
+        ISE2_dataset.setCircleRadius(2f);
         ISE2_dataset.setCircleColor(Color.BLUE);
         ISE2_dataset.setDrawCircleHole(false);  // circle will be filled up
         ISE2_dataset.setDrawValues(false);
@@ -96,15 +100,19 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     }
 
     public synchronized void addData(int ISE1_val, int ISE2_val, int Temp_val) {
-        plotting_time = System.currentTimeMillis() - start_time;
+//        plotting_time = System.currentTimeMillis() - start_time;
 //        Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
 //                + ISE2_val);
         // adding data into corresponding series
 
 //                    Log.d(TAG, "Current ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Current ISE2: " + ISE2_Series.getyVals().toString());
-        ISE1_dataset.addEntry(new Entry(plotting_time, ISE1_val));
-        ISE2_dataset.addEntry(new Entry(plotting_time, ISE2_val));
+//        ISE1_dataset.addEntry(new Entry(plotting_time, ISE1_val));
+//        ISE2_dataset.addEntry(new Entry(plotting_time, ISE2_val));
+        ISE1_dataset.addEntry(new Entry(counter, ISE1_val));
+        ISE2_dataset.addEntry(new Entry(counter, ISE2_val));
+        counter++;
+
         lineData.notifyDataChanged();
         chart.notifyDataSetChanged();
 
@@ -113,7 +121,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 //                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
 
         if (Temp_val >= Constants.TEMP_THRESHOLD) {
-             Log.d(TAG, "Temp is above threshold");
+//             Log.d(TAG, "Temp is above threshold");
             if(!over_threshold) {
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -122,10 +130,10 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                     }
                 });
                 over_threshold = true;
-                Log.d(TAG, "Succeed changing graph background color");
+//                Log.d(TAG, "Succeed changing graph background color");
             }
         } else {
-            Log.d(TAG, "Temp is below threshold");
+//            Log.d(TAG, "Temp is below threshold");
             if(over_threshold) {
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -133,8 +141,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                         chart.setBackgroundColor(Color.WHITE);
                     }
                 });
-                over_threshold = true;
-                Log.d(TAG, "Succeed changing graph background color");
+                over_threshold = false;
+//                Log.d(TAG, "Succeed changing graph background color");
             }
         }
         activity.runOnUiThread(new Runnable() {
@@ -143,7 +151,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 chart.invalidate();
             }
         });
-        Log.d(TAG, "Succeed updating graph");
+//        Log.d(TAG, "Succeed updating graph");
 
         return;
     }
@@ -162,14 +170,14 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         Log.d(TAG, "Successfully cleared values");
     }
 
-    public void ensureCapacity(int num) {
+    private void ensureCapacity(int num) {
         Log.d(TAG, "Increasing the capacity of the entries");
         ISE1_entries.ensureCapacity(num);
         ISE2_entries.ensureCapacity(num);
     }
 
-    public void start() {
-        start_time = System.currentTimeMillis();
+    public void start(int num) {
+        ensureCapacity(num);
 
         LineData data = chart.getData();
         if(data != null) {   // cleared entries
@@ -181,6 +189,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 lineData.addDataSet(ISE2_dataset);
             }
         }
+        start_time = System.currentTimeMillis();
 //        lineData.addDataSet(ISE1_dataset);
 //        lineData.addDataSet(ISE2_dataset);
     }

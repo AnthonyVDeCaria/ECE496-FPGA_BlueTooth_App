@@ -45,7 +45,7 @@ public class FileManager {
     */
     public boolean createStorageDir() {
         path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + PARENT_DIR;
-        logFilePath = path + File.separator + "Log.txt";
+        logFilePath = path + File.separator + Constants.LOG_FILE;
 
         File file = new File(path);
         if(!file.exists()) {
@@ -117,34 +117,34 @@ public class FileManager {
             Log.d(TAG, "Starting log");
             try {
                 clearLogFile();
-//                File logFile = new File(logFilePath);
-//                logfos = new FileOutputStream(logFile, true);
+                File logFile = new File(logFilePath);
+                logfos = new FileOutputStream(logFile, true);
             } catch (Exception e) {
                 Log.e(TAG, "Failed starting log", e);
             }
         }
 
         // To be called when user pressed Cancel or after data saving or at Activity destroy
-//        public void cancelLog() {
-//            Log.d(TAG, "Canceling log");
-//            try {
-//                if(logfos != null) {
-//                    logfos.flush();
-//                    logfos.close();
-//                    logfos = null;
-//                    Log.d(TAG, "Log file saved correctly");
-//                }
-//            } catch (Exception e) {
-//                Log.e(TAG, "Failed canceling log", e);
-//            }
-//        }
+        public void finishLog() {
+            Log.d(TAG, "Canceling log");
+            try {
+                if(logfos != null) {
+                    logfos.flush();
+                    logfos.close();
+                    logfos = null;
+                    Log.d(TAG, "Log file saved correctly");
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Failed canceling log", e);
+            }
+        }
 
         public synchronized void log (byte[] data) {
             Log.d(TAG, "Logging");
             try {
-                logfos = new FileOutputStream(logFilePath, true);
+//                logfos = new FileOutputStream(logFilePath, true);
                 logfos.write(data);
-                logfos.close();
+//                logfos.close();
             } catch (Exception e) {
                 Log.e(TAG, "Failed logging", e);
             }
