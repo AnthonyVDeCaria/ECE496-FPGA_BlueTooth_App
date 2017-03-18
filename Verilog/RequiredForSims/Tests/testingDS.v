@@ -82,7 +82,7 @@ module testingDS;
 		// Initialize Inputs
 		clock = 0;
 		resetn = 0;
-		bt_state = 0;
+		bt_state = 1;
 		ep01wireIn = 0;
 		ep02wireIn = 0;
 		start = 1'b0;
@@ -95,7 +95,10 @@ module testingDS;
 		#0 resetn = 1'b1;
 		#0 ep02wireIn = 16'h0001;
 		
+		#100 bt_state = 1'b0;
 		#100 ep02wireIn = 16'h0002;
+		
+		#150 bt_state = 1'b1;
 		
 		#200 App_command_byte = 8'h00;
 		#200 start = 1'b1;

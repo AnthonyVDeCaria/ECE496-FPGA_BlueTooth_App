@@ -33,7 +33,7 @@
 		#Wait_for_Edge
 */
 
-module HM_10_Connection_Check(clock, reset, state_line, connection_flag, connection_warning_flag);
+module HM_10_Connection_Check(cc_curr, cc_next, clock, reset, state_line, connection_flag, connection_warning_flag);
 	/*
 		I/Os
 	*/
@@ -46,7 +46,7 @@ module HM_10_Connection_Check(clock, reset, state_line, connection_flag, connect
 	*/
 	parameter Wait_for_Edge = 2'b00, Wait_for_Clock = 2'b01, Load_NL = 2'b10, Check = 2'b11;
 	
-	reg [1:0] cc_curr, cc_next;
+	output reg [1:0] cc_curr, cc_next;
 	
 	/*
 		Wires
