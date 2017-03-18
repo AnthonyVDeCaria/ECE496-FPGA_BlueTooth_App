@@ -45,7 +45,7 @@ public class FileManager {
     */
     public boolean createStorageDir() {
         path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + PARENT_DIR;
-        logFilePath = path + File.separator + R.string.log_file;
+        logFilePath = path + File.separator + "Log.txt";
 
         File file = new File(path);
         if(!file.exists()) {

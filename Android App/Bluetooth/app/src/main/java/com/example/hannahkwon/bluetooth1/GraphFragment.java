@@ -16,8 +16,6 @@ import com.androidplot.xy.PanZoom;
 import com.androidplot.xy.SimpleXYSeries;
 import com.androidplot.xy.XYPlot;
 
-import java.util.concurrent.locks.ReentrantLock;
-
 /**
  * Created by HannahKwon on 2017-01-18.
  */
@@ -32,16 +30,12 @@ public class GraphFragment extends Fragment {
 
     private Redrawer redrawer;
 
-    private static ReentrantLock DataLock = null;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         ISE1_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "ISE1_Series");
         ISE2_Series = new SimpleXYSeries(SimpleXYSeries.ArrayFormat.Y_VALS_ONLY, "ISE2_Series");
-
-        DataLock = new ReentrantLock();
 
         TAG = getTag();
         Log.d(TAG, "TAG is " + TAG);
@@ -118,7 +112,7 @@ public class GraphFragment extends Fragment {
 //                    Log.d(TAG, "Current ISE2: " + ISE2_Series.getyVals().toString());
         ISE1_Series.addLast(null, ISE1_val);
         ISE2_Series.addLast(null, ISE2_val);
-
+        Log.d(TAG, ISE2_Series.getY(ISE2_Series.size() - 1).toString());
 
 //                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
@@ -136,14 +130,14 @@ public class GraphFragment extends Fragment {
     }
 
     public void clear() {
-        int i = ISE1_Series.size();
-        int j =100;
-
-        Log.d(TAG, "ISE series size is " + i);
-        for (; j > 0; j--) {
-            Log.d(TAG, "Current ISE: " + ISE1_Series.getY(i - j).toString() + ", " + ISE2_Series.getY(i - j).toString());
-        }
-        Log.d(TAG, "Clearing up the ISE series and graph");
+//        int i = ISE1_Series.size();
+//        int j =100;
+//
+//        Log.d(TAG, "ISE series size is " + i);
+//        for (; j > 0; j--) {
+//            Log.d(TAG, "Current ISE: " + ISE1_Series.getY(i - j).toString() + ", " + ISE2_Series.getY(i - j).toString());
+//        }
+//        Log.d(TAG, "Clearing up the ISE series and graph");
         plot.getGraph().getGridBackgroundPaint().setColor(Color.WHITE);
         plot.clear();
     }
