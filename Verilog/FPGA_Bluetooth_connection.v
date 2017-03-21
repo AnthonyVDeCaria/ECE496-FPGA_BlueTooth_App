@@ -58,22 +58,20 @@
 module FPGA_Bluetooth_connection(
 		clock, 
 		bt_state, fpga_txd, fpga_rxd,
-		uart_cpd, uart_byte_spacing_limit,
 //		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
-//		sensor_stream_ready,
+//		sensor_stream_ready, access_sensor_stream, ack_sensor_stream,
 		ep01wireIn, ep02wireIn, 
 		ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, 
 		ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut,
-		ep30wireOut
+		ep30wireOut,
+		uart_cpd, uart_byte_spacing_limit
 	);
 	
 	/*
 		I/Os
 	*/
-	input clock;
-	input [9:0] uart_cpd, uart_byte_spacing_limit;
-	
 	//	FPGA
+	input clock;
 	input fpga_rxd, bt_state;
 	output fpga_txd;
 	
@@ -84,8 +82,12 @@ module FPGA_Bluetooth_connection(
 	output [15:0] ep30wireOut;
 	
 	// Sensor
-	wire [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
+	wire [109:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
 	wire [7:0] sensor_stream_ready;
+	wire [7:0] access_sensor_stream, ack_sensor_stream;
+	
+	// Other
+	input [9:0] uart_cpd, uart_byte_spacing_limit;
 	
 	/*
 		Wires 
@@ -98,7 +100,7 @@ module FPGA_Bluetooth_connection(
 	// Flags
 	wire ds_sending_flag, at_sending_flag, sending_flag, have_at_response, uart_byte_timer_done, tx_done, select_ready, command_from_app, packet_sent;
 
-	// FIFO Wires
+	// Sensor Wires
 	wire [127:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
 	wire [7:0] at;
 	wire [3:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
@@ -143,141 +145,130 @@ module FPGA_Bluetooth_connection(
 	reg [3:0] fbc_curr, fbc_next;
 	
 	/*
-		Ion Sensor
-	*/	
-	wire[109:0] data_out0, data_out1, data_out2, data_out3, data_out4, data_out5, data_out6, data_out7;
-    wire [109:0] extracted_data0, extracted_data1, extracted_data2, extracted_data3; 
-    wire [109:0] extracted_data4, extracted_data5, extracted_data6, extracted_data7;
+		Ion Sensors - to be removed when properly integrated.
+	*/
     wire [5:0] i0, i1, i2, i3, i4, i5, i6, i7;
 	
-	DS0 stream0(.index(i0), .data(extracted_data0));
-    DS1 stream1(.index(i1), .data(extracted_data1));
-    DS2 stream2(.index(i2), .data(extracted_data2));
-    DS3 stream3(.index(i3), .data(extracted_data3));
-    DS4 stream4(.index(i4), .data(extracted_data4));
-    DS5 stream5(.index(i5), .data(extracted_data5));
-    DS6 stream6(.index(i6), .data(extracted_data6));
-    DS7 stream7(.index(i7), .data(extracted_data7));
-	
 	ion sensor0(
-		.clock(clock),
-		.resetn(~reset),
-		.ready(sensor_stream_ready[0]),
-		.data_in(extracted_data0),
-		.timer_cap0(20'd21600),
-		.i0(i0),
-		.data_out(data_out0)
+        .clock(clock),
+        .reset(reset),
+		.data_request(access_sensor_stream[0]),
+		.data_ack(ack_sensor_stream[0]),
+		.data_valid(sensor_stream_ready[0]),
+        .i(i0)
 	);
 	
 	ion sensor1(
-	   .clock(clock),
-       .resetn(~reset),
-       .ready(sensor_stream_ready[1]),
-       .data_in(extracted_data1),
-       .timer_cap0(20'd21600),
-       .i0(i1),
-       .data_out(data_out1)
+        .clock(clock),
+        .reset(reset),
+		.data_request(access_sensor_stream[1]),
+		.data_ack(ack_sensor_stream[1]),
+		.data_valid(sensor_stream_ready[1]),
+        .i(i1)
 	);
 	
 	ion sensor2(
         .clock(clock),
-        .resetn(~reset),
-        .ready(sensor_stream_ready[2]),
-        .data_in(extracted_data2),
-        .timer_cap0(20'd21600),
-        .i0(i2),
-        .data_out(data_out2)
+        .reset(reset),
+		.data_request(access_sensor_stream[2]),
+		.data_ack(ack_sensor_stream[2]),
+		.data_valid(sensor_stream_ready[2]),
+        .i(i2)
     );
     
     ion sensor3(
         .clock(clock),
-        .resetn(~reset),
-        .ready(sensor_stream_ready[3]),
-        .data_in(extracted_data3),
-        .timer_cap0(20'd21600),
-        .i0(i3),
-        .data_out(data_out3)
+        .reset(reset),
+		.data_request(access_sensor_stream[3]),
+		.data_ack(ack_sensor_stream[3]),
+		.data_valid(sensor_stream_ready[3]),
+        .i(i3)
     );
     
     ion sensor4(
         .clock(clock),
-        .resetn(~reset),
-        .ready(sensor_stream_ready[4]),
-        .data_in(extracted_data4),
-        .timer_cap0(20'd21600),
-        .i0(i4),
-        .data_out(data_out4)
+        .reset(reset),
+		.data_request(access_sensor_stream[4]),
+		.data_ack(ack_sensor_stream[4]),
+		.data_valid(sensor_stream_ready[4]),
+        .i(i4)
     );
     
     ion sensor5(
         .clock(clock),
-        .resetn(~reset),
-        .ready(sensor_stream_ready[5]),
-        .data_in(extracted_data5),
-        .timer_cap0(20'd21600),
-        .i0(i5),
-        .data_out(data_out5)
+        .reset(reset),
+		.data_request(access_sensor_stream[5]),
+		.data_ack(ack_sensor_stream[5]),
+		.data_valid(sensor_stream_ready[5]),
+        .i(i5)
     );
     
     ion sensor6(
         .clock(clock),
-        .resetn(~reset),
-        .ready(sensor_stream_ready[6]),
-        .data_in(extracted_data6),
-        .timer_cap0(20'd21600),
-        .i0(i6),
-        .data_out(data_out6)
+        .reset(reset),
+		.data_request(access_sensor_stream[6]),
+		.data_ack(ack_sensor_stream[6]),
+		.data_valid(sensor_stream_ready[6]),
+        .i(i6)
     );
     
     ion sensor7(
         .clock(clock),
-        .resetn(~reset),
-        .ready(sensor_stream_ready[7]),
-        .data_in(extracted_data7),
-        .timer_cap0(20'd21600),
-        .i0(i7),
-        .data_out(data_out7)
+        .reset(reset),
+		.data_request(access_sensor_stream[7]),
+		.data_ack(ack_sensor_stream[7]),
+		.data_valid(sensor_stream_ready[7]),
+        .i(i7)
     );
-    
-	assign sensor_stream0[7:0] = 8'h00;
-	assign sensor_stream0[117:8] = data_out0;
-	assign sensor_stream0[119:118] = 2'b00;
-	assign sensor_stream0[127:120] = 8'h00;
 	
-	assign sensor_stream1[7:0] = 8'h01;
-	assign sensor_stream1[117:8] = data_out1;
-	assign sensor_stream1[119:118] = 2'b00;
-	assign sensor_stream1[127:120] = 8'h01;
+	DS0 stream0(.index(i0), .data(data_out0));
+    DS1 stream1(.index(i1), .data(data_out1));
+    DS2 stream2(.index(i2), .data(data_out2));
+    DS3 stream3(.index(i3), .data(data_out3));
+    DS4 stream4(.index(i4), .data(data_out4));
+    DS5 stream5(.index(i5), .data(data_out5));
+    DS6 stream6(.index(i6), .data(data_out6));
+    DS7 stream7(.index(i7), .data(data_out7));
 	
-	assign sensor_stream2[7:0] = 8'h02;
-	assign sensor_stream2[117:8] = data_out2;
-	assign sensor_stream2[119:118] = 2'b00;
-	assign sensor_stream2[127:120] = 8'h02;
+	assign datastream0[7:0] = 8'h00;
+	assign datastream0[117:8] = sensor_stream0;
+	assign datastream0[119:118] = 2'b00;
+	assign datastream0[127:120] = 8'h00;
 	
-	assign sensor_stream3[7:0] = 8'h03;
-	assign sensor_stream3[117:8] = data_out3;
-	assign sensor_stream3[119:118] = 2'b00;
-	assign sensor_stream3[127:120] = 8'h03;
+	assign datastream1[7:0] = 8'h01;
+	assign datastream1[117:8] = sensor_stream1;
+	assign datastream1[119:118] = 2'b00;
+	assign datastream1[127:120] = 8'h01;
 	
-	assign sensor_stream4[7:0] = 8'h04;
-	assign sensor_stream4[117:8] = data_out4;
-	assign sensor_stream4[119:118] = 2'b00;
-	assign sensor_stream4[127:120] = 8'h04;
+	assign datastream2[7:0] = 8'h02;
+	assign datastream2[117:8] = sensor_stream2;
+	assign datastream2[119:118] = 2'b00;
+	assign datastream2[127:120] = 8'h02;
 	
-	assign sensor_stream5[7:0] = 8'h05;
-	assign sensor_stream5[117:8] = data_out5;
-	assign sensor_stream5[119:118] = 2'b00;
-	assign sensor_stream5[127:120] = 8'h05;
+	assign datastream3[7:0] = 8'h03;
+	assign datastream3[117:8] = sensor_stream3;
+	assign datastream3[119:118] = 2'b00;
+	assign datastream3[127:120] = 8'h03;
 	
-	assign sensor_stream6[7:0] = 8'h06;
-	assign sensor_stream6[117:8] = data_out6;
-	assign sensor_stream6[119:118] = 2'b00;
-	assign sensor_stream6[127:120] = 8'h06;
+	assign datastream4[7:0] = 8'h04;
+	assign datastream4[117:8] = sensor_stream4;
+	assign datastream4[119:118] = 2'b00;
+	assign datastream4[127:120] = 8'h04;
 	
-	assign sensor_stream7[7:0] = 8'h07;
-	assign sensor_stream7[117:8] = data_out7;
-	assign sensor_stream7[119:118] = 2'b00;
-	assign sensor_stream7[127:120] = 8'h07;
+	assign datastream5[7:0] = 8'h05;
+	assign datastream5[117:8] = sensor_stream5;
+	assign datastream5[119:118] = 2'b00;
+	assign datastream5[127:120] = 8'h05;
+	
+	assign datastream6[7:0] = 8'h06;
+	assign datastream6[117:8] = sensor_stream6;
+	assign datastream6[119:118] = 2'b00;
+	assign datastream6[127:120] = 8'h06;
+	
+	assign datastream7[7:0] = 8'h07;
+	assign datastream7[117:8] = sensor_stream7;
+	assign datastream7[119:118] = 2'b00;
+	assign datastream7[127:120] = 8'h07;
 	
 	/*
 		Output to Bluetooth
@@ -335,7 +326,7 @@ module FPGA_Bluetooth_connection(
 		.full_flag(fifo_state_full), 
 		.empty_flag(fifo_state_empty)
 	);
-	
+
 	// Datastream Selector
 	wire all_at_data_sent, ds_data_exists;
 	assign all_at_data_sent = fifo_state_empty[8];

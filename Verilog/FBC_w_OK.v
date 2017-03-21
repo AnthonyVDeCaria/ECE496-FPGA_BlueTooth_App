@@ -6,8 +6,13 @@ As well as providing the FPGA pins.
 */
 
 module FBC_w_OK(
-		clock, bt_state, bt_txd, bt_rxd, lights, uart_cpd, uart_spacing_limit,
-		hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel
+		clock, 
+		bt_state, bt_txd, bt_rxd, 
+		lights, 
+//		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
+//		sensor_stream_ready, access_sensor_stream, ack_sensor_stream,
+		hi_in, hi_out, hi_inout, hi_aa, i2c_sda, i2c_scl, hi_muxsel,
+		uart_cpd, uart_spacing_limit
 	);
 	
 	/*
@@ -17,6 +22,10 @@ module FBC_w_OK(
 	input bt_state, bt_txd;
 	output bt_rxd;
 	output [7:0] lights;
+	
+//	input [109:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
+//	input [7:0] sensor_stream_ready;
+//	output [7:0] access_sensor_stream, ack_sensor_stream;
 	
 	input [9:0] uart_cpd, uart_spacing_limit;
 	
@@ -108,8 +117,17 @@ module FBC_w_OK(
 		.bt_state(bt_state),
 		.fpga_txd(bt_rxd),
 		.fpga_rxd(bt_txd),
-		.uart_cpd(uart_cpd),
-		.uart_byte_spacing_limit(uart_spacing_limit),
+//		.sensor_stream0(sensor_stream0), 
+//		.sensor_stream1(sensor_stream1), 
+//		.sensor_stream2(sensor_stream2), 
+//		.sensor_stream3(sensor_stream3), 
+//		.sensor_stream4(sensor_stream4), 
+//		.sensor_stream5(sensor_stream5), 
+//		.sensor_stream6(sensor_stream6), 
+//		.sensor_stream7(sensor_stream7),
+//		.sensor_stream_ready(sensor_stream_ready), 
+//		.access_sensor_stream(access_sensor_stream),
+//		.ack_sensor_stream(ack_sensor_stream),
 		.ep01wireIn(ep01wireIn),
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut),
@@ -122,7 +140,9 @@ module FBC_w_OK(
 		.ep27wireOut(ep27wireOut),
 		.ep28wireOut(ep28wireOut),
 		.ep29wireOut(ep29wireOut),
-		.ep30wireOut(ep30wireOut)
+		.ep30wireOut(ep30wireOut),
+		.uart_cpd(uart_cpd),
+		.uart_byte_spacing_limit(uart_spacing_limit)
 	);
 	
 	assign lights[3:0] = ~ep25wireOut[3:0];

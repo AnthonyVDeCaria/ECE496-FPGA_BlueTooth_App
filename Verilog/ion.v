@@ -6,9 +6,8 @@
 	Edited - March 18th, Anthony De Caria
 */
 
-module ion(l_r_i, r_r_i,
-clock, reset, data_request, data_ack, data_valid, i);
-
+module ion(clock, reset, data_request, data_ack, data_valid, i);
+	
 	/*
 		I/Os
 	*/
@@ -38,10 +37,9 @@ clock, reset, data_request, data_ack, data_valid, i);
 		i
 	*/
 	wire [5:0] n_i;
-	output l_r_i, r_r_i;
+	wire l_r_i, r_r_i;
 	
 	assign l_r_i = (ion_curr == Waiting_for_ACK) & data_ack;
-	
 	assign r_r_i = ~(reset);
 
 	adder_subtractor_6bit a_i(.a(i), .b(6'd1), .want_subtract(1'b0), .c_out(), .s(n_i) );
