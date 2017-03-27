@@ -51,7 +51,6 @@ module HM_10(CLK1MHZ, LED, HM_10_STATE, HM_10_TXD, HM_10_BREAK, HM_10_RXD, hi_in
 //		.sensor_stream7(sensor_stream7),
 //		.sensor_stream_ready(sensor_stream_ready), 
 //		.access_sensor_stream(access_sensor_stream),
-//		.ack_sensor_stream(ack_sensor_stream),
 		.hi_in(hi_in), 
 		.hi_out(hi_out), 
 		.hi_inout(hi_inout), 

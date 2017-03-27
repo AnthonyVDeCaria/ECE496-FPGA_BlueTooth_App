@@ -6,7 +6,7 @@
 	
 	Algorithm:
 		Starting at #Idle
-			If we want_at and the user_data_on_line
+			If we want_at and there's user_data_on_line
 				Put the user data into AT_FIFO - #Load_AT_FIFO
 				Check with the user - #Rest_AT_FIFO
 					If the user doesn't know we stored
@@ -20,29 +20,50 @@
 				Let the Master Switch settle down - #Wait_for_Clearance
 				If it is
 					Access the Data from the FIFO - #Release_from_FIFO
-					Put the data into a buffer for the UART - #Load_Transmission
-					If we are to send
-						Send it - #Begin_Transmission
-						Once the data is transmitted
-							Set a timer - #Rest_Transmission
-							If the timer does off
-								And we have more data to send
-									#Wait_for_Clearance
-								If we don't
-									But we wanted AT
-										#Receive_AT_Response from the receiver_centre
-										Once we have it
-											We wait for the user to access_RFIFO - #Wait_for_RFIFO_Request
-												When they do
-													#Read_RFIFO
-													Check with the user - #Rest_RFIFO
-													If the user doesn't know we pulled out the data
-														Wait for their response (Stay in #Rest_RFIFO)
-													If they do
-														And they're done getting the data
-															Go to #Idle
-														Otherwise
-															Go to #Wait_for_RFIFO_Request
+					If we don't want AT
+						Put the packet into the buffer - #Load_Buffer
+						Wait for the multiplexer to pick the correct byte - #Rest_byte_i
+					Else
+						Go to #Send_Byte
+					If sending_flag is still active
+						Send it - #Send_Byte
+						Once the byte is transmitted
+							Set a byte timer and a packet timer - #Rest_Transmission
+							If we're in DS
+								If we haven't sent a full packet
+									If the byte timer is done
+										Add 1 to byte_i
+										Go to #Rest_byte_i
+									Else
+										Wait for the timer #Rest_Transmission
+								Else a packet is through
+									If we're done
+										Back to #Idle
+									Else
+										If the packet timer is done
+											Wait for the next packet channel to open #Wait_for_Clearance
+										Else
+											Wait for the packet timer #Rest_Transmission
+							If we're in AT
+								If we've haven't sent the full command
+									If the byte timer is not done
+										Wait for it #Rest_Transmission
+									Else
+										Get the next byte #Release_from_FIFO
+								Otherwise
+									#Receive_AT_Response from the receiver_centre
+									Once we have it
+										We wait for the user to access_RFIFO - #Wait_for_RFIFO_Request
+											When they do
+												#Read_RFIFO
+												Check with the user - #Rest_RFIFO
+												If the user doesn't know we pulled out the data
+													Wait for their response (Stay in #Rest_RFIFO)
+												If they do
+													And they're done getting the data
+														Go to #Idle
+													Otherwise
+														Go to #Wait_for_RFIFO_Request
 									Else
 										Go back to #Idle
 							Else
@@ -59,7 +80,7 @@ module FPGA_Bluetooth_connection(
 		clock, 
 		bt_state, fpga_txd, fpga_rxd,
 //		sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7,
-//		sensor_stream_ready, access_sensor_stream, ack_sensor_stream,
+//		sensor_stream_ready, access_sensor_stream,
 		ep01wireIn, ep02wireIn, 
 		ep20wireOut, ep21wireOut, ep22wireOut, ep23wireOut, ep24wireOut, 
 		ep25wireOut, ep26wireOut, ep27wireOut, ep28wireOut, ep29wireOut,
@@ -82,9 +103,9 @@ module FPGA_Bluetooth_connection(
 	output [15:0] ep30wireOut;
 	
 	// Sensor
-	wire [109:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
-	wire [7:0] sensor_stream_ready;
-	wire [7:0] access_sensor_stream, ack_sensor_stream;
+	wire [109:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7; //input
+	wire [7:0] sensor_stream_ready; //input
+	wire [7:0] access_sensor_stream; //output
 	
 	// Other
 	input [9:0] uart_cpd, uart_byte_spacing_limit;
@@ -101,6 +122,7 @@ module FPGA_Bluetooth_connection(
 	wire ds_sending_flag, at_sending_flag, sending_flag, have_at_response, uart_byte_timer_done, tx_done, select_ready, command_from_app, packet_sent;
 
 	// Sensor Wires
+	wire [127:0] expanded_stream0, expanded_stream1, expanded_stream2, expanded_stream3, expanded_stream4, expanded_stream5, expanded_stream6, expanded_stream7;
 	wire [127:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
 	wire [7:0] at;
 	wire [3:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
@@ -153,7 +175,6 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[0]),
-		.data_ack(ack_sensor_stream[0]),
 		.data_valid(sensor_stream_ready[0]),
         .i(i0)
 	);
@@ -162,7 +183,6 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[1]),
-		.data_ack(ack_sensor_stream[1]),
 		.data_valid(sensor_stream_ready[1]),
         .i(i1)
 	);
@@ -171,7 +191,6 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[2]),
-		.data_ack(ack_sensor_stream[2]),
 		.data_valid(sensor_stream_ready[2]),
         .i(i2)
     );
@@ -180,7 +199,6 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[3]),
-		.data_ack(ack_sensor_stream[3]),
 		.data_valid(sensor_stream_ready[3]),
         .i(i3)
     );
@@ -189,7 +207,6 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[4]),
-		.data_ack(ack_sensor_stream[4]),
 		.data_valid(sensor_stream_ready[4]),
         .i(i4)
     );
@@ -198,7 +215,6 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[5]),
-		.data_ack(ack_sensor_stream[5]),
 		.data_valid(sensor_stream_ready[5]),
         .i(i5)
     );
@@ -207,7 +223,6 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[6]),
-		.data_ack(ack_sensor_stream[6]),
 		.data_valid(sensor_stream_ready[6]),
         .i(i6)
     );
@@ -216,63 +231,75 @@ module FPGA_Bluetooth_connection(
         .clock(clock),
         .reset(reset),
 		.data_request(access_sensor_stream[7]),
-		.data_ack(ack_sensor_stream[7]),
 		.data_valid(sensor_stream_ready[7]),
         .i(i7)
     );
 	
-	DS0 stream0(.index(i0), .data(data_out0));
-    DS1 stream1(.index(i1), .data(data_out1));
-    DS2 stream2(.index(i2), .data(data_out2));
-    DS3 stream3(.index(i3), .data(data_out3));
-    DS4 stream4(.index(i4), .data(data_out4));
-    DS5 stream5(.index(i5), .data(data_out5));
-    DS6 stream6(.index(i6), .data(data_out6));
-    DS7 stream7(.index(i7), .data(data_out7));
-	
-	assign datastream0[7:0] = 8'h00;
-	assign datastream0[117:8] = sensor_stream0;
-	assign datastream0[119:118] = 2'b00;
-	assign datastream0[127:120] = 8'h00;
-	
-	assign datastream1[7:0] = 8'h01;
-	assign datastream1[117:8] = sensor_stream1;
-	assign datastream1[119:118] = 2'b00;
-	assign datastream1[127:120] = 8'h01;
-	
-	assign datastream2[7:0] = 8'h02;
-	assign datastream2[117:8] = sensor_stream2;
-	assign datastream2[119:118] = 2'b00;
-	assign datastream2[127:120] = 8'h02;
-	
-	assign datastream3[7:0] = 8'h03;
-	assign datastream3[117:8] = sensor_stream3;
-	assign datastream3[119:118] = 2'b00;
-	assign datastream3[127:120] = 8'h03;
-	
-	assign datastream4[7:0] = 8'h04;
-	assign datastream4[117:8] = sensor_stream4;
-	assign datastream4[119:118] = 2'b00;
-	assign datastream4[127:120] = 8'h04;
-	
-	assign datastream5[7:0] = 8'h05;
-	assign datastream5[117:8] = sensor_stream5;
-	assign datastream5[119:118] = 2'b00;
-	assign datastream5[127:120] = 8'h05;
-	
-	assign datastream6[7:0] = 8'h06;
-	assign datastream6[117:8] = sensor_stream6;
-	assign datastream6[119:118] = 2'b00;
-	assign datastream6[127:120] = 8'h06;
-	
-	assign datastream7[7:0] = 8'h07;
-	assign datastream7[117:8] = sensor_stream7;
-	assign datastream7[119:118] = 2'b00;
-	assign datastream7[127:120] = 8'h07;
+	DS0 stream0(.index(i0), .data(sensor_stream0));
+    DS1 stream1(.index(i1), .data(sensor_stream1));
+    DS2 stream2(.index(i2), .data(sensor_stream2));
+    DS3 stream3(.index(i3), .data(sensor_stream3));
+    DS4 stream4(.index(i4), .data(sensor_stream4));
+    DS5 stream5(.index(i5), .data(sensor_stream5));
+    DS6 stream6(.index(i6), .data(sensor_stream6));
+    DS7 stream7(.index(i7), .data(sensor_stream7));
 	
 	/*
 		Output to Bluetooth
 	*/
+	// Request the streams
+	wire [7:0] start_isr;
+	assign start_isr[0] = streams_selected[0] & access_datastreams & command_from_app;
+	assign start_isr[1] = streams_selected[1] & access_datastreams & command_from_app;
+	assign start_isr[2] = streams_selected[2] & access_datastreams & command_from_app;
+	assign start_isr[3] = streams_selected[3] & access_datastreams & command_from_app;
+	assign start_isr[4] = streams_selected[4] & access_datastreams & command_from_app;
+	assign start_isr[5] = streams_selected[5] & access_datastreams & command_from_app;
+	assign start_isr[6] = streams_selected[6] & access_datastreams & command_from_app;
+	assign start_isr[7] = streams_selected[7] & access_datastreams & command_from_app;
+	ion_sensor_requester gofer(.clock(clock), .resetn(~reset), .stream_active(start_isr), .i_s_request(access_sensor_stream));
+	
+	// Expand the streams
+	assign expanded_stream0[7:0] = 8'h00;
+	assign expanded_stream0[117:8] = sensor_stream0;
+	assign expanded_stream0[119:118] = 2'b00;
+	assign expanded_stream0[127:120] = 8'h00;
+	
+	assign expanded_stream1[7:0] = 8'h01;
+	assign expanded_stream1[117:8] = sensor_stream1;
+	assign expanded_stream1[119:118] = 2'b00;
+	assign expanded_stream1[127:120] = 8'h01;
+	
+	assign expanded_stream2[7:0] = 8'h02;
+	assign expanded_stream2[117:8] = sensor_stream2;
+	assign expanded_stream2[119:118] = 2'b00;
+	assign expanded_stream2[127:120] = 8'h02;
+	
+	assign expanded_stream3[7:0] = 8'h03;
+	assign expanded_stream3[117:8] = sensor_stream3;
+	assign expanded_stream3[119:118] = 2'b00;
+	assign expanded_stream3[127:120] = 8'h03;
+	
+	assign expanded_stream4[7:0] = 8'h04;
+	assign expanded_stream4[117:8] = sensor_stream4;
+	assign expanded_stream4[119:118] = 2'b00;
+	assign expanded_stream4[127:120] = 8'h04;
+	
+	assign expanded_stream5[7:0] = 8'h05;
+	assign expanded_stream5[117:8] = sensor_stream5;
+	assign expanded_stream5[119:118] = 2'b00;
+	assign expanded_stream5[127:120] = 8'h05;
+	
+	assign expanded_stream6[7:0] = 8'h06;
+	assign expanded_stream6[117:8] = sensor_stream6;
+	assign expanded_stream6[119:118] = 2'b00;
+	assign expanded_stream6[127:120] = 8'h06;
+	
+	assign expanded_stream7[7:0] = 8'h07;
+	assign expanded_stream7[117:8] = sensor_stream7;
+	assign expanded_stream7[119:118] = 2'b00;
+	assign expanded_stream7[127:120] = 8'h07;
+	
 	//	FIFO	
 	assign wr_en[0] = ~fifo_state_full[0] & sensor_stream_ready[0];
 	assign rd_en[0] = (fbc_curr == Release_from_FIFO) & (m_datastream_select == 3'b000);
@@ -306,8 +333,8 @@ module FPGA_Bluetooth_connection(
 		.write_clock(clock),
 		.reset(reset),
 		
-		.DS0_in(sensor_stream0), .DS1_in(sensor_stream1), .DS2_in(sensor_stream2), .DS3_in(sensor_stream3), 
-		.DS4_in(sensor_stream4), .DS5_in(sensor_stream5), .DS6_in(sensor_stream6), .DS7_in(sensor_stream7),
+		.DS0_in(expanded_stream0), .DS1_in(expanded_stream1), .DS2_in(expanded_stream2), .DS3_in(expanded_stream3), 
+		.DS4_in(expanded_stream4), .DS5_in(expanded_stream5), .DS6_in(expanded_stream6), .DS7_in(expanded_stream7),
 		.DS0_out(datastream0), .DS1_out(datastream1), .DS2_out(datastream2), .DS3_out(datastream3), 
 		.DS4_out(datastream4), .DS5_out(datastream5), .DS6_out(datastream6), .DS7_out(datastream7),
 		.DS0_rd_count(DS0_rd_count), .DS1_rd_count(DS1_rd_count), .DS2_rd_count(DS2_rd_count), .DS3_rd_count(DS3_rd_count), 
@@ -352,6 +379,7 @@ module FPGA_Bluetooth_connection(
 		.resetn(~reset),
 		.sending_flag(sending_flag),
 		.packet_sent(packet_sent),
+		.ready_to_send((fbc_curr == Wait_for_Clearance)),
 		.selected_streams(streams_selected),
 		.empty_fifo_flags(fifo_state_empty[7:0]),
 		.mux_select(m_datastream_select),
