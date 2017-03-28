@@ -125,7 +125,6 @@ module FPGA_Bluetooth_connection(
 	wire [127:0] expanded_stream0, expanded_stream1, expanded_stream2, expanded_stream3, expanded_stream4, expanded_stream5, expanded_stream6, expanded_stream7;
 	wire [127:0] datastream0, datastream1, datastream2, datastream3, datastream4, datastream5, datastream6, datastream7;
 	wire [7:0] at;
-	wire [3:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count;
 	wire [8:0] fifo_state_full, fifo_state_empty, wr_en, rd_en;
 	
 	// Datastream Selector Wires
@@ -337,8 +336,8 @@ module FPGA_Bluetooth_connection(
 		.DS4_in(expanded_stream4), .DS5_in(expanded_stream5), .DS6_in(expanded_stream6), .DS7_in(expanded_stream7),
 		.DS0_out(datastream0), .DS1_out(datastream1), .DS2_out(datastream2), .DS3_out(datastream3), 
 		.DS4_out(datastream4), .DS5_out(datastream5), .DS6_out(datastream6), .DS7_out(datastream7),
-		.DS0_rd_count(DS0_rd_count), .DS1_rd_count(DS1_rd_count), .DS2_rd_count(DS2_rd_count), .DS3_rd_count(DS3_rd_count), 
-		.DS4_rd_count(DS4_rd_count), .DS5_rd_count(DS5_rd_count), .DS6_rd_count(DS6_rd_count), .DS7_rd_count(DS7_rd_count),
+		.DS0_rd_count(), .DS1_rd_count(), .DS2_rd_count(), .DS3_rd_count(), 
+		.DS4_rd_count(), .DS5_rd_count(), .DS6_rd_count(), .DS7_rd_count(),
 		.DS0_wr_count(), .DS1_wr_count(), .DS2_wr_count(), .DS3_wr_count(), 
 		.DS4_wr_count(), .DS5_wr_count(), .DS6_wr_count(), .DS7_wr_count(),
 		

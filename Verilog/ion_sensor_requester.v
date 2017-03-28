@@ -1,7 +1,9 @@
 /*
 	Anthony De Caria - March 26, 2017
 	
-	This module makes a bunch of 
+	This module handles requests made to the ion sensor
+	by creating 8 isr_stream modules
+	and seeding them with correct offset and period values.
 */
 module ion_sensor_requester(clock, resetn, stream_active, i_s_request);
 	/*
@@ -14,11 +16,11 @@ module ion_sensor_requester(clock, resetn, stream_active, i_s_request);
 	/*
 		Parameters
 	*/
-	parameter period0 = 16'd0, period1 = 16'd0, period2 = 16'd0, period3 = 16'd0;
-	parameter period4 = 16'd0, period5 = 16'd0, period6 = 16'd0, period7 = 16'd0;
+	parameter period0 = 16'd21600, period1 = 16'd21600, period2 = 16'd21600, period3 = 16'd21600;
+	parameter period4 = 16'd21600, period5 = 16'd21600, period6 = 16'd21600, period7 = 16'd21600;
 	
-	parameter offset0 = 16'd21600, offset1 = 16'd21600, offset2 = 16'd21600, offset3 = 16'd21600;
-	parameter offset4 = 16'd21600, offset5 = 16'd21600, offset6 = 16'd21600, offset7 = 16'd21600;
+	parameter offset0 = 16'd0, offset1 = 16'd0, offset2 = 16'd0, offset3 = 16'd0;
+	parameter offset4 = 16'd0, offset5 = 16'd0, offset6 = 16'd0, offset7 = 16'd0;
 	
 	/*
 		ISR_Streams

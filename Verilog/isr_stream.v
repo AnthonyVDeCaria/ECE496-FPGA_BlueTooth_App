@@ -1,7 +1,21 @@
 /*
 	Anthony De Caria - March 26, 2017
 	
-	This module is one ISR stream, used to make a request to any stream n.
+	This module is one ISR stream, used to make a request to a stream "n"
+	This should be set in ion_sensor_requester.v
+	
+	Algorithm:
+		Add a period and offset to create a timer value - #Idle
+		If this stream is active
+			Start subtracting 1 from this timer - #Wait
+			If it hits 0
+				Send a i_s_request - #Done
+				Go back to #Idle
+			Else
+				#Wait
+		Else
+			#Idle
+		
 */
 module isr_stream(clock, resetn, period, offset, stream_active, i_s_request);
 	/*
@@ -25,7 +39,7 @@ module isr_stream(clock, resetn, period, offset, stream_active, i_s_request);
 	wire [15:0] a, b, timer, n_timer;
 	wire l_r_timer, r_r_timer, timer_done;
 	
-	assign l_r_timer = ~timer_done & (isrs_curr == Wait);
+	assign l_r_timer = (isrs_curr == Wait) | (isrs_curr == Idle);
 	assign r_r_timer = ~( ~resetn );
 	
 	mux_2_16bit m_timer_b(.data0(offset), .data1(timer), .sel(stream_active), .result(b));
@@ -61,6 +75,10 @@ module isr_stream(clock, resetn, period, offset, stream_active, i_s_request);
 					isrs_next = Wait;
 			end
 			Done:
+			begin
+				isrs_next = Idle;
+			end
+			default:
 			begin
 				isrs_next = Idle;
 			end
