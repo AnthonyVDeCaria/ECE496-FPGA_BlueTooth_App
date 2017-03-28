@@ -12,6 +12,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -21,6 +22,8 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +36,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static android.util.Log.d;
 import static com.example.hannahkwon.bluetooth1.BluetoothLeService.ACTION_DATA_AVAILABLE;
@@ -61,6 +66,8 @@ public class MainActivity extends AppCompatActivity
     private CheckBox checkBox_DS7;
     private CheckBox checkBox_DS8;
 
+    private Runtimer runtimer;
+    private boolean moreSecondInput = false;
     private EditText editTxt_Minute;
     private EditText editTxt_Second;
 
@@ -80,6 +87,9 @@ public class MainActivity extends AppCompatActivity
 
     private ProcessingThread mProcessingThread;
     private FileManager.LoggingThread mLoggingThread;
+
+    //used for synchronizing view update at UI thread
+    public static ReentrantLock ViewUpdateLock = null;
 
 //    private GraphFragment mGraph_1;
     private GraphFragment_MPAndroidChart mGraph_1;
@@ -255,10 +265,15 @@ public class MainActivity extends AppCompatActivity
         checkBox_DS6 = (CheckBox) findViewById(R.id.checkBox_DS6);
         checkBox_DS7 = (CheckBox) findViewById(R.id.checkBox_DS7);
         checkBox_DS8 = (CheckBox) findViewById(R.id.checkBox_DS8);
+
         editTxt_Minute = (EditText) findViewById(R.id.editTxt_Minute);
         editTxt_Second = (EditText) findViewById(R.id.editTxt_Second);
+        editTxt_Minute.setSelection(2);
+        editTxt_Second.setSelection(2);
         bt_Start = (Button) findViewById(R.id.btn_Start);
         bt_Cancel = (Button) findViewById(R.id.btn_Cancel);
+
+        ViewUpdateLock = new ReentrantLock();
 
 //        mGraph_1 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_1);
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
@@ -302,17 +317,100 @@ public class MainActivity extends AppCompatActivity
 //        });
 
         // to get the runtime
-        editTxt_Minute.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+        editTxt_Minute.addTextChangedListener(new TextWatcher() {
+            boolean pushed = false;
 
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//                Log.d(TAG, "Before text changed");
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                Log.d(TAG, "On text changed");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {  // also get called when numbers are deleted
+//                Log.d(TAG, "After text changed");
+                String value = s.toString();
+                int length = value.length();
+                if (length > 0) {
+                    if(!pushed) {
+//                        Log.d(TAG, "May need to push");
+                        if(length > 2) {
+                            if(Integer.parseInt(value.substring(0, 1 + 1)) == 59) {
+//                                Log.d(TAG, "Was already at 59 previously");
+                                editTxt_Minute.setText("0" + value.charAt(2));
+                                editTxt_Minute.setSelection(2);
+                                return;
+                            }
+//                            Log.d(TAG, "Pushing in " + value + " to the left");
+                            String current = value.substring(1, 2 + 1);
+//                            Log.d(TAG, "Pushed value should be " + current);
+                            pushed = true;
+                            editTxt_Minute.setText(current);
+                            editTxt_Minute.setSelection(2);
+                            return;
+                        }
+                    }
+                    int second = Integer.parseInt(value);
+                    if (second > 59) {
+//                        Log.d(TAG, "User entered invalid second! " + second);
+                        editTxt_Minute.setText("59");
+                    }
+                    pushed = false;
+//                    Log.d(TAG, "pushed is changed back to false");
+                }
             }
         });
-        editTxt_Minute.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
+        editTxt_Second.addTextChangedListener(new TextWatcher() {
+            boolean pushed = false;
 
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+//                Log.d(TAG, "Before text changed");
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+//                Log.d(TAG, "On text changed");
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {  // also get called when numbers are deleted
+//                Log.d(TAG, "After text changed");
+                String value = s.toString();
+                int length = value.length();
+                if (length > 0) {
+                    if(!pushed) {
+//                        Log.d(TAG, "May need to push");
+                        if(length > 2) {
+                            if(Integer.parseInt(value.substring(0, 1 + 1)) == 59) {
+//                                Log.d(TAG, "Was already at 59 previously");
+                                editTxt_Second.setText("0" + value.charAt(2));
+                                editTxt_Second.setSelection(2);
+                                return;
+                            }
+//                            Log.d(TAG, "Pushing in " + value + " to the left");
+                            String current = value.substring(1, 2 + 1);
+//                            Log.d(TAG, "Pushed value should be " + current);
+                            pushed = true;
+                            editTxt_Second.setText(current);
+                            editTxt_Second.setSelection(2);
+                            return;
+                        }
+                    }
+                    int second = Integer.parseInt(value);
+                    if (second > 59) {
+//                        Log.d(TAG, "User entered invalid second! " + second);
+                        editTxt_Second.setText("59");
+                    }
+                    pushed = false;
+//                    Log.d(TAG, "pushed is changed back to false");
+                }
             }
         });
-
 
         bt_Start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -327,6 +425,17 @@ public class MainActivity extends AppCompatActivity
                 d(TAG, "Pressed Start");
 
                 verifyWriteStoragePermission(MainActivity.this);
+
+                int minute = Integer.parseInt(editTxt_Minute.getText().toString());
+                int second = Integer.parseInt(editTxt_Second.getText().toString());
+                long milliseconds = (minute* 60 + second) * 1000;
+                Log.d(TAG, "User set the timer with " + milliseconds + " ms");
+                if (milliseconds <= 0) {
+                    editTxt_Second.setError("0 seconds is not permitted!");
+                }
+                Log.d(TAG, "Setting up timer with " + milliseconds + " ms");
+                runtimer = new Runtimer(milliseconds);
+
                 //TODO calculate required data points
                 int minCapacity = 1800;
 
@@ -338,6 +447,8 @@ public class MainActivity extends AppCompatActivity
                 mGraph_6.start(minCapacity);
                 mGraph_7.start(minCapacity);
                 mGraph_8.start(minCapacity);
+
+                runtimer.start();
             }
         });
         bt_Cancel.setOnClickListener(new View.OnClickListener() {
@@ -346,7 +457,7 @@ public class MainActivity extends AppCompatActivity
                 // Wiping out log file
                 mLoggingThread.finishLog();
 
-                commandPacketCreator((byte) Constants.CANCEL);
+                commandPacketCreator((byte) Constants.CANCEL, (byte) Constants.CANCEL);
 
                 // Wipes out the graphs
                 mGraph_1.clear();
@@ -357,6 +468,8 @@ public class MainActivity extends AppCompatActivity
                 mGraph_6.clear();
                 mGraph_7.clear();
                 mGraph_8.clear();
+
+                runtimer.cancel();
             }
         });
 
@@ -739,6 +852,37 @@ public class MainActivity extends AppCompatActivity
     public void showStorageNotWorkingDialog() {
         DialogFragment dialog = new StorageNotWorkingDialogFragment();
         dialog.show(getSupportFragmentManager(), "StorageNotWorkingDialogFragment");
+    }
+
+    private class Runtimer extends CountDownTimer {
+        int timeLeft;
+        int timeToDisplay;
+        private Runtimer(long millisInFuture) {
+            super(millisInFuture, 100);    // Using smaller than 1 second to get frequent updates
+            timeLeft = (int) millisInFuture / 1000;
+            Log.d(TAG, "runtimer start with " + timeLeft + " s");
+        }
+
+        @Override
+        public void onTick(long millisUntilFinished) {
+            int timeToDisplay = Math.round((float) millisUntilFinished / 1000.0f);
+            if(timeToDisplay != timeLeft) {
+                timeLeft = timeToDisplay;
+                String minute = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished));
+                String second = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)));
+                editTxt_Minute.setText(minute);
+                editTxt_Second.setText(second);
+                Log.d(TAG, "Changed Minute to " + minute + " and Second to " + second);
+            }
+        }
+
+        @Override
+        public void onFinish() {
+            //TODO start from here
+            Log.d(TAG, "Finished timer");
+            editTxt_Minute.setText("00");
+            editTxt_Second.setText("00");
+        }
     }
 
     public synchronized void startProcessingAndLogging() {

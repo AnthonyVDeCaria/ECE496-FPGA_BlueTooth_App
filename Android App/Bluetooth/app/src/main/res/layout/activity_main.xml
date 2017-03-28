@@ -135,54 +135,81 @@
                     android:layout_alignParentTop="true"
                     android:layout_centerHorizontal="true">
 
-                    <EditText
-                        android:id="@+id/editTxt_Minute"
+                    <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:inputType="number"/>
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="8dp"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingBottom="16dp"
-                        android:paddingLeft="8dp"
-                        android:paddingRight="8dp"
-                        android:paddingTop="16dp"
-                        android:text=":"
-                        android:textAppearance="?android:attr/textAppearanceLarge" />
+                        <EditText
+                            android:id="@+id/editTxt_Minute"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_weight="1"
+                            android:inputType="number"
+                            android:digits="0123456789"
+                            android:cursorVisible="true"
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:text="00"/>
 
-                    <EditText
-                        android:id="@+id/editTxt_Second"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:paddingRight="8dp"
-                        android:inputType="number"/>
+                        <TextView
+                            android:id="@+id/textView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:paddingLeft="8dp"
+                            android:paddingRight="8dp"
+                            android:text=":"
+                            android:textAppearance="?android:attr/textAppearanceLarge" />
 
-                    <Button
-                        android:id="@+id/btn_Start"
-                        android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginBottom="6dp"
-                        android:layout_marginTop="6dp"
-                        android:paddingLeft="16dp"
-                        android:paddingRight="16dp"
-                        android:text="Start"
-                        android:textSize="12sp" />
+                        <EditText
+                            android:id="@+id/editTxt_Second"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_weight="1"
+                            android:inputType="number"
+                            android:digits="0123456789"
+                            android:textDirection="anyRtl"
+                            android:cursorVisible="true"
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:text="00"/>
 
-                    <Button
-                        android:id="@+id/btn_Cancel"
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="36dp"
-                        android:layout_gravity="center_vertical"
-                        android:layout_marginBottom="6dp"
-                        android:layout_marginTop="6dp"
-                        android:paddingLeft="16dp"
-                        android:paddingRight="16dp"
-                        android:text="Cancel"
-                        android:textSize="12sp" />
+                        android:layout_height="match_parent"
+                        android:layout_marginLeft="8dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btn_Start"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginBottom="6dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_weight="1"
+                            android:paddingLeft="16dp"
+                            android:paddingRight="16dp"
+                            android:text="Start"
+                            android:textSize="12sp" />
+
+                        <Button
+                            android:id="@+id/btn_Cancel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginBottom="6dp"
+                            android:layout_marginTop="6dp"
+                            android:layout_weight="1"
+                            android:paddingLeft="16dp"
+                            android:paddingRight="16dp"
+                            android:text="Cancel"
+                            android:textSize="12sp" />
+                    </LinearLayout>
 
                 </LinearLayout>
 

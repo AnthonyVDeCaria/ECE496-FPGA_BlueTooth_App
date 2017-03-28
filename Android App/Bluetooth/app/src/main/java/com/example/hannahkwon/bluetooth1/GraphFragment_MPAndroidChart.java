@@ -100,7 +100,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     }
 
     public synchronized void addData(int ISE1_val, int ISE2_val, int Temp_val) {
-//        plotting_time = System.currentTimeMillis() - start_time;
+//        plotting_time = (System.currentTimeMillis() - start_time) / 1000; // to seconds
 //        Log.d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
 //                + ISE2_val);
         // adding data into corresponding series
@@ -119,38 +119,42 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
 //                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
-
-        if (Temp_val >= Constants.TEMP_THRESHOLD) {
-//             Log.d(TAG, "Temp is above threshold");
-            if(!over_threshold) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        chart.setBackgroundColor(Color.GREEN);
-                    }
-                });
-                over_threshold = true;
-//                Log.d(TAG, "Succeed changing graph background color");
+        MainActivity.ViewUpdateLock.lock();
+        try {
+            if (Temp_val >= Constants.TEMP_THRESHOLD) {
+                //             Log.d(TAG, "Temp is above threshold");
+                if (!over_threshold) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            chart.setBackgroundColor(Color.GREEN);
+                        }
+                    });
+                    over_threshold = true;
+                    //                Log.d(TAG, "Succeed changing graph background color");
+                }
+            } else {
+                //            Log.d(TAG, "Temp is below threshold");
+                if (over_threshold) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            chart.setBackgroundColor(Color.WHITE);
+                        }
+                    });
+                    over_threshold = false;
+                    //                Log.d(TAG, "Succeed changing graph background color");
+                }
             }
-        } else {
-//            Log.d(TAG, "Temp is below threshold");
-            if(over_threshold) {
-                activity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        chart.setBackgroundColor(Color.WHITE);
-                    }
-                });
-                over_threshold = false;
-//                Log.d(TAG, "Succeed changing graph background color");
-            }
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    chart.invalidate();
+                }
+            });
+        } finally   {
+             MainActivity.ViewUpdateLock.unlock();
         }
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                chart.invalidate();
-            }
-        });
 //        Log.d(TAG, "Succeed updating graph");
 
         return;
@@ -162,11 +166,18 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         // Removes all DataSets (and thereby Entries) from the chart.
         lineData.clearValues();
 
-        chart.setBackgroundColor(Color.WHITE);
-        over_threshold = false;
-
-        chart.invalidate();
-
+        Log.d(TAG, "Before clear");
+        MainActivity.ViewUpdateLock.lock();
+        try {
+            Log.d(TAG, "Acquired lock");
+            if(over_threshold) {
+                chart.setBackgroundColor(Color.WHITE);
+                over_threshold = false;
+            }
+            chart.invalidate();
+        } finally {
+            MainActivity.ViewUpdateLock.unlock();
+        }
         Log.d(TAG, "Successfully cleared values");
     }
 
@@ -192,5 +203,9 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         start_time = System.currentTimeMillis();
 //        lineData.addDataSet(ISE1_dataset);
 //        lineData.addDataSet(ISE2_dataset);
+    }
+
+    public void save() {
+
     }
 }
