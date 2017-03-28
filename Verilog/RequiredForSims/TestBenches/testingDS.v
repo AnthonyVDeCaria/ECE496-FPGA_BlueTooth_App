@@ -48,7 +48,8 @@ module testingDS;
 //		.sensor_stream5(sensor_stream5), 
 //		.sensor_stream6(sensor_stream6), 
 //		.sensor_stream7(sensor_stream7),
-//		.sensor_stream_ready(sensor_stream_ready)
+//		.sensor_stream_ready(sensor_stream_ready),
+//		.access_sensor_stream(access_sensor_stream),
 		.ep01wireIn(ep01wireIn), 
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut), 
@@ -101,7 +102,7 @@ module testingDS;
 		#200 start = 1'b1;
 		#205 start = 1'b0;
 		
-		#600 App_command_byte = 8'hFF;
+		#600 App_command_byte = 8'hAA;
 		#600 start = 1'b1;
 		#605 start = 1'b0;
 	end
