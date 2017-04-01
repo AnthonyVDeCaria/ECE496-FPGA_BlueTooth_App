@@ -6,8 +6,8 @@
 	Algorithms:
 		If we're #Collecting_Data
 			And the UART_rx sends a done signal
-				We set a timer - #Checking_if_Done
-					If before the timer is done the UART_rx gets new data
+				We set a Timer - #Checking_if_Done
+					If before the Timer is done the UART_rx gets new data
 						We go back to #Collecting_Data
 					Else
 						We're #Done
@@ -19,8 +19,10 @@
 					Store it
 					Since we got one, go to #Got_One
 						And wait for the next piece of data
-						When it comes in
+						If it comes in
 							Store it
+							Go back to #Idle
+						If it doesn't come in time
 							Go back to #Idle
 			And we're #Done
 				Handle each case
@@ -49,27 +51,30 @@
 */
 
 module receiver_centre(
-		clock, reset, want_at, fpga_rxd,
-		uart_cpd, uart_timer_cap,
+		commands, operands, l_r_ds_sending_flag, r_r_ds_sending_flag, ds_sending_flag_value, rc_curr, rc_next, c, n, rc_timer, n_rc_timer,
+
+		clock, reset, fpga_rxd,
+		want_at, tx_done,
+		uart_cpd, uart_spacing_limit,
 		at_response_flag,
 		RFIFO_rd_en, RFIFO_out, RFIFO_wr_count, RFIFO_rd_count, RFIFO_full, RFIFO_empty,
-		stream_select, ds_sending_flag,
-		commands, operands, l_r_ds_sending_flag, r_r_ds_sending_flag, ds_sending_flag_value, rc_curr, rc_next, c, n, timer, n_timer
+		stream_select, ds_sending_flag
 	);
 	/*
 		I/Os
 	*/
-	input clock, reset, want_at, fpga_rxd;
+	input clock, reset, fpga_rxd;
+	input want_at, tx_done;
 
 	input [9:0] uart_cpd;
-	input [9:0] uart_timer_cap;
+	input [9:0] uart_spacing_limit;
 	
 	output at_response_flag;
 	
 	input RFIFO_rd_en;
 	output [15:0] RFIFO_out;
-	output [12:0] RFIFO_wr_count;
-	output [11:0] RFIFO_rd_count; 
+	output [6:0] RFIFO_rd_count;
+	output [7:0] RFIFO_wr_count; 
 	output RFIFO_full;
 	output RFIFO_empty;
 	
@@ -79,12 +84,14 @@ module receiver_centre(
 	/*
 		Wires
 	*/
+	wire [9:0] rc_limit;
 	wire [7:0] rx_data;
 	wire is_uart_collecting_data, rx_done;
 	wire at_mode, data_mode;
 	
 	parameter Start = 8'h00, Cancel = 8'h01;
 	
+	assign rc_limit = uart_spacing_limit + uart_cpd;
 	assign at_mode = want_at;
 	assign data_mode = ~want_at;
 	
@@ -115,7 +122,7 @@ module receiver_centre(
 	wire RFIFO_wr_en;
 	assign RFIFO_wr_en = rx_done & at_mode;
 	
-	FIFO_8192_8in_16out RFIFO(
+	FIFO_256_8in_16out RFIFO(
 		.rst(reset),
 		
 		.wr_clk(clock),
@@ -162,7 +169,14 @@ module receiver_centre(
 	reg l_r_stream_select;
 	wire r_r_stream_select;
 	assign r_r_stream_select = ~reset; 
-	register_8bit_enable_async r_stream_select(.clk(clock), .resetn(r_r_stream_select), .enable(l_r_stream_select), .select(l_r_stream_select), .d(operands), .q(stream_select) );
+	register_8bit_enable_async r_stream_select(
+		.clk(clock), 
+		.resetn(r_r_stream_select), 
+		.enable(l_r_stream_select), 
+		.select(l_r_stream_select), 
+		.d(operands), 
+		.q(stream_select) 
+	);
 	
 	output reg l_r_ds_sending_flag, ds_sending_flag_value;
 	output r_r_ds_sending_flag;
@@ -224,18 +238,25 @@ module receiver_centre(
 	end
 	
 	/*
-		Timer
+		Timers
 	*/
-	output [9:0] timer, n_timer;
-	wire l_r_timer, r_r_timer, timer_done;
+	output [9:0] rc_timer, n_rc_timer;
+	wire l_r_rc_timer, r_r_rc_timer, rc_timer_done;
 	
-	assign l_r_timer = (rc_curr == Checking_if_Done);
-	assign r_r_timer = ~(reset | (rc_curr == Collecting_Data) ) ;
+	assign l_r_rc_timer = (rc_curr == Checking_if_Done);
+	assign r_r_rc_timer = ~(reset | (rc_curr == Collecting_Data) ) ;
 	
-	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
-	register_10bit_enable_async r_timer(.clk(clock), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
+	adder_subtractor_10bit a_rc_timer(.a(rc_timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_rc_timer) );
+	register_10bit_enable_async r_rc_timer(
+		.clk(clock), 
+		.resetn(r_r_rc_timer), 
+		.enable(l_r_rc_timer), 
+		.select(l_r_rc_timer), 
+		.d(n_rc_timer), 
+		.q(rc_timer) 
+	);
 	
-	assign timer_done = (timer == uart_timer_cap) ? 1'b1 : 1'b0;
+	assign rc_timer_done = (rc_timer == rc_limit) ? 1'b1 : 1'b0;
 	
 	/*
 		FSMs
@@ -257,7 +278,7 @@ module receiver_centre(
 					rc_next = Collecting_Data;
 				else
 				begin
-					if(timer_done)
+					if(rc_timer_done)
 						rc_next = Done;
 					else
 						rc_next = Checking_if_Done;
@@ -288,10 +309,15 @@ module receiver_centre(
 			end
 			Got_One:
 			begin
-				if(rx_done & data_mode)
-					n = Idle;
-				else
-					n = Got_One;
+//				if(rc_timer_done)
+//					n = Idle;
+//				else
+//				begin
+					if(rx_done & data_mode)
+						n = Idle;
+					else
+						n = Got_One;
+//				end
 			end
 			default:
 			begin

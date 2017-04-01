@@ -9,15 +9,15 @@ module FIFO_centre(
 		input write_clock,
 		input reset,
 		
-		input [31:0] DS0_in, DS1_in, DS2_in, DS3_in, DS4_in, DS5_in, DS6_in, DS7_in,
-		output [7:0] DS0_out, DS1_out, DS2_out, DS3_out, DS4_out, DS5_out, DS6_out, DS7_out,
-		output [11:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count,
-		output [9:0] DS0_wr_count, DS1_wr_count, DS2_wr_count, DS3_wr_count, DS4_wr_count, DS5_wr_count, DS6_wr_count, DS7_wr_count,
+		input [127:0] DS0_in, DS1_in, DS2_in, DS3_in, DS4_in, DS5_in, DS6_in, DS7_in,
+		output [127:0] DS0_out, DS1_out, DS2_out, DS3_out, DS4_out, DS5_out, DS6_out, DS7_out,
+		output [3:0] DS0_rd_count, DS1_rd_count, DS2_rd_count, DS3_rd_count, DS4_rd_count, DS5_rd_count, DS6_rd_count, DS7_rd_count,
+		output [3:0] DS0_wr_count, DS1_wr_count, DS2_wr_count, DS3_wr_count, DS4_wr_count, DS5_wr_count, DS6_wr_count, DS7_wr_count,
 		
 		input [15:0] AT_in,
 		output [7:0] AT_out,
-		output [13:0] AT_rd_count,
-		output [12:0] AT_wr_count,
+		output [6:0] AT_rd_count,
+		output [5:0] AT_wr_count,
 
 		input [8:0] write_enable,
 		input [8:0] read_enable,
@@ -38,7 +38,7 @@ module FIFO_centre(
 	/*
 		DS0
 	*/
-	FIFO_1024_32in_8out f_DS0(
+	FIFO_16_128in_128out f_DS0(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -60,7 +60,7 @@ module FIFO_centre(
 	/*
 		DS1
 	*/
-	FIFO_1024_32in_8out f_DS1(
+	FIFO_16_128in_128out f_DS1(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -82,7 +82,7 @@ module FIFO_centre(
 	/*
 		DS2
 	*/
-	FIFO_1024_32in_8out f_DS2(
+	FIFO_16_128in_128out f_DS2(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -104,7 +104,7 @@ module FIFO_centre(
 	/*
 		DS3
 	*/
-	FIFO_1024_32in_8out f_DS3(
+	FIFO_16_128in_128out f_DS3(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -126,7 +126,7 @@ module FIFO_centre(
 	/*
 		DS4
 	*/
-	FIFO_1024_32in_8out f_DS4(
+	FIFO_16_128in_128out f_DS4(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -148,7 +148,7 @@ module FIFO_centre(
 	/*
 		DS5
 	*/
-	FIFO_1024_32in_8out f_DS5(
+	FIFO_16_128in_128out f_DS5(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -170,7 +170,7 @@ module FIFO_centre(
 	/*
 		DS6
 	*/
-	FIFO_1024_32in_8out f_DS6(
+	FIFO_16_128in_128out f_DS6(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -192,7 +192,7 @@ module FIFO_centre(
 	/*
 		DS7
 	*/
-	FIFO_1024_32in_8out f_DS7(
+	FIFO_16_128in_128out f_DS7(
 		.rst(reset),
 
 		.wr_clk(write_clock),
@@ -214,7 +214,7 @@ module FIFO_centre(
 	/*
 		AT
 	*/
-	FIFO_8192_16in_8out f_AT(
+	FIFO_64_16in_8out f_AT(
 		.rst(reset),
 
 		.wr_clk(write_clock),

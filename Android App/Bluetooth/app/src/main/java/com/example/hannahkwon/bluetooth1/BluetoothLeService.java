@@ -24,7 +24,10 @@ import android.util.Log;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static com.example.hannahkwon.bluetooth1.Constants.ACK;
 
 /**
  * Service for managing connection and data communication with a GATT server hosted on a
@@ -55,17 +58,13 @@ public class BluetoothLeService extends Service {
     public final static UUID UUID_HM_RX_TX =
             UUID.fromString(SampleGattAttributes.HM_RX_TX);
 
-    //TODO delete this
-    public final static UUID BATTERY_LEVEL =
-            UUID.fromString(SampleGattAttributes.BATTERY_LEVEL);
-
-    private ConnectedThread mConnectedThread;
     private BluetoothGattCharacteristic mcharacteristicTX = null;
     private BluetoothGattCharacteristic mcharacteristicRX = null;
     public static ReentrantLock GattLock = null;
     public static boolean NoGattOperation = true;
 
     LocalBroadcastManager manager;
+    private PackagingThread mPackagingThread;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -128,8 +127,6 @@ public class BluetoothLeService extends Service {
             Log.d(TAG, "Write result is as following");
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 Log.d(TAG, "Characteristic write was successful");
-                //TODO Move this to the appropriate place. Pair with updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
-//                connected();
             }
             else if (status == BluetoothGatt.GATT_INSUFFICIENT_AUTHENTICATION ||
                     status == BluetoothGatt.GATT_INSUFFICIENT_ENCRYPTION) {
@@ -150,17 +147,18 @@ public class BluetoothLeService extends Service {
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "Received characteristic notification");
-            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+//            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+
+            mPackagingThread.add(characteristic.getValue());
         }
     };
 
     private void broadcastUpdate(final String action) {
         final Intent intent = new Intent(action);
-//        sendBroadcast(intent);
         manager.sendBroadcast(intent);
     }
 
-    private void broadcastUpdate(final String action,final BluetoothGattCharacteristic characteristic) {
+    private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
         final Intent intent = new Intent(action);
 
         // For all other profiles, writes the data formatted in HEX.
@@ -174,10 +172,9 @@ public class BluetoothLeService extends Service {
 //            intent.putExtra(EXTRA_DATA, stringBuilder.toString());
 //        }
         Log.d(TAG, String.format("%s", new String(data)));
-        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
-
+//        intent.putExtra(EXTRA_DATA,String.format("%s", new String(data)));
+        intent.putExtra(EXTRA_DATA, data);
         manager.sendBroadcast(intent);
-//        sendBroadcast(intent);
     }
 
     public class LocalBinder extends Binder {
@@ -226,6 +223,8 @@ public class BluetoothLeService extends Service {
 
         GattLock = new ReentrantLock();
         manager = LocalBroadcastManager.getInstance(this);
+
+        startPackaging();
 
         return true;
     }
@@ -318,15 +317,6 @@ public class BluetoothLeService extends Service {
             uuid = gattService.getUuid().toString();
             Log.d(TAG, "Discovered service: " + uuid);
 
-//            if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "BATTERY") {
-//                Log.d(TAG, "Found Battery Service");
-//                // get characteristic when UUID matches RX/TX UUID
-//                characteristicTX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
-//                characteristicRX = gattService.getCharacteristic(BluetoothLeService.BATTERY_LEVEL);
-//                if (characteristicRX == null)
-//                    Log.e(TAG, "No characteristics for transfer");
-//                mBluetoothLeService.readCharacteristic(characteristicRX);
-//            }
             // Found HM-10 connectivity service
             if (SampleGattAttributes.lookup(uuid, unknownServiceString) == "HM 10 Serial") {
                 Log.d(TAG, "Found HM 10 Connectivity service");
@@ -350,18 +340,9 @@ public class BluetoothLeService extends Service {
                     if(isNotificationCharacteristic(gattCharacteristic)) {
                         setCharacteristicNotification(gattCharacteristic, true);
                     }
-//                    // get characteristic when UUID matches RX/TX UUID
-//                    characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
-//                    characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
                     if (characteristicRX == null || characteristicTX == null)
                         Log.e(TAG, "No characteristics for transfer");
-                    // For bonding
-                    //                mBluetoothLeService.readCharacteristic(characteristicRX);
-                    // starting thread for reading characteristics
                     setCharacteristic(characteristicTX, characteristicRX);
-//                    connected();
-                    // Only now show it is connected
-                    //                updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
                 }
             }
         }
@@ -406,6 +387,26 @@ public class BluetoothLeService extends Service {
         } else {
             Log.d(TAG, "Not notification characteristic");
             return false;
+        }
+    }
+
+    public void write(byte[] out) {
+        if(GattLock == null)
+            Log.e(TAG, "Lock for Gatt operation is not initialized!");
+        boolean writeDone = false;
+        while(true) {
+            GattLock.lock();
+            try {
+                if(NoGattOperation) { // No Gatt operation is being processed at the moment
+                    NoGattOperation = false;
+                    writeCharacteristic(out);
+                    writeDone = true;
+                }
+            } finally {
+                GattLock.unlock();
+                if(writeDone)
+                    return;
+            }
         }
     }
 
@@ -467,7 +468,7 @@ public class BluetoothLeService extends Service {
             mBluetoothGatt.setCharacteristicNotification(characteristic, enabled); // Enabled locally
 
             BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-                        UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
 
             if(enabled) {
                 Log.d(TAG, "Enabled notification remotely");
@@ -525,59 +526,177 @@ public class BluetoothLeService extends Service {
             return true;
     }
 
-    public synchronized void connected () {
-        Log.d(TAG, "Connected");
+    public synchronized void startPackaging () {
+        Log.d(TAG, "Start Packaging");
 
         // Start the thread to manage the connection and perform transmission
-        mConnectedThread = new ConnectedThread();
-        mConnectedThread.start();
+        mPackagingThread = new PackagingThread();
+        mPackagingThread.start();
     }
 
-//    public synchronized  void sleep() {
-//        Log.d(TAG, "Turn ConnnectedThread into sleep");
-//        if (mConnectedThread != null)
-//            mConnectedThread.sleep();
-//    }
-
     /*
-    * This is the thread where you can start sharing data between the devices
-    * It has to be in thread as read() & write() block
+    * This is the thread where it collects bytes received from FPGA
+    * to form the entire packet
+    * Once the packet is formed, it is transferred to the MainActivity
     */
-    private class ConnectedThread extends Thread {
+    private class PackagingThread extends Thread {
+        LinkedBlockingQueue<byte []> mmFIFOQueue = new LinkedBlockingQueue<byte []>();
+        private byte [] mmPackagedData = new byte[16];
+        private byte [] mmDataAvailable = null;
+        private byte[] commandPacket = null;
+        private int offset = 0; // starting point of read left
+        private int length_left = 0; // length_left to be read in a single packet
+        private int read_left = 16; // more to be read to fill full packet
+        private int length_used = 0;
+        private boolean more_to_read = false;
 
-        public ConnectedThread() {
-            Log.d(TAG, "Creating ConnectedThread");
+        private int position = 0;  // to keep track of starting point of saving
+
+        public PackagingThread() {
+            Log.d(TAG, "Creating PackagingThread");
+            commandPacket = new byte[1];
+            commandPacket[0] = ACK;
         }
 
-        public void run() {
-            Log.i(TAG, "Beginning mConnectedThread");
+        public void run(){
+            Log.i(TAG, "Beginning mPackagingThread");
             while (true) {
-                if(GattLock == null)
-                    Log.e(TAG, "Lock for Gatt operation is not initialized!");
-                GattLock.lock();
-                try {
-                    if(NoGattOperation) { // No Gatt operation is being processed at the moment
-                        NoGattOperation = false;
-                        readCharacteristic();
+                // getting arbitrary length_left of bytes
+                mmDataAvailable = mmFIFOQueue.peek();
+                if (mmDataAvailable != null) {
+                    if (length_left == 0)
+                        length_used = mmDataAvailable.length;
+                    else
+                        length_used = length_left;
+    //                    Log.d(TAG, "Length used is " + length_used);
+                    if(position == 0) {    // at the very first packaging
+                        if (length_left == 0) {
+                            if (mmDataAvailable.length > 16) {
+                                System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, 16);
+                            }
+                            else {
+                                System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, mmDataAvailable.length);
+                            }
+                        }
+                        else {
+                            System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, length_left);
+                        }
+                        position += offset;
+
+    //                        Log.d(TAG, "At the very first packaging");
+                        if (length_used > 16) {   // the packet received was more than full packet
+    //                            Log.d(TAG, "There are more bytes than full packet");
+                            offset = offset + 16;
+                            length_left = length_used - 16;
+                            read_left = 0;
+                            more_to_read = false;
+
+    //                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                        }
+                        else if (length_used < 16){  // the packet received was partial packet
+    //                            Log.d(TAG, "There are bytes missing");
+                            offset = 0;
+                            length_left = 0;
+                            read_left = 16 - length_used;
+                            more_to_read = true;
+    //                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+
+                            mmFIFOQueue.remove();
+                        }
+                        else {  // the packet received was full packet
+                            mmFIFOQueue.remove();
+
+                            offset = 0;
+                            length_left = 0;
+                            read_left = 0;
+                            more_to_read = false;
+
+    //                            Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                        }
                     }
-                } finally {
-                    GattLock.unlock();
+                    else {
+                        if(more_to_read) {   // at the next packaging
+                            if (length_left == 0) {
+                                if (mmDataAvailable.length > read_left) {
+                                    System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, read_left);
+                                }
+                                else {
+                                    System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, mmDataAvailable.length);
+                                }
+                            }
+                            else {
+                                System.arraycopy(mmDataAvailable, offset, mmPackagedData, position, length_left);
+                            }
+                            position += offset;
+
+    //                            Log.d(TAG, "At the next packaging");
+                            if (length_used > read_left) {
+    //                                Log.d(TAG, "There are more bytes than full packet");
+                                offset = offset + read_left;
+                                length_left = length_used - read_left;
+                                read_left = 0;
+                                more_to_read = false;
+
+    //                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                            }
+                            else if (length_used < read_left){  // the packet received was partial packet
+    //                                Log.d(TAG, "There are bytes missing");
+                                offset = 0;
+                                length_left = 0;
+                                read_left = read_left - length_used;
+                                more_to_read = true;
+
+    //                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+
+                                mmFIFOQueue.remove();
+                            }
+                            else {  // the packet received was full packet
+                                mmFIFOQueue.remove();
+
+                                offset = 0;
+                                length_left = 0;
+                                read_left = 0;
+                                more_to_read = false;
+
+    //                                Log.d(TAG, "Next packet offset: " + offset + ", length_left: " + length_left + ", read_left: " + read_left);
+                            }
+
+                        }
+                    }
+
+                    if(!more_to_read) {   // received full packet (128 bits)
+    //                        Log.d(TAG, "Got the full packet");
+    //                        if (mmPackagedData != null && mmPackagedData.length > 0) {
+    //                            final StringBuilder stringBuilder = new StringBuilder(mmPackagedData.length);
+    //                            for(byte byteChar : mmPackagedData)
+    //                                stringBuilder.append(String.format("%02X ", byteChar));
+    //                            Log.d(TAG, "Full packet data is " + stringBuilder.toString());
+    //                        }
+                        Intent intent = new Intent(ACTION_DATA_AVAILABLE);
+                        intent.putExtra(EXTRA_DATA, mmPackagedData);
+                        manager.sendBroadcast(intent);
+
+                        // resetting
+                        mmPackagedData = new byte[16];
+                    }
                 }
             }
         }
 
-        /*
-         * Write to the connected OutStream
-         * Call this from the main activity to send data to the remote device (but not used now)
-         * @param buffer The bytes to write
-         */
-//        public void write(byte[] buffer) {
-//            try {
-//                mmOutStream.write(buffer);
-//                Log.d(TAG, "Succeed sending");
-//            } catch (IOException e) {
-//                Log.e(TAG, "Exception during write", e);
+        public synchronized void add (byte[] data) {
+//            Log.i(TAG, "Adding into FIFO queue " + data);
+//            if (data != null && data.length > 0) {
+//                final StringBuilder stringBuilder = new StringBuilder(data.length);
+//                for(byte byteChar : data)
+//                    stringBuilder.append(String.format("%02X ", byteChar));
+//                Log.d(TAG, "Adding into FIFO queue "  + stringBuilder.toString() + "(" + mmPacketCount + ")");
 //            }
-//        }
+//            mmPacketCount++;
+            try {
+                mmFIFOQueue.put(data);
+            } catch (Exception e) {
+                Log.e(TAG, "Failed adding into Packaging FIFO queue", e);
+            }
+        }
     }
 }

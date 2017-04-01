@@ -25,7 +25,8 @@
 				Say in #Idle
 */
 
-module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_valid);
+module UART_rx(i, n_i,
+clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_valid);
 	/*
 		I/Os
 	*/
@@ -64,7 +65,7 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_dat
 	/*
 		i
 	*/
-	wire [3:0] i, n_i;
+	output wire [3:0] i, n_i;
 	wire l_r_i, r_r_i;
 	
 	assign l_r_i = (urx_curr == Update_rx_data);
