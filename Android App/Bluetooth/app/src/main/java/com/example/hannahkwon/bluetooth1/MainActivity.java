@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity
 
     //used for synchronizing view update at UI thread
     public static ReentrantLock ViewUpdateLock = null;
+    public static ReentrantLock RuntimerWaiting;
+    public static boolean runtimerWaiting = false;
 
 //    private GraphFragment mGraph_1;
     private GraphFragment_MPAndroidChart mGraph_1;
@@ -274,6 +276,7 @@ public class MainActivity extends AppCompatActivity
         bt_Cancel = (Button) findViewById(R.id.btn_Cancel);
 
         ViewUpdateLock = new ReentrantLock();
+        RuntimerWaiting = new ReentrantLock();
 
 //        mGraph_1 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_1);
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
@@ -304,17 +307,6 @@ public class MainActivity extends AppCompatActivity
             mFileManager = new FileManager(this);
         }
 
-        //TODO make it automatic
-//        bt_Save.setOnClickListener(new View.OnClickListener(){
-//            public void onClick(View v){
-//                if(mFileManager.isExternalStorageAvailable()) { // External storage is available
-//                    verifyWriteStoragePermission(MainActivity.this);
-//                }
-//                else { // External storage is not available
-//                    showStorageNotWorkingDialog();
-//                }
-//            }
-//        });
 
         // to get the runtime
         editTxt_Minute.addTextChangedListener(new TextWatcher() {
@@ -865,23 +857,53 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public void onTick(long millisUntilFinished) {
-            int timeToDisplay = Math.round((float) millisUntilFinished / 1000.0f);
-            if(timeToDisplay != timeLeft) {
-                timeLeft = timeToDisplay;
-                String minute = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished));
-                String second = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)));
-                editTxt_Minute.setText(minute);
-                editTxt_Second.setText(second);
-                Log.d(TAG, "Changed Minute to " + minute + " and Second to " + second);
+            RuntimerWaiting.lock();
+            try {
+                runtimerWaiting = true;
+            } finally {
+                RuntimerWaiting.unlock();
+            }
+            ViewUpdateLock.lock();
+            RuntimerWaiting.lock();
+            try {
+                int timeToDisplay = Math.round((float) millisUntilFinished / 1000.0f);
+                if (timeToDisplay != timeLeft) {
+                    timeLeft = timeToDisplay;
+                    String minute = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished));
+                    String second = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)));
+                    editTxt_Minute.setText(minute);
+                    editTxt_Second.setText(second);
+                    Log.d(TAG, "Changed Minute to " + minute + " and Second to " + second);
+
+                    runtimerWaiting = false;
+                }
+            }  finally {
+                RuntimerWaiting.unlock();
+                ViewUpdateLock.unlock();
             }
         }
 
         @Override
         public void onFinish() {
             //TODO start from here
-            Log.d(TAG, "Finished timer");
-            editTxt_Minute.setText("00");
-            editTxt_Second.setText("00");
+            RuntimerWaiting.lock();
+            try {
+                runtimerWaiting = true;
+            } finally {
+                RuntimerWaiting.unlock();
+            }
+            ViewUpdateLock.lock();
+            RuntimerWaiting.lock();
+            try {
+                editTxt_Minute.setText("00");
+                editTxt_Second.setText("00");
+
+                Log.d(TAG, "Finished timer");
+                runtimerWaiting = false;
+            } finally {
+                ViewUpdateLock.unlock();
+                RuntimerWaiting.unlock();
+            }
         }
     }
 

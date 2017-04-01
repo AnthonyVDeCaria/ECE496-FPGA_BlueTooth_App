@@ -119,44 +119,47 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
 //                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
+        MainActivity.RuntimerWaiting.lock();
         MainActivity.ViewUpdateLock.lock();
         try {
-            if (Temp_val >= Constants.TEMP_THRESHOLD) {
-                //             Log.d(TAG, "Temp is above threshold");
-                if (!over_threshold) {
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            chart.setBackgroundColor(Color.GREEN);
-                        }
-                    });
-                    over_threshold = true;
-                    //                Log.d(TAG, "Succeed changing graph background color");
+            if (!MainActivity.runtimerWaiting) {
+                if (Temp_val >= Constants.TEMP_THRESHOLD) {
+                    //             Log.d(TAG, "Temp is above threshold");
+                    if (!over_threshold) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                chart.setBackgroundColor(Color.GREEN);
+                            }
+                        });
+                        over_threshold = true;
+                        //                Log.d(TAG, "Succeed changing graph background color");
+                    }
+                } else {
+                    //            Log.d(TAG, "Temp is below threshold");
+                    if (over_threshold) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                chart.setBackgroundColor(Color.WHITE);
+                            }
+                        });
+                        over_threshold = false;
+                        //                Log.d(TAG, "Succeed changing graph background color");
+                    }
                 }
-            } else {
-                //            Log.d(TAG, "Temp is below threshold");
-                if (over_threshold) {
-                    activity.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            chart.setBackgroundColor(Color.WHITE);
-                        }
-                    });
-                    over_threshold = false;
-                    //                Log.d(TAG, "Succeed changing graph background color");
-                }
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        chart.invalidate();
+                    }
+                });
+                Log.d(TAG, "Succeed updating graph");
             }
-            activity.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    chart.invalidate();
-                }
-            });
         } finally   {
-             MainActivity.ViewUpdateLock.unlock();
+            MainActivity.ViewUpdateLock.unlock();
+            MainActivity.RuntimerWaiting.unlock();
         }
-//        Log.d(TAG, "Succeed updating graph");
-
         return;
     }
 
@@ -164,7 +167,13 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         ISE1_entries.clear();
         ISE2_entries.clear();
         // Removes all DataSets (and thereby Entries) from the chart.
-        lineData.clearValues();
+//        lineData.clearValues();
+
+        counter = 0;
+
+        chart.clearValues();
+        lineData.notifyDataChanged();
+        chart.notifyDataSetChanged();
 
         Log.d(TAG, "Before clear");
         MainActivity.ViewUpdateLock.lock();
@@ -175,10 +184,10 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 over_threshold = false;
             }
             chart.invalidate();
+            Log.d(TAG, "Successfully cleared values");
         } finally {
             MainActivity.ViewUpdateLock.unlock();
         }
-        Log.d(TAG, "Successfully cleared values");
     }
 
     private void ensureCapacity(int num) {
