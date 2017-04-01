@@ -71,7 +71,6 @@ lib.reset(dev)
 state = lib.read_state(dev)
 print('Before start 0x25: %04x' % state)
 
-#get rid of this!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #list of AT commands
 #AT+ORGL
 ATO = [0x4154, 0x2b4f, 0x5247, 0x4c00]
@@ -83,6 +82,8 @@ ATR = [0x4154, 0x2b52, 0x4553, 0x4554]
 ATNB = [0x4154, 0x2b4e, 0x414d, 0x453D, 0x4255]
 #AT+NAME=
 ATNU = [0x4154, 0x2b4e, 0x414d, 0x453D]
+#AT+ADDR?
+ADR = [0x4154, 0x2b41, 0x4444, 0x523f]
 ########################################################
 
 #variables for flags and counters
@@ -130,12 +131,19 @@ while (exit == 0):
 			index = 4
 			for char in name:
 				i = lib.convert(char)
+		elif (command == 'ADR'):
+			write  = 4
+			at = ADR
 		elif (command == "display"):
-			write == 0
+			write = 0
 			lib.display_all_Wire_Outs(dev)
 		#exit
 		elif (command == 'exit'):
 			exit = 1
+		#help
+		elif (command == 'help'):
+			print ('AT Commands are: AT, ATO, ATR, ATNB, ATNU\nTo start sending data, type in any key eg "s"\nType "display" to show all the debugging signals (wireouts from Opal Kelly)\nType "exit" to exit the program cleanly')
+			write = -2
 		#reading while polling for command, or No AT Commands
 		else:
 			write = -1
