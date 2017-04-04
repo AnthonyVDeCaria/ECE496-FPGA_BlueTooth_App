@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity
 
     LocalBroadcastManager manager;
 
-    private FileManager mFileManager = null;
+    public static FileManager mFileManager = null;
 
     private ProcessingThread mProcessingThread;
     private FileManager.LoggingThread mLoggingThread;
@@ -270,15 +270,12 @@ public class MainActivity extends AppCompatActivity
 
         editTxt_Minute = (EditText) findViewById(R.id.editTxt_Minute);
         editTxt_Second = (EditText) findViewById(R.id.editTxt_Second);
-        editTxt_Minute.setSelection(2);
-        editTxt_Second.setSelection(2);
         bt_Start = (Button) findViewById(R.id.btn_Start);
         bt_Cancel = (Button) findViewById(R.id.btn_Cancel);
 
         ViewUpdateLock = new ReentrantLock();
         RuntimerWaiting = new ReentrantLock();
 
-//        mGraph_1 = (GraphFragment) getSupportFragmentManager().findFragmentById(R.id.graph_1);
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
 //        mGraph_1 = (GraphFragment_aChartEngine) getSupportFragmentManager().findFragmentById(R.id.graph_1);
 
@@ -406,8 +403,6 @@ public class MainActivity extends AppCompatActivity
 
         bt_Start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // TODO Compare with the Are_Active channels wit the user's selected channels and notify
-
                 // Sends Start command using the user's selection upon the channels
 //                String commandArg;
 //                commandArg = new String(setCommandArg());
@@ -441,6 +436,13 @@ public class MainActivity extends AppCompatActivity
                 mGraph_8.start(minCapacity);
 
                 runtimer.start();
+//                while(true) {
+//                    if (mGraph_1.start_done & mGraph_2.start_done & mGraph_3.start_done & mGraph_4.start_done
+//                            & mGraph_5.start_done & mGraph_6.start_done & mGraph_7.start_done & mGraph_8.start_done) {
+//                        runtimer.start();
+//                        break;
+//                    }
+//                }
             }
         });
         bt_Cancel.setOnClickListener(new View.OnClickListener() {
@@ -462,6 +464,7 @@ public class MainActivity extends AppCompatActivity
                 mGraph_8.clear();
 
                 runtimer.cancel();
+                runtimerWaiting = false;
             }
         });
 
@@ -508,6 +511,10 @@ public class MainActivity extends AppCompatActivity
                 mBtService.enableBluetooth();
                 return true;
             //TODO start from here
+            case R.id.action_open_file:
+                Intent intent = new Intent(this, OpenFileActivity.class);
+                this.startActivityForResult(intent, Constants.REQUEST_OPEN_FILE);
+                return true;
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -611,6 +618,12 @@ public class MainActivity extends AppCompatActivity
                         mBtService.getDeviceInfo(data);
                     }
                     startProcessingAndLogging();
+                }
+                break;
+            case Constants.REQUEST_OPEN_FILE:
+                if (resultCode == Activity.RESULT_OK){
+                    //TODO start reading file from here
+
                 }
                 break;
         }
@@ -734,8 +747,7 @@ public class MainActivity extends AppCompatActivity
             }
             else{
                 d(TAG, "Characteristics are not set yet");
-                //TODO alter this message
-                Toast.makeText(this, R.string.failed_saving_data,
+                Toast.makeText(this, "Not connected yet",
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -982,52 +994,52 @@ public class MainActivity extends AppCompatActivity
                 //TODO enable this
                 datastream = mmRetrievedData[0] & 0b00000111;
                 //TODO uncomment below
-                if(datastream == 0){    // display only DS1
-                    Log.d(TAG, "Packaged data corresponds to datastream 1");
-                    // for graph
-                    mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                }
-                //TODO delete below
-//                if(mmRetrievedData[0] == 49){    // display only DS1
+//                if(datastream == 0){    // display only DS1
 //                    Log.d(TAG, "Packaged data corresponds to datastream 1");
 //                    // for graph
 //                    mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
 //                }
-                else if(datastream == 1) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+                //TODO delete below
+                if(mmRetrievedData[0] == 49){    // display only DS1
+                    Log.d(TAG, "Packaged data corresponds to datastream 1");
                     // for graph
-                    mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+                    mGraph_1.addData(mmRetrievedData);
                 }
-                else if(datastream == 2) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 3");
-                    // for graph
-                    mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                }
-                else if(datastream == 3) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
-                    // for graph
-                    mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                }
-                else if(datastream == 4) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 5");
-                    // for graph
-                    mGraph_5.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                }
-                else if(datastream == 5) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 6");
-                    // for graph
-                    mGraph_6.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                }
-                else if(datastream == 6) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 7");
-                    // for graph
-                    mGraph_7.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                }
-                else if(datastream == 7) {
-//                        Log.d(TAG, "Packaged data corresponds to datastream 8");
-                    // for graph
-                    mGraph_8.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
-                }
+//                else if(datastream == 1) {
+////                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+//                    // for graph
+//                    mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                }
+//                else if(datastream == 2) {
+////                        Log.d(TAG, "Packaged data corresponds to datastream 3");
+//                    // for graph
+//                    mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                }
+//                else if(datastream == 3) {
+////                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+//                    // for graph
+//                    mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                }
+//                else if(datastream == 4) {
+////                        Log.d(TAG, "Packaged data corresponds to datastream 5");
+//                    // for graph
+//                    mGraph_5.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                }
+//                else if(datastream == 5) {
+////                        Log.d(TAG, "Packaged data corresponds to datastream 6");
+//                    // for graph
+//                    mGraph_6.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                }
+//                else if(datastream == 6) {
+////                        Log.d(TAG, "Packaged data corresponds to datastream 7");
+//                    // for graph
+//                    mGraph_7.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                }
+//                else if(datastream == 7) {
+////                        Log.d(TAG, "Packaged data corresponds to datastream 8");
+//                    // for graph
+//                    mGraph_8.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                }
                 else {
                     Log.e(TAG, "Received data not corresponding to any datastreams");
                 }

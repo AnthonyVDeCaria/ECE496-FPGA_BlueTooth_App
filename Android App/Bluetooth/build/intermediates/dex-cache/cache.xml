@@ -3,78 +3,6 @@
 
     <item
         is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\a8e077cb215e371b61146bf263f92616529f30a9\output\jars\libs\internal_impl-24.2.1.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="fbf8da429efd5ad21e02e3e5ecaa1efc4167878d">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\internal_impl-24.2.1_11329bb37fdd80a21b737135794bf36a9378c20b\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\26c9454a2da1c64d03de0af0c9eeaaa6778a08c4\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="e7f3132168957eefc46229fc32c3bd464642b71e">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_7e406145811e6faba225fe45463a97a213dc2766\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\39fbd07458a4f7cbbbb6b4287f5bd57c920898f4\output\jars\libs\internal_impl-24.2.1.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="7e4389bd133359a2ff88623ff1e4ff93d6e6f780">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\internal_impl-24.2.1_c129db045111b2e41e39411b50aff5ec3048d6c1\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\c40aaede6921047c4e9fc0f67e6a6f762a938b8a\output\jars\libs\internal_impl-24.2.1.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="935a969265b2a166b2d20415423f5f6e90fe16e0">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\internal_impl-24.2.1_19eb12cd215eee244df8dbff3ad3859ac99893ee\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\a1d620d76a704dc41f0b99b0072c8d1fdd6cd19b\output\jars\libs\internal_impl-24.2.1.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="5f64d657e838e8375135c0f6057a7ff8fab6a50e">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\internal_impl-24.2.1_ee38259a45573633c9f5318f95baef94c20b372b\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\a8e077cb215e371b61146bf263f92616529f30a9\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="09b462bbcb77650284bd6614f1a32f360ef369f8">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_3bf4392590639f19c5af24ac541c6001344a4261\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\26c9454a2da1c64d03de0af0c9eeaaa6778a08c4\output\jars\libs\internal_impl-24.2.1.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="867dad63c33388ff8c7644b236579355036d075f">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\internal_impl-24.2.1_c147145a2cac136e4eb4c88a059237f37b7995a8\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\c40aaede6921047c4e9fc0f67e6a6f762a938b8a\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="9c4c3bc902450c39ed54de170db4fb12aea20a35">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_dbb9bb330917cea7b636f485064de9881a07dd36\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
         jar="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\incremental-runtime-classes\debug\instant-run.jar"
         jumboMode="true"
         optimize="true"
@@ -84,66 +12,12 @@
     </item>
     <item
         is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\a1d620d76a704dc41f0b99b0072c8d1fdd6cd19b\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="b9a1ac78ad7ef3abedc4a4b30cd92bcacb939d1f">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_6aded3584531128474c353fcaf01fe735b3dc019\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\bde24df5da978225acfc86cfe97bed524757835a\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="43b2dba6b5a0b14527961b75329d0b90025f15ea">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_7a0f419956a3a09a2fefbb152c73933e0a9825dc\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
         jar="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\incremental-classes\debug\instant-run-bootstrap.jar"
         jumboMode="true"
         optimize="true"
         revision="25.0.0"
-        sha1="27565a88d8dcfe4ed3ed2e8e31640876da6c33a5">
+        sha1="d3f1e284111aa93d46b7278d147c8e072eeef01f">
         <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run-bootstrap_2c7510c234d5e33ae5c2e659ca17aa29f9652206\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\837a0e85b3e86d5be073f01b05acd694ed9b4e34\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="d5c731fc64c03dfe04d51134955b483551c35849">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_0ae2d4b31c4bdb5c43aa011369c9b6cd41f97333\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\39fbd07458a4f7cbbbb6b4287f5bd57c920898f4\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="0ecb4b595fa0f0f8018a149ace3ea6525624f94e">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_1032ff90ddd18c293fdb69e12deaf95a0e473f1d\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\806b6ea814e6c26f9f51a09449dc71a058f61bfa\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="d7c42c80f6509b9ea4db28ca7859ffae08ec5741">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_67f59758b28decb75ea9a5766e793232b924f8e3\classes.dex" />
-    </item>
-    <item
-        is-multidex="true"
-        jar="C:\Users\HannahKwon\.android\build-cache\081cf6327b5b97c464c6400e45de34bd622a2fdb\output\jars\classes.jar"
-        jumboMode="true"
-        optimize="true"
-        revision="25.0.0"
-        sha1="94bc1dfb84dcc8b6f6f8f7cc726d7b2dd39c1574">
-        <dex dex="C:\Users\HannahKwon\Desktop\ECE496\ECE496-FPGA_BlueTooth_App\Android App\Bluetooth\app\build\intermediates\transforms\dex\debug\folders\1000\10\classes_0c32c28f71a1903c51c62d4e52671ce9958f4532\classes.dex" />
     </item>
 
 </items>

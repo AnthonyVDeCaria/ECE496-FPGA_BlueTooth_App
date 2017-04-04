@@ -6,6 +6,7 @@ package com.example.hannahkwon.bluetooth1;
 public class Constants {
     static final int REQUEST_ENABLE_BT = 1000;
     static final int REQUEST_CONNECT_DEVICE = 1001;
+    static final int REQUEST_OPEN_FILE = 1002;
 
     // Gatt operation for BLE
     static final int GATT_READ = 0;

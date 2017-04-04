@@ -35,6 +35,8 @@
             android:theme="@android:style/Theme.DeviceDefault.Light.Dialog">
         </activity>
 
+        <activity android:name=".OpenFileActivity"></activity>
+
         <service android:name=".BluetoothLeService" android:enabled="true"/>
 
     </application>
