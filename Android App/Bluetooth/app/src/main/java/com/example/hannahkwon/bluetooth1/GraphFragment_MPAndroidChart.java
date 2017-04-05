@@ -47,6 +47,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
     private boolean over_threshold = false;  // used to change background color
 
+    private boolean UI_update_done = false;
+
     private String description_txt;
 
     private LinkedBlockingQueue<int []> mmFIFOQueue = new LinkedBlockingQueue<int []>();
@@ -114,7 +116,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         Description description = chart.getDescription();
         description.setText(description_txt);
 
-        chart.invalidate();
+//        chart.invalidate();
 
         return view;
     }
@@ -134,7 +136,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         necessary_data[0] = data[1];
         necessary_data[1] = data[2];
         necessary_data[2] = data[3];
-        Log.i(TAG, "Adding into GraphingThread FIFO queue " + data);
+        Log.i(TAG, "Adding into GraphingThread FIFO queue " + necessary_data[0] + ", "
+            + necessary_data[1] + ", " + necessary_data[2]);
         try {
             mmFIFOQueue.put(necessary_data);
         } catch (Exception e) {
@@ -154,141 +157,58 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 mmTempData = mmFIFOQueue.peek();
                 if (mmTempData != null) {
                     MainActivity.RuntimerWaiting.lock();
-                    MainActivity.ViewUpdateLock.lock();
                     try {
-//            lineData.notifyDataChanged();
-//            chart.notifyDataSetChanged();
-
                         if (!MainActivity.runtimerWaiting) {
+                            MainActivity.ViewUpdateLock.lock();
+                            final int ISE1_val = mmTempData[0];
+                            final int ISE2_val = mmTempData[1];
+                            final int Temp_val = mmTempData[2];
 
-                            int ISE1_val = mmTempData[0];
-                            int ISE2_val = mmTempData[1];
-                            int Temp_val = mmTempData[2];
-                            d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
-                                    + ISE2_val);
-                            ISE1_dataset.addEntry(new Entry(counter, ISE1_val));
-                            ISE2_dataset.addEntry(new Entry(counter, ISE2_val));
-                            counter++;
-
-                            if (Temp_val >= Constants.TEMP_THRESHOLD) {
-                                //             Log.d(TAG, "Temp is above threshold");
-                                if (!over_threshold) {
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            chart.setBackgroundColor(Color.GREEN);
-                                        }
-                                    });
-                                    over_threshold = true;
-                                    //                Log.d(TAG, "Succeed changing graph background color");
-                                }
-                            } else {
-                                //            Log.d(TAG, "Temp is below threshold");
-                                if (over_threshold) {
-                                    activity.runOnUiThread(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            chart.setBackgroundColor(Color.WHITE);
-                                        }
-                                    });
-                                    over_threshold = false;
-                                    //                Log.d(TAG, "Succeed changing graph background color");
-                                }
-                            }
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
+                                            + ISE2_val + " with counter " + counter);
+                                    ISE1_dataset.addEntry(new Entry(counter, ISE1_val));
+                                    ISE2_dataset.addEntry(new Entry(counter, ISE2_val));
+                                    if (Temp_val >= Constants.TEMP_THRESHOLD) {
+                                        //             Log.d(TAG, "Temp is above threshold");
+                                        chart.setBackgroundColor(Color.GREEN);
+                                        over_threshold = true;
+                                        //                Log.d(TAG, "Succeed changing graph background color");
+                                    }
+                                    else {
+                                        //            Log.d(TAG, "Temp is below threshold");
+                                        chart.setBackgroundColor(Color.WHITE);
+                                        over_threshold = false;
+                                        //                Log.d(TAG, "Succeed changing graph background color");
+                                    }
                                     lineData.notifyDataChanged();
                                     chart.notifyDataSetChanged();
                                     chart.invalidate();
+                                    UI_update_done = true;
                                 }
                             });
+                            while(true){
+                                if(UI_update_done)
+                                    break;
+                            }
+                            counter++;
+                            UI_update_done = false;
                             d(TAG, "Succeed updating graph");
+                            mmFIFOQueue.remove();
                         }
-                    } finally {
-                        MainActivity.ViewUpdateLock.unlock();
+                    }
+                    finally {
                         MainActivity.RuntimerWaiting.unlock();
-                        mmFIFOQueue.remove();
-                        Log.d(TAG, "Unlocked locks");
+                        if (MainActivity.ViewUpdateLock.isHeldByCurrentThread())
+                            MainActivity.ViewUpdateLock.unlock();
+//                        Log.d(TAG, "Unlocked locks");
                     }
                 }
             }
         }
     }
-
-
-//        private synchronized void add (int[] data) {
-//            Log.i(TAG, "Adding into GraphingThread FIFO queue " + data);
-//            try {
-//                mmFIFOQueue.put(data);
-//            } catch (Exception e) {
-//                Log.e(TAG, "Failed adding into GraphingThread FIFO queue", e);
-//            }
-//        }
-
-//    }
-//    public synchronized void addData(int ISE1_val, int ISE2_val, int Temp_val) {
-////        plotting_time = (System.currentTimeMillis() - start_time) / 1000; // to seconds
-//        d(TAG, "Received following data: " + ISE1_val + ", "
-//                + ISE2_val);
-//
-//        MainActivity.RuntimerWaiting.lock();
-//        MainActivity.ViewUpdateLock.lock();
-//        try {
-//
-////            lineData.notifyDataChanged();
-////            chart.notifyDataSetChanged();
-//
-//            if (!MainActivity.runtimerWaiting) {
-//                d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
-//                        + ISE2_val);
-//                final int ISE1 = ISE1_val;
-//                final int ISE2 = ISE2_val;
-//                counter++;
-//
-//                if (Temp_val >= Constants.TEMP_THRESHOLD) {
-//                    //             Log.d(TAG, "Temp is above threshold");
-//                    if (!over_threshold) {
-//                        activity.runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                chart.setBackgroundColor(Color.GREEN);
-//                            }
-//                        });
-//                        over_threshold = true;
-//                        //                Log.d(TAG, "Succeed changing graph background color");
-//                    }
-//                } else {
-//                    //            Log.d(TAG, "Temp is below threshold");
-//                    if (over_threshold) {
-//                        activity.runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                chart.setBackgroundColor(Color.WHITE);
-//                            }
-//                        });
-//                        over_threshold = false;
-//                        //                Log.d(TAG, "Succeed changing graph background color");
-//                    }
-//                }
-//                activity.runOnUiThread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        ISE1_dataset.addEntry(new Entry(counter, ISE1));
-//                        ISE2_dataset.addEntry(new Entry(counter, ISE2));
-//                        lineData.notifyDataChanged();
-//                        chart.notifyDataSetChanged();
-//                        chart.invalidate();
-//                    }
-//                });
-//                d(TAG, "Succeed updating graph");
-//            }
-//        } finally   {
-//            MainActivity.ViewUpdateLock.unlock();
-//            MainActivity.RuntimerWaiting.unlock();
-//            return;
-//        }
-//    }
 
     public void clear() {
         ISE1_entries.clear();
