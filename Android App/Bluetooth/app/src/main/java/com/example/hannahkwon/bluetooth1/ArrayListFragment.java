@@ -65,7 +65,7 @@ public class ArrayListFragment extends ListFragment {
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        ArrayAdapter<String> TxTFilesArrayAdapter =
+        TxTFilesArrayAdapter =
                 new ArrayAdapter<String>(getActivity(),
                         android.R.layout.simple_list_item_1);
         setListAdapter(TxTFilesArrayAdapter);

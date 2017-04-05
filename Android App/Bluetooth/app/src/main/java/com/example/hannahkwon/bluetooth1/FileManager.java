@@ -4,8 +4,10 @@ import android.os.Environment;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FilenameFilter;
 
 /**
@@ -106,6 +108,76 @@ public class FileManager {
             public boolean accept(File dir, String filename)
             { return filename.endsWith(".txt"); }
         } );
+    }
+
+    public void readFile(String fileName) {
+        File file = new File(path + File.separator + fileName);
+        int datastream = -1;
+        // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
+        float [] toAdd = new float[4];
+
+        CharSequence fragment = "Fragment";
+        CharSequence ISE1 = "ISE1";
+        CharSequence ISE2 = "ISE2";
+        CharSequence Temp = "FinalTemp";
+
+        String ISE1_data = null;
+        String ISE2_data = null;
+        // string composed of x and y
+        String[] ISE1_data_point;
+        String[] ISE2_data_point;
+        // string composed of pair of x and y
+        String[] ISE1_data_pair;
+        String[] ISE2_data_pair;
+        int i = 0;
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(file));
+            String line = null;
+
+            while (true) {
+                // A line is considered to be terminated by any one of a line feed ('\n'), a carriage return ('\r')
+                line = br.readLine();
+                if(line != null) {
+                    if(line.contains(fragment)) {
+                        datastream = Character.getNumericValue(line.charAt(8));
+                        Log.d(TAG, "Now reading data for fragment " + datastream);
+                    }
+                    if(line.contains(ISE1)) {
+                        ISE1_data = br.readLine();
+                        Log.d(TAG, "For fragment " + datastream + " ISE1 data is " + ISE1_data);
+                    }
+                    if(line.contains(ISE2)) {
+                        ISE2_data = br.readLine();
+                        Log.d(TAG, "For fragment " + datastream + " ISE2 data is " + ISE2_data);
+                    }
+                    if(line.contains(Temp)) {
+                        toAdd[2] = (byte) Float.parseFloat(br.readLine());
+                        Log.d(TAG, "For fragment " + datastream + " Temp data is " + toAdd[2]);
+
+                        // now starting adding data to graphs
+                        if(!ISE1_data.isEmpty() & !ISE2_data.isEmpty()) {
+                            ISE1_data_point = ISE1_data.split("\t");
+                            ISE2_data_point = ISE2_data.split("\t");
+                            for (i = 0; i < ISE1_data_point.length; i++) {
+                                ISE1_data_pair = ISE1_data_point[i].split(",");
+                                ISE2_data_pair = ISE2_data_point[i].split(",");
+                                toAdd[0] = Float.parseFloat(ISE1_data_pair[1]);
+                                toAdd[1] = Float.parseFloat(ISE2_data_pair[1]);
+                                toAdd[3] = Float.parseFloat(ISE1_data_pair[0]);
+                                Log.d(TAG, "Adding the following to the graph" + datastream + " " + toAdd[0] + ", "
+                                        + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
+                                MainActivity.addFromFile(datastream, toAdd);
+                            }
+                        }
+                    }
+                }
+                else
+                    break;
+            }
+            br.close();
+        } catch (Exception e) {
+            Log.e(TAG, "Error occurred when reading file", e);
+        }
     }
 
     /*

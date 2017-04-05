@@ -96,16 +96,16 @@ public class MainActivity extends AppCompatActivity
     public static boolean runtimerWaiting = false;
 
 //    private GraphFragment mGraph_1;
-    private GraphFragment_MPAndroidChart mGraph_1;
+    private static GraphFragment_MPAndroidChart mGraph_1;
 //    private GraphFragment_aChartEngine mGraph_1;
 
-    private GraphFragment_MPAndroidChart mGraph_2;
-    private GraphFragment_MPAndroidChart mGraph_3;
-    private GraphFragment_MPAndroidChart mGraph_4;
-    private GraphFragment_MPAndroidChart mGraph_5;
-    private GraphFragment_MPAndroidChart mGraph_6;
-    private GraphFragment_MPAndroidChart mGraph_7;
-    private GraphFragment_MPAndroidChart mGraph_8;
+    private static GraphFragment_MPAndroidChart mGraph_2;
+    private static GraphFragment_MPAndroidChart mGraph_3;
+    private static GraphFragment_MPAndroidChart mGraph_4;
+    private static GraphFragment_MPAndroidChart mGraph_5;
+    private static GraphFragment_MPAndroidChart mGraph_6;
+    private static GraphFragment_MPAndroidChart mGraph_7;
+    private static GraphFragment_MPAndroidChart mGraph_8;
 
     private final Handler mHandler = new Handler(){
         @Override
@@ -160,13 +160,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void updateConnectionState(final String data) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "Changing Bluetooth Status to " + data);
-                txt_BtStatus.setText(data);
-            }
-        });
+        Log.d(TAG, "Changing Bluetooth Status to " + data);
+        txt_BtStatus.setText(data);
     }
 
     private void displayData(final String data) {
@@ -321,8 +316,6 @@ public class MainActivity extends AppCompatActivity
 //                Log.d(TAG, "Command arg is encoded into " + commandArg);
                 d(TAG, "Pressed Start");
 
-                verifyWriteStoragePermission(MainActivity.this);
-
                 int minute = Integer.parseInt(editTxt_Minute.getText().toString());
                 int second = Integer.parseInt(editTxt_Second.getText().toString());
                 long milliseconds = (minute* 60 + second) * 1000;
@@ -330,11 +323,13 @@ public class MainActivity extends AppCompatActivity
                 if (milliseconds <= 0) {
                     editTxt_Second.setError("0 seconds is not permitted!");
                 }
+
+                verifyWriteStoragePermission(MainActivity.this);
+
                 d(TAG, "Setting up timer with " + milliseconds + " ms");
                 runtimer = new Runtimer(milliseconds);
 
-                //TODO calculate required data points
-                int minCapacity = 1800;
+                int minCapacity = (minute * 60 + second) * 8;
 
                 mGraph_1.start(minCapacity);
                 mGraph_2.start(minCapacity);
@@ -355,11 +350,13 @@ public class MainActivity extends AppCompatActivity
 //                }
             }
         });
+        // Also used for clearing up the screen after opening a file
         bt_Cancel.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 d(TAG, "Pressed Cancel");
                 // Wiping out log file
-                mLoggingThread.finishLog();
+                if(mLoggingThread != null)    // in case user opened file
+                    mLoggingThread.finishLog();
 
                 commandPacketCreator((byte) Constants.CANCEL, (byte) Constants.CANCEL);
 
@@ -373,7 +370,8 @@ public class MainActivity extends AppCompatActivity
                 mGraph_7.clear();
                 mGraph_8.clear();
 
-                runtimer.cancel();
+                if(runtimer != null)    // in case user opened file
+                    runtimer.cancel();
                 runtimerWaiting = false;
             }
         });
@@ -418,7 +416,6 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_bluetooth_connect:
-                //TODO handle the case where the user switches connected devices
                 mBtService.enableBluetooth();
                 return true;
             //TODO start from here
@@ -537,8 +534,8 @@ public class MainActivity extends AppCompatActivity
                 if (resultCode == Activity.RESULT_OK){
                     //TODO start reading file from here
                     Log.d(TAG, "User selected a file to open");
-                    String fileName = data.getStringExtra(EXTRA_DEVICE_NAME);
-
+                    String fileName = data.getStringExtra(OpenFileActivity.EXTRA_FILE_NAME);
+                    mFileManager.readFile(fileName);
                 }
                 break;
         }
@@ -953,17 +950,45 @@ public class MainActivity extends AppCompatActivity
         mLoggingThread.start();
     }
 
+    public static void addFromFile(int datastream, float[] data) {
+        switch (datastream) {
+            case 1:
+                mGraph_1.addDataFromFile(data);
+                break;
+            case 2:
+                mGraph_2.addDataFromFile(data);
+                break;
+            case 3:
+                mGraph_3.addDataFromFile(data);
+                break;
+            case 4:
+                mGraph_4.addDataFromFile(data);
+                break;
+            case 5:
+                mGraph_5.addDataFromFile(data);
+                break;
+            case 6:
+                mGraph_6.addDataFromFile(data);
+                break;
+            case 7:
+                mGraph_7.addDataFromFile(data);
+                break;
+            case 8:
+                mGraph_8.addDataFromFile(data);
+                break;
+        }
+    }
+
     /*
     * This is the thread where it sends off the packets to the correct Fragments for graph display
     * It also do auto logging when 5th data is received.
     */
     private class ProcessingThread extends Thread {
         LinkedBlockingQueue<byte []> mmFIFOQueue = new LinkedBlockingQueue<byte []>();
-        private int [] mmRetrievedData = null;
+        private float [] mmRetrievedData = null;
         private byte [] mmTempData = null;
         private int datastream = -1;
-        //TODO delete this
-        private boolean mmTestPurponse = false; // for testing graph (to be deleted later)
+        private boolean mmTestPurpose = false; // for testing graph (remove it later)
 
         private int count = 0;  // used to count number of packets for logging
         private byte[] mmDataToLog = new byte[201];
@@ -983,24 +1008,25 @@ public class MainActivity extends AppCompatActivity
 //                    Log.d(TAG, "Processing data: " + mmTempData);
 
 //                    Log.d(TAG, "Retrieving data from packaged data");
-                if(!mmTestPurponse) {
+                if(!mmTestPurpose) {
 //                        mmRetrievedData = retrieveData(mmTempData);
-                    mmRetrievedData = new int[4];
-                    mmRetrievedData[0] = mmTempData[0];
-                    mmRetrievedData[3] = mmTempData[11] & 0xff;
-                    mmRetrievedData[2] = mmTempData[12] & 0xff;
-                    mmRetrievedData[1] = mmTempData[13] & 0xff;
+                    mmRetrievedData = new float[3];
+                    mmRetrievedData[2] = mmTempData[11] & 0xff;
+                    mmRetrievedData[1] = mmTempData[12] & 0xff;
+                    mmRetrievedData[0] = mmTempData[13] & 0xff;
                 }
                 else {
-                    mmRetrievedData = new int[4];
-                    mmRetrievedData[0] = mmTempData[0];
-                    mmRetrievedData[1] = mmTempData[1];
-                    mmRetrievedData[2] = mmTempData[2];
-                    mmRetrievedData[3] = mmTempData[3];
+                    mmRetrievedData = new float[3];
+                    mmRetrievedData[0] = mmTempData[1];
+                    mmRetrievedData[1] = mmTempData[2];
+                    mmRetrievedData[2] = mmTempData[3];
                 }
 
                 for(int i = 0; i < 4; i++) {
-                    mmDataToLog[count * 4 + i] = (byte) mmRetrievedData[i];
+                    if(i == 0)
+                        mmDataToLog[count * 4 + i] = (byte) mmTempData[0];
+                    else
+                        mmDataToLog[count * 4 + i] = (byte) mmRetrievedData[i - 1];
                 }
 
                 count++;
@@ -1012,15 +1038,15 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 //TODO enable this
-                datastream = mmRetrievedData[0] & 0b00000111;
+                datastream = mmTempData[0] & 0b00000111;
                 //TODO uncomment below
 //                if(datastream == 0){    // display only DS1
 //                    Log.d(TAG, "Packaged data corresponds to datastream 1");
 //                    // for graph
-//                    mGraph_1.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_1.addData(mmRetrievedData);
 //                }
                 //TODO delete below
-                if(mmRetrievedData[0] == 49){    // display only DS1
+                if(mmTempData[0] == 49){    // display only DS1
                     d(TAG, "Packaged data corresponds to datastream 1");
                     // for graph
                     mGraph_1.addData(mmRetrievedData);
@@ -1028,37 +1054,37 @@ public class MainActivity extends AppCompatActivity
 //                else if(datastream == 1) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 2");
 //                    // for graph
-//                    mGraph_2.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_2.addData(mmRetrievedData);
 //                }
 //                else if(datastream == 2) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 3");
 //                    // for graph
-//                    mGraph_3.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_3.addData(mmRetrievedData);
 //                }
 //                else if(datastream == 3) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 4");
 //                    // for graph
-//                    mGraph_4.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_4.addData(mmRetrievedData);
 //                }
 //                else if(datastream == 4) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 5");
 //                    // for graph
-//                    mGraph_5.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_5.addData(mmRetrievedData);
 //                }
 //                else if(datastream == 5) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 6");
 //                    // for graph
-//                    mGraph_6.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_6.addData(mmRetrievedData);
 //                }
 //                else if(datastream == 6) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 7");
 //                    // for graph
-//                    mGraph_7.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_7.addData(mmRetrievedData);
 //                }
 //                else if(datastream == 7) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 8");
 //                    // for graph
-//                    mGraph_8.addData(mmRetrievedData[1], mmRetrievedData[2], mmRetrievedData[3]);
+//                    mGraph_8.addData(mmRetrievedData);
 //                }
                 else {
                     Log.e(TAG, "Received data not corresponding to any datastreams");
@@ -1067,7 +1093,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         public synchronized void add (boolean testPurpose, byte[] data) {
-            mmTestPurponse = testPurpose;
+            mmTestPurpose = testPurpose;
             Log.i(TAG, "Adding into Processing FIFO queue " + data);
             try {
                 mmFIFOQueue.put(data);

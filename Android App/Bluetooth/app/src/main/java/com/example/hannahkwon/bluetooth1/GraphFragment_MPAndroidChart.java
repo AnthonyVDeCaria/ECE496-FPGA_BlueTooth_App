@@ -48,17 +48,18 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     private ArrayList<Entry> ISE2_entries;
 
     private boolean over_threshold = false;  // used to change background color
+    private float final_temp = 0; // used for saving
 
     private boolean UI_update_done = false;
 
     private String description_txt;
 
-    private LinkedBlockingQueue<int []> mmFIFOQueue = new LinkedBlockingQueue<int []>();
+    private LinkedBlockingQueue<float []> mFIFOQueue;
 
     private static ReentrantLock SavingLock = new ReentrantLock();
 
     //TODO remove this
-    private long counter = 0;
+    private float index = 0;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,6 +93,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         TAG = getTag();
         d(TAG, "TAG is " + TAG);
         description_txt = "Channel " + TAG.charAt(8);
+
+        mFIFOQueue = new LinkedBlockingQueue<float []>();
 
         graphingThread = new GraphingThread();
         graphingThread.start();
@@ -135,22 +138,41 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         super.onDestroy();
     }
 
-    public void addData(int[] data) {
-        int [] necessary_data = new int[3];
-        necessary_data[0] = data[1];
-        necessary_data[1] = data[2];
-        necessary_data[2] = data[3];
-        Log.i(TAG, "Adding into GraphingThread FIFO queue " + necessary_data[0] + ", "
-            + necessary_data[1] + ", " + necessary_data[2]);
+    public void addData(float[] data) {
+//        plotting_time = (System.currentTimeMillis() - start_time) / 1000; // to seconds
+        float [] toAdd = new float[4];
+        toAdd[0] = data[0];
+        toAdd[1] = data[1];
+        toAdd[2] = data[2];
+//        toAdd[3] = (float) plotting_time;
+        Log.i(TAG, "Adding into GraphingThread FIFO queue " + toAdd[0] + ", "
+            + toAdd[1] + ", " + toAdd[2]);
         try {
-            mmFIFOQueue.put(necessary_data);
+            mFIFOQueue.put(toAdd);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed adding into GraphingThread FIFO queue", e);
+        }
+    }
+
+    public void addDataFromFile(float[] data) {
+        // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
+        float [] toAdd = new float[4];
+        toAdd[0] = data[0];
+        toAdd[1] = data[1];
+        toAdd[2] = data[2];
+        toAdd[3] = data[3];
+        Log.i(TAG, "Adding into GraphingThread FIFO queue from file " + toAdd[0] + ", "
+                + toAdd[1] + ", " + toAdd[2]);
+        try {
+            if(!mFIFOQueue.add(toAdd))
+                Log.d(TAG, "Failed adding in to GraphingThread FIFO queue!");
         } catch (Exception e) {
             Log.e(TAG, "Failed adding into GraphingThread FIFO queue", e);
         }
     }
 
     private class GraphingThread extends Thread {
-        private int[] mmTempData = null;
+        private float[] mmTempData = null;
 
         public GraphingThread() {
             d(TAG, "Creating GraphingThread");
@@ -158,35 +180,44 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
         public void run() {
             while (true) {
-                mmTempData = mmFIFOQueue.peek();
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+
+                }
+                mmTempData = mFIFOQueue.peek();
                 if (mmTempData != null) {
                     MainActivity.RuntimerWaiting.lock();
                     try {
                         if (!MainActivity.runtimerWaiting) {
                             MainActivity.ViewUpdateLock.lock();
-                            final int ISE1_val = mmTempData[0];
-                            final int ISE2_val = mmTempData[1];
-                            final int Temp_val = mmTempData[2];
+                            final float ISE1_val = mmTempData[0];
+                            final float ISE2_val = mmTempData[1];
+                            final float Temp_val = mmTempData[2];
+
+                            final_temp = Temp_val;
+                            //TODO uncomment this
+                            index = mmTempData[3];
 
                             activity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
                                     d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
-                                            + ISE2_val + " with counter " + counter);
-                                    ISE1_dataset.addEntry(new Entry(counter, ISE1_val));
-                                    ISE2_dataset.addEntry(new Entry(counter, ISE2_val));
+                                            + ISE2_val + " with index " + index);
                                     if (Temp_val >= Constants.TEMP_THRESHOLD) {
-                                        //             Log.d(TAG, "Temp is above threshold");
+                                        Log.d(TAG, "Temp is above threshold");
                                         chart.setBackgroundColor(Color.GREEN);
                                         over_threshold = true;
                                         //                Log.d(TAG, "Succeed changing graph background color");
                                     }
                                     else {
-                                        //            Log.d(TAG, "Temp is below threshold");
+                                        Log.d(TAG, "Temp is below threshold");
                                         chart.setBackgroundColor(Color.WHITE);
                                         over_threshold = false;
                                         //                Log.d(TAG, "Succeed changing graph background color");
                                     }
+                                    ISE1_dataset.addEntry(new Entry(index, ISE1_val));
+                                    ISE2_dataset.addEntry(new Entry(index, ISE2_val));
                                     lineData.notifyDataChanged();
                                     chart.notifyDataSetChanged();
                                     chart.invalidate();
@@ -197,17 +228,18 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                                 if(UI_update_done)
                                     break;
                             }
-                            counter++;
+                            //TODO remove this
+//                            index++;
                             UI_update_done = false;
                             d(TAG, "Succeed updating graph");
-                            mmFIFOQueue.remove();
+                            mFIFOQueue.remove();
                         }
                     }
                     finally {
                         MainActivity.RuntimerWaiting.unlock();
                         if (MainActivity.ViewUpdateLock.isHeldByCurrentThread())
                             MainActivity.ViewUpdateLock.unlock();
-//                        Log.d(TAG, "Unlocked locks");
+                        Log.d(TAG, "Unlocked locks");
                     }
                 }
             }
@@ -222,7 +254,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
             // Removes all DataSets (and thereby Entries) from the chart.
 //        lineData.clearValues();
 
-            counter = 0;
+            //TODO remove this
+            index = 0;
 
             chart.clearValues();
             lineData.notifyDataChanged();
@@ -282,6 +315,11 @@ public class GraphFragment_MPAndroidChart extends Fragment {
             datatoSave = temp.concat(e.getX() + "," + e.getY() + "\t");
             temp = datatoSave;
         }
+        datatoSave = temp.concat("\nFinalTemp\n");
+        temp = datatoSave;
+        datatoSave = temp.concat(String.valueOf(final_temp));
+
+        temp = datatoSave;
         datatoSave = temp.concat("\n");
 
         // to synchronize saving
