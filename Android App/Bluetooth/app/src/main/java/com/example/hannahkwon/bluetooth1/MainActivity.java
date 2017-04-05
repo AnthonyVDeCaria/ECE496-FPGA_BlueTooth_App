@@ -421,8 +421,6 @@ public class MainActivity extends AppCompatActivity
             //TODO start from here
             case R.id.action_open_file:
                 verifyReadStoragePermission(this);
-                Intent intent = new Intent(this, OpenFileActivity.class);
-                this.startActivityForResult(intent, Constants.REQUEST_OPEN_FILE);
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -573,7 +571,8 @@ public class MainActivity extends AppCompatActivity
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission granted
                     d(TAG, "User granted the permission");
-
+                    Intent intent = new Intent(this, OpenFileActivity.class);
+                    this.startActivityForResult(intent, Constants.REQUEST_OPEN_FILE);
                 }
                 else { // for now it shouldn't fall here
                     d(TAG, "Permission is denied");
@@ -681,7 +680,7 @@ public class MainActivity extends AppCompatActivity
             int permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE);
 
             if (permission != PackageManager.PERMISSION_GRANTED) {
-                d(TAG, "Permission not granted");
+                d(TAG, "Write storage permission not granted");
                 //            setState(STATE_FORBIDDEN);
                 // there is no permission so prompt the user
                 ActivityCompat.requestPermissions(
@@ -691,7 +690,7 @@ public class MainActivity extends AppCompatActivity
                 );
             }
             else {
-                d(TAG, "Permission already granted");
+                d(TAG, "Write storage permission already granted");
                 mFileManager.createStorageDir();
 
                 // starting to log data
@@ -718,7 +717,7 @@ public class MainActivity extends AppCompatActivity
             int permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
 
             if (permission != PackageManager.PERMISSION_GRANTED) {
-                d(TAG, "Permission not granted");
+                d(TAG, "Read storage permission not granted");
                 //            setState(STATE_FORBIDDEN);
                 // there is no permission so prompt the user
                 ActivityCompat.requestPermissions(
@@ -727,10 +726,19 @@ public class MainActivity extends AppCompatActivity
                         Constants.PERMISSION_READ_EXTERNAL_STORAGE
                 );
             }
-            d(TAG, "Permission already granted");
+            else {
+                d(TAG, "Read storage permission already granted");
+
+                Intent intent = new Intent(activity, OpenFileActivity.class);
+                activity.startActivityForResult(intent, Constants.REQUEST_OPEN_FILE);
+            }
         }
-        else
+        else {
             d(TAG, "Android version is under 6.0 (No need for Runtime Permission");
+
+            Intent intent = new Intent(activity, OpenFileActivity.class);
+            activity.startActivityForResult(intent, Constants.REQUEST_OPEN_FILE);
+        }
     }
 
     /* For the case where no Bluetooth support */
@@ -950,6 +958,35 @@ public class MainActivity extends AppCompatActivity
         mLoggingThread.start();
     }
 
+    public static void clearGraphs(int datastream) {
+        switch (datastream) {
+            case 1:
+                mGraph_1.clear();
+                break;
+            case 2:
+                mGraph_2.clear();
+                break;
+            case 3:
+                mGraph_3.clear();
+                break;
+            case 4:
+                mGraph_4.clear();
+                break;
+            case 5:
+                mGraph_5.clear();
+                break;
+            case 6:
+                mGraph_6.clear();
+                break;
+            case 7:
+                mGraph_7.clear();
+                break;
+            case 8:
+                mGraph_8.clear();
+                break;
+        }
+    }
+
     public static void addFromFile(int datastream, float[] data) {
         switch (datastream) {
             case 1:
@@ -975,6 +1012,35 @@ public class MainActivity extends AppCompatActivity
                 break;
             case 8:
                 mGraph_8.addDataFromFile(data);
+                break;
+        }
+    }
+
+    public static void doneAddingFromFile(int datastream) {
+        switch (datastream) {
+            case 1:
+                mGraph_1.doneAddingFromFile();
+                break;
+            case 2:
+                mGraph_2.doneAddingFromFile();
+                break;
+            case 3:
+                mGraph_3.doneAddingFromFile();
+                break;
+            case 4:
+                mGraph_4.doneAddingFromFile();
+                break;
+            case 5:
+                mGraph_5.doneAddingFromFile();
+                break;
+            case 6:
+                mGraph_6.doneAddingFromFile();
+                break;
+            case 7:
+                mGraph_7.doneAddingFromFile();
+                break;
+            case 8:
+                mGraph_8.doneAddingFromFile();
                 break;
         }
     }

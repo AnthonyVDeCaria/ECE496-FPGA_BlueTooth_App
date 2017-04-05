@@ -156,6 +156,7 @@ public class FileManager {
 
                         // now starting adding data to graphs
                         if(!ISE1_data.isEmpty() & !ISE2_data.isEmpty()) {
+                            MainActivity.clearGraphs(datastream);
                             ISE1_data_point = ISE1_data.split("\t");
                             ISE2_data_point = ISE2_data.split("\t");
                             for (i = 0; i < ISE1_data_point.length; i++) {
@@ -168,6 +169,7 @@ public class FileManager {
                                         + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
                                 MainActivity.addFromFile(datastream, toAdd);
                             }
+                            MainActivity.doneAddingFromFile(datastream);
                         }
                     }
                 }

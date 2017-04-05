@@ -156,19 +156,25 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
     public void addDataFromFile(float[] data) {
         // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
-        float [] toAdd = new float[4];
-        toAdd[0] = data[0];
-        toAdd[1] = data[1];
-        toAdd[2] = data[2];
-        toAdd[3] = data[3];
-        Log.i(TAG, "Adding into GraphingThread FIFO queue from file " + toAdd[0] + ", "
-                + toAdd[1] + ", " + toAdd[2]);
-        try {
-            if(!mFIFOQueue.add(toAdd))
-                Log.d(TAG, "Failed adding in to GraphingThread FIFO queue!");
-        } catch (Exception e) {
-            Log.e(TAG, "Failed adding into GraphingThread FIFO queue", e);
+        Log.i(TAG, "Adding into entries from file " + data[0] + ", "
+        + data[1] + ", " + data[2]);
+        ISE1_dataset.addEntry(new Entry(data[3], data[0]));
+        ISE2_dataset.addEntry(new Entry(data[3], data[1]));
+        if(data[2] > Constants.TEMP_THRESHOLD) {
+            if (!over_threshold) {
+                chart.setBackgroundColor(Color.GREEN);
+                over_threshold = true;
+            }
         }
+    }
+
+    public void doneAddingFromFile(){
+        lineData.addDataSet(ISE1_dataset);
+        lineData.addDataSet(ISE2_dataset);
+        lineData.notifyDataChanged();
+        chart.notifyDataSetChanged();
+        chart.invalidate();
+        Log.d(TAG, "Successfully updated the UI");
     }
 
     private class GraphingThread extends Thread {
@@ -180,11 +186,6 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
         public void run() {
             while (true) {
-                try {
-                    Thread.sleep(1000);
-                } catch (Exception e) {
-
-                }
                 mmTempData = mFIFOQueue.peek();
                 if (mmTempData != null) {
                     MainActivity.RuntimerWaiting.lock();
@@ -206,14 +207,18 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                                             + ISE2_val + " with index " + index);
                                     if (Temp_val >= Constants.TEMP_THRESHOLD) {
                                         Log.d(TAG, "Temp is above threshold");
-                                        chart.setBackgroundColor(Color.GREEN);
-                                        over_threshold = true;
+                                        if(!over_threshold) {
+                                            chart.setBackgroundColor(Color.GREEN);
+                                            over_threshold = true;
+                                        }
                                         //                Log.d(TAG, "Succeed changing graph background color");
                                     }
                                     else {
                                         Log.d(TAG, "Temp is below threshold");
-                                        chart.setBackgroundColor(Color.WHITE);
-                                        over_threshold = false;
+                                        if(over_threshold) {
+                                            chart.setBackgroundColor(Color.WHITE);
+                                            over_threshold = false;
+                                        }
                                         //                Log.d(TAG, "Succeed changing graph background color");
                                     }
                                     ISE1_dataset.addEntry(new Entry(index, ISE1_val));
