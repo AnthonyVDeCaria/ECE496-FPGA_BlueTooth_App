@@ -4,10 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 
 import com.example.android.common.view.SlidingTabLayout;
@@ -16,7 +17,7 @@ import com.example.android.common.view.SlidingTabLayout;
  * Created by HannahKwon on 2017-04-04.
  */
 
-public class OpenFileActivity extends FragmentActivity implements ArrayListFragment.onFileSelectedListener {
+public class OpenFileActivity extends AppCompatActivity implements ArrayListFragment.onFileSelectedListener {
     private static final String TAG = "OpenFileActivity";
     private static final int NUM_ITEMS = 2;
 
@@ -32,6 +33,9 @@ public class OpenFileActivity extends FragmentActivity implements ArrayListFragm
         setContentView(R.layout.activity_open_file);
 
         Log.d(TAG, "OpenFileActivity is getting created");
+
+        android.support.v7.widget.Toolbar toolbar = (Toolbar) findViewById(R.id.toolBar);
+        setSupportActionBar(toolbar);
 
         // ViewPager and its adapters use support library
         // fragments, so use getSupportFragmentManager.

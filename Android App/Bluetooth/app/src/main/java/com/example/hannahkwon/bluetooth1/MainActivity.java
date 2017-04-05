@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity
     private void displayData(final String data) {
 
         if (data != null) {
-            d(TAG, "Displaying data :" + data);
+            Log.d(TAG, "Displaying data :" + data);
             txt_DataReceived.append(data);
         }
         else {
@@ -191,20 +191,20 @@ public class MainActivity extends AppCompatActivity
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                d(TAG, "Connected to a GATT server");
+                Log.d(TAG, "Connected to a GATT server");
                 updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                d(TAG, "Disconnected from a GATT server");
+                Log.d(TAG, "Disconnected from a GATT server");
                 // reset characteristic
                 mBluetoothLeService.resetCharacteristic();
                 updateConnectionState(getResources().getString(R.string.disoconnted));
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 //Show all the supported services and characteristics on the user interface.
-                d(TAG, "Discovered GATT services");
+                Log.d(TAG, "Discovered GATT services");
                 mBluetoothLeService.displayGattServices(mBluetoothLeService.getSupportedGattServices());
             }
             if (ACTION_DATA_AVAILABLE.equals(action)) {
-                d(TAG, "Received data");
+                Log.d(TAG, "Received data");
                 byte [] data = intent.getByteArrayExtra(EXTRA_DATA);
                 if (data != null && data.length > 0) {
 //                    final StringBuilder stringBuilder = new StringBuilder(data.length);
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity
                 finish();
             }
             // Automatically connects to the device upon successful start-up initialization.
-            d(TAG, "Connecting to the device");
+            Log.d(TAG, "Connecting to the device");
             if(!mBluetoothLeService.connect(mDeviceAddress))
                 Log.e(TAG, "Connection initiation failed");
         }
@@ -416,11 +416,11 @@ public class MainActivity extends AppCompatActivity
                 int minute = Integer.parseInt(editTxt_Minute.getText().toString());
                 int second = Integer.parseInt(editTxt_Second.getText().toString());
                 long milliseconds = (minute* 60 + second) * 1000;
-                Log.d(TAG, "User set the timer with " + milliseconds + " ms");
+                d(TAG, "User set the timer with " + milliseconds + " ms");
                 if (milliseconds <= 0) {
                     editTxt_Second.setError("0 seconds is not permitted!");
                 }
-                Log.d(TAG, "Setting up timer with " + milliseconds + " ms");
+                d(TAG, "Setting up timer with " + milliseconds + " ms");
                 runtimer = new Runtimer(milliseconds);
 
                 //TODO calculate required data points
@@ -483,7 +483,8 @@ public class MainActivity extends AppCompatActivity
                     ) {
                         //Do your own error handling here
                         Log.e(TAG, "Something went wrong!\nThe App is going to crash!");
-                        mLoggingThread.finishLog();
+                        if(mLoggingThread != null)
+                            mLoggingThread.finishLog();
 
                         if (oldHandler != null)
                             oldHandler.uncaughtException(
@@ -549,7 +550,7 @@ public class MainActivity extends AppCompatActivity
     protected void onStop(){
         super.onStop();
 
-        Log.d(TAG, "MainActivity is getting stopped");
+        d(TAG, "MainActivity is getting stopped");
         // unregister broadcast receiver
 //        unregisterReceiver(mReceiver);
     }
@@ -557,7 +558,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "MainActivity is getting destroyed");
+        d(TAG, "MainActivity is getting destroyed");
 
         if (mBtService != null) {
             // Stops ConnectThread and ConnectedThread
@@ -568,7 +569,8 @@ public class MainActivity extends AppCompatActivity
             mBluetoothLeService = null;
             mBound = false;
         }
-        mLoggingThread.finishLog();
+        if(mLoggingThread != null)
+            mLoggingThread.finishLog();
     }
 
     @Override
@@ -864,7 +866,7 @@ public class MainActivity extends AppCompatActivity
         private Runtimer(long millisInFuture) {
             super(millisInFuture, 100);    // Using smaller than 1 second to get frequent updates
             timeLeft = (int) millisInFuture / 1000;
-            Log.d(TAG, "runtimer start with " + timeLeft + " s");
+            d(TAG, "runtimer start with " + timeLeft + " s");
         }
 
         @Override
@@ -885,7 +887,7 @@ public class MainActivity extends AppCompatActivity
                     String second = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)));
                     editTxt_Minute.setText(minute);
                     editTxt_Second.setText(second);
-                    Log.d(TAG, "Changed Minute to " + minute + " and Second to " + second);
+                    d(TAG, "Changed Minute to " + minute + " and Second to " + second);
 
                     runtimerWaiting = false;
                 }
@@ -910,7 +912,7 @@ public class MainActivity extends AppCompatActivity
                 editTxt_Minute.setText("00");
                 editTxt_Second.setText("00");
 
-                Log.d(TAG, "Finished timer");
+                d(TAG, "Finished timer");
                 runtimerWaiting = false;
             } finally {
                 ViewUpdateLock.unlock();
@@ -1001,7 +1003,7 @@ public class MainActivity extends AppCompatActivity
 //                }
                 //TODO delete below
                 if(mmRetrievedData[0] == 49){    // display only DS1
-                    Log.d(TAG, "Packaged data corresponds to datastream 1");
+                    d(TAG, "Packaged data corresponds to datastream 1");
                     // for graph
                     mGraph_1.addData(mmRetrievedData);
                 }
