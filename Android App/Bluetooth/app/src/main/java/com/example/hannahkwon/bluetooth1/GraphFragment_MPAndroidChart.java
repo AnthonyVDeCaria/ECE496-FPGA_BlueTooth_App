@@ -20,8 +20,10 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.util.ArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static android.util.Log.d;
+import static com.example.hannahkwon.bluetooth1.MainActivity.mFileManager;
 
 /**
  * Created by HannahKwon on 2017-03-18.
@@ -53,6 +55,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
     private LinkedBlockingQueue<int []> mmFIFOQueue = new LinkedBlockingQueue<int []>();
 
+    private static ReentrantLock SavingLock = new ReentrantLock();
+
     //TODO remove this
     private long counter = 0;
 
@@ -68,18 +72,18 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         ISE2_entries = new ArrayList<Entry>();
 
         ISE1_dataset = new LineDataSet(ISE1_entries, "ISE1");
-        ISE1_dataset.setColor(Color.RED);
-        ISE1_dataset.setValueTextColor(Color.RED);
+        ISE1_dataset.setColor(Color.BLUE);
+        ISE1_dataset.setValueTextColor(Color.BLUE);
         ISE1_dataset.setCircleRadius(2f);
-        ISE1_dataset.setCircleColor(Color.RED);
+        ISE1_dataset.setCircleColor(Color.BLUE);
         ISE1_dataset.setDrawCircleHole(false);  // circle will be filled up
         ISE1_dataset.setDrawValues(false);
 
         ISE2_dataset = new LineDataSet(ISE2_entries, "ISE2");
-        ISE2_dataset.setColor(Color.BLUE);
-        ISE2_dataset.setValueTextColor(Color.BLUE);
+        ISE2_dataset.setColor(Color.RED);
+        ISE2_dataset.setValueTextColor(Color.RED);
         ISE2_dataset.setCircleRadius(2f);
-        ISE2_dataset.setCircleColor(Color.BLUE);
+        ISE2_dataset.setCircleColor(Color.RED);
         ISE2_dataset.setDrawCircleHole(false);  // circle will be filled up
         ISE2_dataset.setDrawValues(false);
 
@@ -211,16 +215,16 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     }
 
     public void clear() {
-        ISE1_entries.clear();
-        ISE2_entries.clear();
-        // Removes all DataSets (and thereby Entries) from the chart.
-//        lineData.clearValues();
-
-        counter = 0;
-
-        chart.clearValues();
         MainActivity.ViewUpdateLock.lock();
         try {
+            ISE1_entries.clear();
+            ISE2_entries.clear();
+            // Removes all DataSets (and thereby Entries) from the chart.
+//        lineData.clearValues();
+
+            counter = 0;
+
+            chart.clearValues();
             lineData.notifyDataChanged();
             chart.notifyDataSetChanged();
 
@@ -262,7 +266,31 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         return;
     }
 
-    public void save() {
+    // NOTE temperature values are not stored
+    public void saveAllData(String fileName) {
+        String datatoSave = null;
+        String temp = TAG + "\n" + "ISE1\n";
+        for (Entry e : ISE1_entries) {
+            Log.d(TAG, "Adding following data to saving " + e.getX() + ", " + e.getY());
+            datatoSave = temp.concat(e.getX() + "," + e.getY() + "\t");
+            temp = datatoSave;
+        }
+        datatoSave = temp.concat("\nISE2\n");
+        temp = datatoSave;
+        for (Entry e : ISE2_entries) {
+            Log.d(TAG, "Adding following data to saving " + e.getX() + ", " + e.getY());
+            datatoSave = temp.concat(e.getX() + "," + e.getY() + "\t");
+            temp = datatoSave;
+        }
+        datatoSave = temp.concat("\n");
 
+        // to synchronize saving
+        SavingLock.lock();
+        try {
+            mFileManager.saveFile(fileName, datatoSave);
+            Log.d(TAG, "Successfully saved all data!");
+        } finally {
+            SavingLock.unlock();
+        }
     }
 }

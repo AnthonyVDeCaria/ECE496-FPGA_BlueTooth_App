@@ -35,6 +35,8 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -161,7 +163,7 @@ public class MainActivity extends AppCompatActivity
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                d(TAG, "Changing Bluetooth Status to " + data);
+                Log.d(TAG, "Changing Bluetooth Status to " + data);
                 txt_BtStatus.setText(data);
             }
         });
@@ -170,7 +172,7 @@ public class MainActivity extends AppCompatActivity
     private void displayData(final String data) {
 
         if (data != null) {
-            Log.d(TAG, "Displaying data :" + data);
+            d(TAG, "Displaying data :" + data);
             txt_DataReceived.append(data);
         }
         else {
@@ -191,20 +193,20 @@ public class MainActivity extends AppCompatActivity
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                Log.d(TAG, "Connected to a GATT server");
+                d(TAG, "Connected to a GATT server");
                 updateConnectionState(getResources().getString(R.string.connected_to_device, mDeviceName));
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                Log.d(TAG, "Disconnected from a GATT server");
+                d(TAG, "Disconnected from a GATT server");
                 // reset characteristic
                 mBluetoothLeService.resetCharacteristic();
                 updateConnectionState(getResources().getString(R.string.disoconnted));
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 //Show all the supported services and characteristics on the user interface.
-                Log.d(TAG, "Discovered GATT services");
+                d(TAG, "Discovered GATT services");
                 mBluetoothLeService.displayGattServices(mBluetoothLeService.getSupportedGattServices());
             }
             if (ACTION_DATA_AVAILABLE.equals(action)) {
-                Log.d(TAG, "Received data");
+                d(TAG, "Received data");
                 byte [] data = intent.getByteArrayExtra(EXTRA_DATA);
                 if (data != null && data.length > 0) {
 //                    final StringBuilder stringBuilder = new StringBuilder(data.length);
@@ -230,7 +232,7 @@ public class MainActivity extends AppCompatActivity
                 finish();
             }
             // Automatically connects to the device upon successful start-up initialization.
-            Log.d(TAG, "Connecting to the device");
+            d(TAG, "Connecting to the device");
             if(!mBluetoothLeService.connect(mDeviceAddress))
                 Log.e(TAG, "Connection initiation failed");
         }
@@ -292,10 +294,12 @@ public class MainActivity extends AppCompatActivity
         if (mBtService == null) {
             mBtService = new BluetoothService(this, mHandler);
         }
+
         if (mBtService.getDeviceState()) {
             // the device supports Bluetooth
             mBtService.enableBluetooth();
-        } else {
+        }
+        else {
             // sets up a dialogue saying the device does not support Bluetooth and kill the app
             showNotSupportBtDialog();
         }
@@ -304,102 +308,8 @@ public class MainActivity extends AppCompatActivity
             mFileManager = new FileManager(this);
         }
 
-
-        // to get the runtime
-        editTxt_Minute.addTextChangedListener(new TextWatcher() {
-            boolean pushed = false;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//                Log.d(TAG, "Before text changed");
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                Log.d(TAG, "On text changed");
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {  // also get called when numbers are deleted
-//                Log.d(TAG, "After text changed");
-                String value = s.toString();
-                int length = value.length();
-                if (length > 0) {
-                    if(!pushed) {
-//                        Log.d(TAG, "May need to push");
-                        if(length > 2) {
-                            if(Integer.parseInt(value.substring(0, 1 + 1)) == 59) {
-//                                Log.d(TAG, "Was already at 59 previously");
-                                editTxt_Minute.setText("0" + value.charAt(2));
-                                editTxt_Minute.setSelection(2);
-                                return;
-                            }
-//                            Log.d(TAG, "Pushing in " + value + " to the left");
-                            String current = value.substring(1, 2 + 1);
-//                            Log.d(TAG, "Pushed value should be " + current);
-                            pushed = true;
-                            editTxt_Minute.setText(current);
-                            editTxt_Minute.setSelection(2);
-                            return;
-                        }
-                    }
-                    int second = Integer.parseInt(value);
-                    if (second > 59) {
-//                        Log.d(TAG, "User entered invalid second! " + second);
-                        editTxt_Minute.setText("59");
-                    }
-                    pushed = false;
-//                    Log.d(TAG, "pushed is changed back to false");
-                }
-            }
-        });
-        editTxt_Second.addTextChangedListener(new TextWatcher() {
-            boolean pushed = false;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-//                Log.d(TAG, "Before text changed");
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-//                Log.d(TAG, "On text changed");
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {  // also get called when numbers are deleted
-//                Log.d(TAG, "After text changed");
-                String value = s.toString();
-                int length = value.length();
-                if (length > 0) {
-                    if(!pushed) {
-//                        Log.d(TAG, "May need to push");
-                        if(length > 2) {
-                            if(Integer.parseInt(value.substring(0, 1 + 1)) == 59) {
-//                                Log.d(TAG, "Was already at 59 previously");
-                                editTxt_Second.setText("0" + value.charAt(2));
-                                editTxt_Second.setSelection(2);
-                                return;
-                            }
-//                            Log.d(TAG, "Pushing in " + value + " to the left");
-                            String current = value.substring(1, 2 + 1);
-//                            Log.d(TAG, "Pushed value should be " + current);
-                            pushed = true;
-                            editTxt_Second.setText(current);
-                            editTxt_Second.setSelection(2);
-                            return;
-                        }
-                    }
-                    int second = Integer.parseInt(value);
-                    if (second > 59) {
-//                        Log.d(TAG, "User entered invalid second! " + second);
-                        editTxt_Second.setText("59");
-                    }
-                    pushed = false;
-//                    Log.d(TAG, "pushed is changed back to false");
-                }
-            }
-        });
+        // to enable better runtimer input interaction
+        RuntimerSelector();
 
         bt_Start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -513,6 +423,7 @@ public class MainActivity extends AppCompatActivity
                 return true;
             //TODO start from here
             case R.id.action_open_file:
+                verifyReadStoragePermission(this);
                 Intent intent = new Intent(this, OpenFileActivity.class);
                 this.startActivityForResult(intent, Constants.REQUEST_OPEN_FILE);
                 return true;
@@ -625,6 +536,8 @@ public class MainActivity extends AppCompatActivity
             case Constants.REQUEST_OPEN_FILE:
                 if (resultCode == Activity.RESULT_OK){
                     //TODO start reading file from here
+                    Log.d(TAG, "User selected a file to open");
+                    String fileName = data.getStringExtra(EXTRA_DEVICE_NAME);
 
                 }
                 break;
@@ -807,7 +720,7 @@ public class MainActivity extends AppCompatActivity
             // Check if there is write permission
             int permission = ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
 
-            if (permission != PackageManager.PERMISSION_GRANTED) { // for now it shouldn't fall at here
+            if (permission != PackageManager.PERMISSION_GRANTED) {
                 d(TAG, "Permission not granted");
                 //            setState(STATE_FORBIDDEN);
                 // there is no permission so prompt the user
@@ -860,6 +773,94 @@ public class MainActivity extends AppCompatActivity
         dialog.show(getSupportFragmentManager(), "StorageNotWorkingDialogFragment");
     }
 
+    private void RuntimerSelector() {
+        // to get the runtime
+        editTxt_Minute.addTextChangedListener(new TextWatcher() {
+            boolean pushed = false;
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {  // also get called when numbers are deleted
+//                Log.d(TAG, "After text changed");
+                String value = s.toString();
+                int length = value.length();
+                if (length > 0) {
+                    if(!pushed) {
+//                        Log.d(TAG, "May need to push");
+                        if(length > 2) {
+                            if(Integer.parseInt(value.substring(0, 1 + 1)) == 59) {
+//                                Log.d(TAG, "Was already at 59 previously");
+                                editTxt_Minute.setText("0" + value.charAt(2));
+                                editTxt_Minute.setSelection(2);
+                                return;
+                            }
+//                            Log.d(TAG, "Pushing in " + value + " to the left");
+                            String current = value.substring(1, 2 + 1);
+//                            Log.d(TAG, "Pushed value should be " + current);
+                            pushed = true;
+                            editTxt_Minute.setText(current);
+                            editTxt_Minute.setSelection(2);
+                            return;
+                        }
+                    }
+                    int second = Integer.parseInt(value);
+                    if (second > 59) {
+//                        Log.d(TAG, "User entered invalid second! " + second);
+                        editTxt_Minute.setText("59");
+                    }
+                    pushed = false;
+//                    Log.d(TAG, "pushed is changed back to false");
+                }
+            }
+        });
+        editTxt_Second.addTextChangedListener(new TextWatcher() {
+            boolean pushed = false;
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+            @Override
+            public void afterTextChanged(Editable s) {  // also get called when numbers are deleted
+//                Log.d(TAG, "After text changed");
+                String value = s.toString();
+                int length = value.length();
+                if (length > 0) {
+                    if(!pushed) {
+//                        Log.d(TAG, "May need to push");
+                        if(length > 2) {
+                            if(Integer.parseInt(value.substring(0, 1 + 1)) == 59) {
+//                                Log.d(TAG, "Was already at 59 previously");
+                                editTxt_Second.setText("0" + value.charAt(2));
+                                editTxt_Second.setSelection(2);
+                                return;
+                            }
+//                            Log.d(TAG, "Pushing in " + value + " to the left");
+                            String current = value.substring(1, 2 + 1);
+//                            Log.d(TAG, "Pushed value should be " + current);
+                            pushed = true;
+                            editTxt_Second.setText(current);
+                            editTxt_Second.setSelection(2);
+                            return;
+                        }
+                    }
+                    int second = Integer.parseInt(value);
+                    if (second > 59) {
+//                        Log.d(TAG, "User entered invalid second! " + second);
+                        editTxt_Second.setText("59");
+                    }
+                    pushed = false;
+//                    Log.d(TAG, "pushed is changed back to false");
+                }
+            }
+        });
+    }
+
     private class Runtimer extends CountDownTimer {
         int timeLeft;
         int timeToDisplay;
@@ -899,7 +900,6 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public void onFinish() {
-            //TODO start from here
             RuntimerWaiting.lock();
             try {
                 runtimerWaiting = true;
@@ -918,6 +918,24 @@ public class MainActivity extends AppCompatActivity
                 ViewUpdateLock.unlock();
                 RuntimerWaiting.unlock();
             }
+
+            // notify FPGA to stop sending data
+            commandPacketCreator((byte) Constants.CANCEL, (byte) Constants.CANCEL);
+
+            // saving data into file
+            Calendar c = Calendar.getInstance();
+            SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String datetime = dateformat.format(c.getTime());
+            d(TAG, "Using following date time for file name " + datetime);
+
+            mGraph_1.saveAllData(datetime);
+            mGraph_2.saveAllData(datetime);
+            mGraph_3.saveAllData(datetime);
+            mGraph_4.saveAllData(datetime);
+            mGraph_5.saveAllData(datetime);
+            mGraph_6.saveAllData(datetime);
+            mGraph_7.saveAllData(datetime);
+            mGraph_8.saveAllData(datetime);
         }
     }
 

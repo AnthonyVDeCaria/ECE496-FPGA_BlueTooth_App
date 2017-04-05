@@ -88,8 +88,10 @@ public class FileManager {
         byte[] dataToSave = data.getBytes();
 
         try{
-            FileOutputStream fos = new FileOutputStream(file);
+            // appends to whatever is already there
+            FileOutputStream fos = new FileOutputStream(file, true);
             fos.write(dataToSave);
+            fos.flush();
             fos.close();
         } catch (Exception e) {
             Log.e(TAG,"Failed saving data", e);
