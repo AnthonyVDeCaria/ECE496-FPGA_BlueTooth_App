@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity
     private CheckBox checkBox_DS8;
 
     private Runtimer runtimer;
-    private boolean moreSecondInput = false;
     private EditText editTxt_Minute;
     private EditText editTxt_Second;
 
@@ -92,8 +91,6 @@ public class MainActivity extends AppCompatActivity
 
     //used for synchronizing view update at UI thread
     public static ReentrantLock ViewUpdateLock = null;
-    public static ReentrantLock RuntimerWaiting;
-    public static boolean runtimerWaiting = false;
 
 //    private GraphFragment mGraph_1;
     private static GraphFragment_MPAndroidChart mGraph_1;
@@ -113,6 +110,7 @@ public class MainActivity extends AppCompatActivity
             super.handleMessage(msg);
 
             switch (msg.what) {
+                //TODO delete all except the last one
                 case Constants.MESSAGE_BLUETOOTH_ON:
                     txt_BtStatus.setText(R.string.bluetooth_on);
                     break;
@@ -146,21 +144,77 @@ public class MainActivity extends AppCompatActivity
                     Toast.makeText(MainActivity.this, msg.getData().getString(Constants.TOAST),
                             Toast.LENGTH_SHORT).show();
                     break;
+                case Constants.MESSAGE_ADD_DATA:
+                    float[] data = (float []) msg.obj;
+                    int datastream = msg.arg1;
+
+                    if(datastream == 0){    // display only DS1
+//                    Log.d(TAG, "Packaged data corresponds to datastream 1");
+                        // for graph
+                        mGraph_1.addData(data[0], data[1], data[2]);
+                    }
+                    //TODO delete below
+//                if(datastream == 49){    // display only DS1
+//                    d(TAG, "Packaged data corresponds to datastream 1");
+//                    // for graph
+//                    mGraph_1.addData(data[0], data[1], data[2]);
+//                }
+                    else if(datastream == 1) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 2");
+                        // for graph
+                        mGraph_2.addData(data[0], data[1], data[2]);
+                    }
+                    else if(datastream == 2) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 3");
+                        // for graph
+                        mGraph_3.addData(data[0], data[1], data[2]);
+                    }
+                    else if(datastream == 3) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 4");
+                        // for graph
+                        mGraph_4.addData(data[0], data[1], data[2]);
+                    }
+                    else if(datastream == 4) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 5");
+                        // for graph
+                        mGraph_5.addData(data[0], data[1], data[2]);
+                    }
+                    else if(datastream == 5) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 6");
+                        // for graph
+                        mGraph_6.addData(data[0], data[1], data[2]);
+                    }
+                    else if(datastream == 6) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 7");
+                        // for graph
+                        mGraph_7.addData(data[0], data[1], data[2]);
+                    }
+                    else if(datastream == 7) {
+//                        Log.d(TAG, "Packaged data corresponds to datastream 8");
+                        // for graph
+                        mGraph_8.addData(data[0], data[1], data[2]);
+                    }
+                    else {
+                        Log.e(TAG, "Received data not corresponding to any datastreams");
+                    }
+                    break;
             }
         }
     };
 
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
+
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+
         intentFilter.addAction(ACTION_DATA_AVAILABLE);
         return intentFilter;
     }
 
     private void updateConnectionState(final String data) {
-        Log.d(TAG, "Changing Bluetooth Status to " + data);
+        d(TAG, "Changing Bluetooth Status to " + data);
         txt_BtStatus.setText(data);
     }
 
@@ -174,8 +228,6 @@ public class MainActivity extends AppCompatActivity
             Log.e(TAG, "Failed displaying data");
         }
     }
-
-
 
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
@@ -202,7 +254,7 @@ public class MainActivity extends AppCompatActivity
             }
             if (ACTION_DATA_AVAILABLE.equals(action)) {
                 d(TAG, "Received data");
-                byte [] data = intent.getByteArrayExtra(EXTRA_DATA);
+                byte[] data = intent.getByteArrayExtra(EXTRA_DATA);
                 if (data != null && data.length > 0) {
 //                    final StringBuilder stringBuilder = new StringBuilder(data.length);
 //                    for(byte byteChar : data)
@@ -271,7 +323,6 @@ public class MainActivity extends AppCompatActivity
         bt_Cancel = (Button) findViewById(R.id.btn_Cancel);
 
         ViewUpdateLock = new ReentrantLock();
-        RuntimerWaiting = new ReentrantLock();
 
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
 //        mGraph_1 = (GraphFragment_aChartEngine) getSupportFragmentManager().findFragmentById(R.id.graph_1);
@@ -329,7 +380,8 @@ public class MainActivity extends AppCompatActivity
                 d(TAG, "Setting up timer with " + milliseconds + " ms");
                 runtimer = new Runtimer(milliseconds);
 
-                int minCapacity = (minute * 60 + second) * 8;
+                //TODO delete 5
+                int minCapacity = (minute * 60 + second) * 8 * 5;
 
                 mGraph_1.start(minCapacity);
                 mGraph_2.start(minCapacity);
@@ -341,13 +393,6 @@ public class MainActivity extends AppCompatActivity
                 mGraph_8.start(minCapacity);
 
                 runtimer.start();
-//                while(true) {
-//                    if (mGraph_1.start_done & mGraph_2.start_done & mGraph_3.start_done & mGraph_4.start_done
-//                            & mGraph_5.start_done & mGraph_6.start_done & mGraph_7.start_done & mGraph_8.start_done) {
-//                        runtimer.start();
-//                        break;
-//                    }
-//                }
             }
         });
         // Also used for clearing up the screen after opening a file
@@ -372,7 +417,6 @@ public class MainActivity extends AppCompatActivity
 
                 if(runtimer != null)    // in case user opened file
                     runtimer.cancel();
-                runtimerWaiting = false;
             }
         });
 
@@ -440,6 +484,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
         manager.registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             d(TAG, "Connect request result=" + result);
@@ -525,7 +570,7 @@ public class MainActivity extends AppCompatActivity
                     else {
                         mBtService.getDeviceInfo(data);
                     }
-                    startProcessingAndLogging();
+                    startProcessingAndLogging(mHandler);
                 }
                 break;
             case Constants.REQUEST_OPEN_FILE:
@@ -877,55 +922,28 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public void onTick(long millisUntilFinished) {
-            RuntimerWaiting.lock();
-            try {
-                runtimerWaiting = true;
-            } finally {
-                RuntimerWaiting.unlock();
-            }
-            ViewUpdateLock.lock();
-            RuntimerWaiting.lock();
-            try {
-                int timeToDisplay = Math.round((float) millisUntilFinished / 1000.0f);
-                if (timeToDisplay != timeLeft) {
-                    timeLeft = timeToDisplay;
-                    String minute = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished));
-                    String second = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)));
-                    editTxt_Minute.setText(minute);
-                    editTxt_Second.setText(second);
-                    d(TAG, "Changed Minute to " + minute + " and Second to " + second);
-
-                    runtimerWaiting = false;
-                }
-            }  finally {
-                RuntimerWaiting.unlock();
-                ViewUpdateLock.unlock();
+            int timeToDisplay = Math.round((float) millisUntilFinished / 1000.0f);
+            if (timeToDisplay != timeLeft) {
+                timeLeft = timeToDisplay;
+                String minute = String.format("%02d", TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished));
+                String second = String.format("%02d", TimeUnit.MILLISECONDS.toSeconds(millisUntilFinished) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished)));
+                editTxt_Minute.setText(minute);
+                editTxt_Second.setText(second);
+                d(TAG, "Changed Minute to " + minute + " and Second to " + second);
             }
         }
 
         @Override
         public void onFinish() {
-            RuntimerWaiting.lock();
-            try {
-                runtimerWaiting = true;
-            } finally {
-                RuntimerWaiting.unlock();
-            }
-            ViewUpdateLock.lock();
-            RuntimerWaiting.lock();
-            try {
-                editTxt_Minute.setText("00");
-                editTxt_Second.setText("00");
-
-                d(TAG, "Finished timer");
-                runtimerWaiting = false;
-            } finally {
-                ViewUpdateLock.unlock();
-                RuntimerWaiting.unlock();
-            }
-
             // notify FPGA to stop sending data
             commandPacketCreator((byte) Constants.CANCEL, (byte) Constants.CANCEL);
+
+            editTxt_Minute.setText("00");
+            editTxt_Second.setText("00");
+
+            d(TAG, "Finished timer");
+
+
 
             // saving data into file
             Calendar c = Calendar.getInstance();
@@ -944,11 +962,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public synchronized void startProcessingAndLogging() {
+    public synchronized void startProcessingAndLogging(Handler mHandler) {
         d(TAG, "Start Processing");
 
         // Start the thread to process packets received
-        mProcessingThread = new ProcessingThread();
+        mProcessingThread = new ProcessingThread(mHandler);
         mProcessingThread.start();
 
         d(TAG, "Start Logging");
@@ -1050,6 +1068,8 @@ public class MainActivity extends AppCompatActivity
     * It also do auto logging when 5th data is received.
     */
     private class ProcessingThread extends Thread {
+        private Handler mHandler;
+
         LinkedBlockingQueue<byte []> mmFIFOQueue = new LinkedBlockingQueue<byte []>();
         private float [] mmRetrievedData = null;
         private byte [] mmTempData = null;
@@ -1059,8 +1079,9 @@ public class MainActivity extends AppCompatActivity
         private int count = 0;  // used to count number of packets for logging
         private byte[] mmDataToLog = new byte[201];
 
-        public ProcessingThread() {
+        public ProcessingThread(Handler handler) {
             d(TAG, "Creating ProcessingThread");
+            mHandler = handler;
         }
 
         public void run() {
@@ -1105,18 +1126,22 @@ public class MainActivity extends AppCompatActivity
 
                 //TODO enable this
                 datastream = mmTempData[0] & 0b00000111;
+
                 //TODO uncomment below
+                mHandler.obtainMessage(Constants.MESSAGE_ADD_DATA, datastream, -1, mmRetrievedData)
+                        .sendToTarget();
+
 //                if(datastream == 0){    // display only DS1
-//                    Log.d(TAG, "Packaged data corresponds to datastream 1");
+////                    Log.d(TAG, "Packaged data corresponds to datastream 1");
 //                    // for graph
 //                    mGraph_1.addData(mmRetrievedData);
 //                }
-                //TODO delete below
-                if(mmTempData[0] == 49){    // display only DS1
-                    d(TAG, "Packaged data corresponds to datastream 1");
-                    // for graph
-                    mGraph_1.addData(mmRetrievedData);
-                }
+//                //TODO delete below
+////                if(mmTempData[0] == 49){    // display only DS1
+////                    d(TAG, "Packaged data corresponds to datastream 1");
+////                    // for graph
+////                    mGraph_1.addData(mmRetrievedData);
+////                }
 //                else if(datastream == 1) {
 ////                        Log.d(TAG, "Packaged data corresponds to datastream 2");
 //                    // for graph
@@ -1152,9 +1177,9 @@ public class MainActivity extends AppCompatActivity
 //                    // for graph
 //                    mGraph_8.addData(mmRetrievedData);
 //                }
-                else {
-                    Log.e(TAG, "Received data not corresponding to any datastreams");
-                }
+//                else {
+//                    Log.e(TAG, "Received data not corresponding to any datastreams");
+//                }
             }
         }
 

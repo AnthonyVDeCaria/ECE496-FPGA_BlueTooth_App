@@ -19,7 +19,7 @@ public class Constants {
     //    public static final int MESSAGE_WRITE = 3;
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
-    public static final int MESSAGE_CLEAR_INPUT = 6;
+    public static final int MESSAGE_ADD_DATA = 6;
 
     // Key names received from the BluetoothService Handler
     public static final String DEVICE_NAME = "device_name";
@@ -37,7 +37,6 @@ public class Constants {
 
     //    public static final String WAIT = "2";
 //    public static final String READY = "3";
-    public static final int ARE_ACTIVE = 0x02;    // 2
     public static final int ACK = 0x03;   // 3
     // Control Command Operands
     public static final int DS1 = 0b00000001;

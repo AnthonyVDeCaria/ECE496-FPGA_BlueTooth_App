@@ -14,8 +14,10 @@ import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
@@ -199,6 +201,25 @@ public class BluetoothLeService extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
+    private final BroadcastReceiver mPairReceiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
+                int state        = intent.getIntExtra(BluetoothDevice.EXTRA_BOND_STATE, BluetoothDevice.ERROR);
+                int prevState    = intent.getIntExtra(BluetoothDevice.EXTRA_PREVIOUS_BOND_STATE, BluetoothDevice.ERROR);
+
+                if (state == BluetoothDevice.BOND_BONDED && prevState == BluetoothDevice.BOND_BONDING) {
+                    Log.d(TAG, "Bonded with the device");
+                    connect(mBluetoothDeviceAddress);
+                }
+                else if (state == BluetoothDevice.BOND_NONE && prevState == BluetoothDevice.BOND_BONDED){
+                    Log.d(TAG, "Unpaired with the device");
+                }
+            }
+        }
+    };
+
     /**
      * Initializes a reference to the local Bluetooth adapter.
      *
@@ -225,6 +246,10 @@ public class BluetoothLeService extends Service {
         manager = LocalBroadcastManager.getInstance(this);
 
         startPackaging();
+
+        // for bonding
+        IntentFilter intent = new IntentFilter(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        registerReceiver(mPairReceiver, intent);
 
         return true;
     }
@@ -265,13 +290,26 @@ public class BluetoothLeService extends Service {
             Log.w(TAG, "Device not found.  Unable to connect.");
             return false;
         }
-        // We want to directly connect to the device, so we are setting the autoConnect
-        // parameter to false.
-        mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
-        Log.d(TAG, "Trying to create a new connection.");
-        mBluetoothDeviceAddress = address;
-        mConnectionState = STATE_CONNECTING;
-        return true;
+        // check if the device is bonded
+        int bondState = device.getBondState();
+        if(bondState == BluetoothDevice.BOND_NONE) { // Not bonded
+            Log.i(TAG, "Device is not bonded. Trying to bond");
+            mBluetoothDeviceAddress = address;
+            device.createBond();
+            return true;
+        }
+        else if (bondState == BluetoothDevice.BOND_BONDED) {
+            // We want to directly connect to the device, so we are setting the autoConnect
+            // parameter to false
+            mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
+            Log.d(TAG, "Trying to create a new connection.");
+            mBluetoothDeviceAddress = address;
+            mConnectionState = STATE_CONNECTING;
+            return true;
+        }
+        else {
+            return true;
+        }
     }
 
     /**

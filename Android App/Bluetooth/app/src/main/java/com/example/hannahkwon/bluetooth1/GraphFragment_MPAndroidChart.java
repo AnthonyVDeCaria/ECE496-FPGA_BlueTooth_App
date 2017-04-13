@@ -19,7 +19,6 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import java.util.ArrayList;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static android.util.Log.d;
@@ -38,7 +37,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     private long start_time;
     private long plotting_time;
 
-    private GraphingThread graphingThread;
+//    private GraphingThread graphingThread;
 
     private LineChart chart;
     private LineData lineData;  // holds ISE1_dataset & ISE2_dataset
@@ -50,11 +49,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     private boolean over_threshold = false;  // used to change background color
     private float final_temp = 0; // used for saving
 
-    private boolean UI_update_done = false;
-
     private String description_txt;
-
-    private LinkedBlockingQueue<float []> mFIFOQueue;
 
     private static ReentrantLock SavingLock = new ReentrantLock();
 
@@ -73,18 +68,18 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         ISE2_entries = new ArrayList<Entry>();
 
         ISE1_dataset = new LineDataSet(ISE1_entries, "ISE1");
-        ISE1_dataset.setColor(Color.BLUE);
-        ISE1_dataset.setValueTextColor(Color.BLUE);
+        ISE1_dataset.setColor(Color.RED);
+        ISE1_dataset.setValueTextColor(Color.RED);
         ISE1_dataset.setCircleRadius(2f);
-        ISE1_dataset.setCircleColor(Color.BLUE);
+        ISE1_dataset.setCircleColor(Color.RED);
         ISE1_dataset.setDrawCircleHole(false);  // circle will be filled up
         ISE1_dataset.setDrawValues(false);
 
         ISE2_dataset = new LineDataSet(ISE2_entries, "ISE2");
-        ISE2_dataset.setColor(Color.RED);
-        ISE2_dataset.setValueTextColor(Color.RED);
+        ISE2_dataset.setColor(Color.BLUE);
+        ISE2_dataset.setValueTextColor(Color.BLUE);
         ISE2_dataset.setCircleRadius(2f);
-        ISE2_dataset.setCircleColor(Color.RED);
+        ISE2_dataset.setCircleColor(Color.BLUE);
         ISE2_dataset.setDrawCircleHole(false);  // circle will be filled up
         ISE2_dataset.setDrawValues(false);
 
@@ -93,11 +88,6 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         TAG = getTag();
         d(TAG, "TAG is " + TAG);
         description_txt = "Channel " + TAG.charAt(8);
-
-        mFIFOQueue = new LinkedBlockingQueue<float []>();
-
-        graphingThread = new GraphingThread();
-        graphingThread.start();
     }
 
     @Override
@@ -123,7 +113,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         Description description = chart.getDescription();
         description.setText(description_txt);
 
-//        chart.invalidate();
+        chart.invalidate();
 
         return view;
     }
@@ -138,26 +128,42 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         super.onDestroy();
     }
 
-    public void addData(float[] data) {
-//        plotting_time = (System.currentTimeMillis() - start_time) / 1000; // to seconds
-        float [] toAdd = new float[4];
-        toAdd[0] = data[0];
-        toAdd[1] = data[1];
-        toAdd[2] = data[2];
-//        toAdd[3] = (float) plotting_time;
-        Log.i(TAG, "Adding into GraphingThread FIFO queue " + toAdd[0] + ", "
-            + toAdd[1] + ", " + toAdd[2]);
-        try {
-            mFIFOQueue.put(toAdd);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed adding into GraphingThread FIFO queue", e);
+    public synchronized void addData(float ISE1, float ISE2, float Temp) {
+        ISE1_dataset.addEntry(new Entry(index, ISE1));
+        ISE2_dataset.addEntry(new Entry(index, ISE2));
+
+        // used for saving
+        final_temp = Temp;
+
+        lineData.notifyDataChanged();
+        chart.notifyDataSetChanged();
+
+        if (Temp >= Constants.TEMP_THRESHOLD) {
+//            Log.d(TAG, "Temp is above threshold");
+            if(!over_threshold) {
+                chart.setBackgroundColor(Color.GREEN);
+                over_threshold = true;
+//                Log.d(TAG, "Succeed changing graph background color");
+            }
+
         }
+        else {
+//            Log.d(TAG, "Temp is below threshold");
+            if(over_threshold) {
+                chart.setBackgroundColor(Color.WHITE);
+                over_threshold = false;
+//                Log.d(TAG, "Succeed changing graph background color");
+            }
+        }
+        chart.invalidate();
+
+        index++;
     }
 
     public void addDataFromFile(float[] data) {
         // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
         Log.i(TAG, "Adding into entries from file " + data[0] + ", "
-        + data[1] + ", " + data[2]);
+                + data[1] + ", " + data[2]);
         ISE1_dataset.addEntry(new Entry(data[3], data[0]));
         ISE2_dataset.addEntry(new Entry(data[3], data[1]));
         if(data[2] > Constants.TEMP_THRESHOLD) {
@@ -177,85 +183,9 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         Log.d(TAG, "Successfully updated the UI");
     }
 
-    private class GraphingThread extends Thread {
-        private float[] mmTempData = null;
-
-        public GraphingThread() {
-            d(TAG, "Creating GraphingThread");
-        }
-
-        public void run() {
-            while (true) {
-                mmTempData = mFIFOQueue.peek();
-                if (mmTempData != null) {
-                    MainActivity.RuntimerWaiting.lock();
-                    try {
-                        if (!MainActivity.runtimerWaiting) {
-                            MainActivity.ViewUpdateLock.lock();
-                            final float ISE1_val = mmTempData[0];
-                            final float ISE2_val = mmTempData[1];
-                            final float Temp_val = mmTempData[2];
-
-                            final_temp = Temp_val;
-                            //TODO uncomment this
-                            index = mmTempData[3];
-
-                            activity.runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    d(TAG, "Adding following data into corresponding series: " + ISE1_val + ", "
-                                            + ISE2_val + " with index " + index);
-                                    if (Temp_val >= Constants.TEMP_THRESHOLD) {
-                                        Log.d(TAG, "Temp is above threshold");
-                                        if(!over_threshold) {
-                                            chart.setBackgroundColor(Color.GREEN);
-                                            over_threshold = true;
-                                        }
-                                        //                Log.d(TAG, "Succeed changing graph background color");
-                                    }
-                                    else {
-                                        Log.d(TAG, "Temp is below threshold");
-                                        if(over_threshold) {
-                                            chart.setBackgroundColor(Color.WHITE);
-                                            over_threshold = false;
-                                        }
-                                        //                Log.d(TAG, "Succeed changing graph background color");
-                                    }
-                                    ISE1_dataset.addEntry(new Entry(index, ISE1_val));
-                                    ISE2_dataset.addEntry(new Entry(index, ISE2_val));
-                                    lineData.notifyDataChanged();
-                                    chart.notifyDataSetChanged();
-                                    chart.invalidate();
-                                    UI_update_done = true;
-                                }
-                            });
-                            while(true){
-                                if(UI_update_done)
-                                    break;
-                            }
-                            //TODO remove this
-//                            index++;
-                            UI_update_done = false;
-                            d(TAG, "Succeed updating graph");
-                            mFIFOQueue.remove();
-                        }
-                    }
-                    finally {
-                        MainActivity.RuntimerWaiting.unlock();
-                        if (MainActivity.ViewUpdateLock.isHeldByCurrentThread())
-                            MainActivity.ViewUpdateLock.unlock();
-                        Log.d(TAG, "Unlocked locks");
-                    }
-                }
-            }
-        }
-    }
-
     public void clear() {
         MainActivity.ViewUpdateLock.lock();
         try {
-            ISE1_entries.clear();
-            ISE2_entries.clear();
             // Removes all DataSets (and thereby Entries) from the chart.
 //        lineData.clearValues();
 
@@ -263,12 +193,15 @@ public class GraphFragment_MPAndroidChart extends Fragment {
             index = 0;
 
             chart.clearValues();
+            ISE1_entries.clear();
+            ISE2_entries.clear();
+
             lineData.notifyDataChanged();
             chart.notifyDataSetChanged();
 
             d(TAG, "Before clear");
 
-            d(TAG, "Acquired lock");
+//            d(TAG, "Acquired lock");
             if(over_threshold) {
                 chart.setBackgroundColor(Color.WHITE);
                 over_threshold = false;
