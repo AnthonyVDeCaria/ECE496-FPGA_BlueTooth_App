@@ -18,6 +18,8 @@ import org.achartengine.model.XYSeries;
 import org.achartengine.renderer.XYMultipleSeriesRenderer;
 import org.achartengine.renderer.XYSeriesRenderer;
 
+import static com.example.hannahkwon.bluetooth1.MainActivity.temp_threshold;
+
 /**
  * Created by HannahKwon on 2017-03-18.
  */
@@ -113,7 +115,7 @@ public class GraphFragment_aChartEngine extends Fragment {
 //                Log.d(TAG, "Updated ISE1: " + ISE1_Series.getyVals().toString());
 //                    Log.d(TAG, "Updated ISE2: " + ISE2_Series.getyVals().toString());
 
-        if (Temp_val >= Constants.TEMP_THRESHOLD) {
+        if (Temp_val >= temp_threshold) {
 //                        Log.d(TAG, "Temp is above threshold");
             if(!over_threshold) {
                 activity.runOnUiThread(new Runnable() {

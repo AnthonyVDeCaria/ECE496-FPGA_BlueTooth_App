@@ -28,10 +28,13 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,7 +42,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static android.util.Log.d;
 import static com.example.hannahkwon.bluetooth1.BluetoothLeService.ACTION_DATA_AVAILABLE;
@@ -56,7 +58,6 @@ public class MainActivity extends AppCompatActivity
 
     // Bluetooth related
     private TextView txt_BtStatus;
-    private TextView txt_DataReceived;
 
     private GridLayout gridLayout_Channels;
     private CheckBox checkBox_DS1;
@@ -68,12 +69,21 @@ public class MainActivity extends AppCompatActivity
     private CheckBox checkBox_DS7;
     private CheckBox checkBox_DS8;
 
-    private Runtimer runtimer;
+    private EditText editText_Temp;
+    // EditText will be used to get the temperature threshold
+    public static int temp_threshold = 0;
+
+    private RunTimer runtimer;
     private EditText editTxt_Minute;
     private EditText editTxt_Second;
 
-    private Button bt_Start;
-    private Button bt_Cancel;
+    private Button btn_Start;
+    private Button btn_Cancel;
+    private static boolean transmitting = false;
+
+    private Spinner spinner_AnalysisOption;
+    private Button btn_Analyze;
+    private static int analysis_option = -1;
 
     private BluetoothService mBtService = null;
 
@@ -88,9 +98,6 @@ public class MainActivity extends AppCompatActivity
 
     private ProcessingThread mProcessingThread;
     private FileManager.LoggingThread mLoggingThread;
-
-    //used for synchronizing view update at UI thread
-    public static ReentrantLock ViewUpdateLock = null;
 
 //    private GraphFragment mGraph_1;
     private static GraphFragment_MPAndroidChart mGraph_1;
@@ -218,17 +225,6 @@ public class MainActivity extends AppCompatActivity
         txt_BtStatus.setText(data);
     }
 
-    private void displayData(final String data) {
-
-        if (data != null) {
-            d(TAG, "Displaying data :" + data);
-            txt_DataReceived.append(data);
-        }
-        else {
-            Log.e(TAG, "Failed displaying data");
-        }
-    }
-
     // Handles various events fired by the Service.
     // ACTION_GATT_CONNECTED: connected to a GATT server.
     // ACTION_GATT_DISCONNECTED: disconnected from a GATT server.
@@ -256,10 +252,6 @@ public class MainActivity extends AppCompatActivity
                 d(TAG, "Received data");
                 byte[] data = intent.getByteArrayExtra(EXTRA_DATA);
                 if (data != null && data.length > 0) {
-//                    final StringBuilder stringBuilder = new StringBuilder(data.length);
-//                    for(byte byteChar : data)
-//                        stringBuilder.append(String.format("%02X ", byteChar));
-//                    displayData(stringBuilder.toString());
                     mProcessingThread.add(false, data);
                 }
             }
@@ -305,7 +297,6 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         txt_BtStatus = (TextView) findViewById(R.id.txt_BtStatus);
-//        txt_DataReceived = (TextView) findViewById(R.id.txt_DataReceived);
 
         gridLayout_Channels = (GridLayout) findViewById(R.id.gridLayout_Channels);
         checkBox_DS1 = (CheckBox) findViewById(R.id.checkBox_DS1);
@@ -317,12 +308,15 @@ public class MainActivity extends AppCompatActivity
         checkBox_DS7 = (CheckBox) findViewById(R.id.checkBox_DS7);
         checkBox_DS8 = (CheckBox) findViewById(R.id.checkBox_DS8);
 
+        editText_Temp = (EditText) findViewById(R.id.editText_Temp);
+
         editTxt_Minute = (EditText) findViewById(R.id.editTxt_Minute);
         editTxt_Second = (EditText) findViewById(R.id.editTxt_Second);
-        bt_Start = (Button) findViewById(R.id.btn_Start);
-        bt_Cancel = (Button) findViewById(R.id.btn_Cancel);
+        btn_Start = (Button) findViewById(R.id.btn_Start);
+        btn_Cancel = (Button) findViewById(R.id.btn_Cancel);
 
-        ViewUpdateLock = new ReentrantLock();
+        spinner_AnalysisOption = (Spinner) findViewById(R.id.spinner_AnalysisOption);
+        btn_Analyze = (Button) findViewById(R.id.btn_Analyze);
 
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
 //        mGraph_1 = (GraphFragment_aChartEngine) getSupportFragmentManager().findFragmentById(R.id.graph_1);
@@ -357,7 +351,7 @@ public class MainActivity extends AppCompatActivity
         // to enable better runtimer input interaction
         RuntimerSelector();
 
-        bt_Start.setOnClickListener(new View.OnClickListener() {
+        btn_Start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Sends Start command using the user's selection upon the channels
 //                String commandArg;
@@ -375,10 +369,15 @@ public class MainActivity extends AppCompatActivity
                     editTxt_Second.setError("0 seconds is not permitted!");
                 }
 
+                temp_threshold = Integer.parseInt(editText_Temp.getText().toString());
+                Log.d(TAG, "Set temperature threshold as " + temp_threshold);
+
+                transmitting = true;
+
                 verifyWriteStoragePermission(MainActivity.this);
 
                 d(TAG, "Setting up timer with " + milliseconds + " ms");
-                runtimer = new Runtimer(milliseconds);
+                runtimer = new RunTimer(milliseconds);
 
                 //TODO delete 5
                 int minCapacity = (minute * 60 + second) * 8 * 5;
@@ -396,7 +395,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
         // Also used for clearing up the screen after opening a file
-        bt_Cancel.setOnClickListener(new View.OnClickListener() {
+        btn_Cancel.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 d(TAG, "Pressed Cancel");
                 // Wiping out log file
@@ -404,6 +403,7 @@ public class MainActivity extends AppCompatActivity
                     mLoggingThread.finishLog();
 
                 commandPacketCreator((byte) Constants.CANCEL, (byte) Constants.CANCEL);
+                transmitting = false;
 
                 // Wipes out the graphs
                 mGraph_1.clear();
@@ -417,6 +417,53 @@ public class MainActivity extends AppCompatActivity
 
                 if(runtimer != null)    // in case user opened file
                     runtimer.cancel();
+            }
+        });
+
+        // Used to get user selection for data analysis
+        // NOTE: Only min/max and slope is implemented for now
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.analysis_options, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner_AnalysisOption.setAdapter(adapter);
+        spinner_AnalysisOption.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view,
+                                       int position, long id) {
+                String option_chosen = (String) parent.getItemAtPosition(position);
+                Log.d(TAG, "The following analysis option is chosen " + option_chosen);
+                switch (option_chosen) {
+                    case"Min/Max":
+                        analysis_option = Constants.OPT_MIN_AND_MAX;
+                        break;
+                    case "Slope":
+                        analysis_option = Constants.OPT_SLOPE;
+                        break;
+                }
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        btn_Analyze.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                d(TAG, "Pressed Analyze");
+                if(!transmitting) {
+                    mGraph_1.dataAnalysis(analysis_option);
+                    mGraph_2.dataAnalysis(analysis_option);
+                    mGraph_3.dataAnalysis(analysis_option);
+                    mGraph_4.dataAnalysis(analysis_option);
+                    mGraph_5.dataAnalysis(analysis_option);
+                    mGraph_6.dataAnalysis(analysis_option);
+                    mGraph_7.dataAnalysis(analysis_option);
+                    mGraph_8.dataAnalysis(analysis_option);
+                }
+                else {  // the App is still on transmission
+                    Toast.makeText(MainActivity.this, R.string.ble_still_transmitting,
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -462,9 +509,12 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_bluetooth_connect:
                 mBtService.enableBluetooth();
                 return true;
-            //TODO start from here
             case R.id.action_open_file:
-                verifyReadStoragePermission(this);
+                if(!transmitting)
+                    verifyReadStoragePermission(this);
+                else    // the App is still on transmission
+                    Toast.makeText(this, R.string.ble_still_transmitting,
+                            Toast.LENGTH_SHORT).show();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -911,10 +961,9 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private class Runtimer extends CountDownTimer {
+    private class RunTimer extends CountDownTimer {
         int timeLeft;
-        int timeToDisplay;
-        private Runtimer(long millisInFuture) {
+        private RunTimer(long millisInFuture) {
             super(millisInFuture, 100);    // Using smaller than 1 second to get frequent updates
             timeLeft = (int) millisInFuture / 1000;
             d(TAG, "runtimer start with " + timeLeft + " s");
@@ -937,13 +986,12 @@ public class MainActivity extends AppCompatActivity
         public void onFinish() {
             // notify FPGA to stop sending data
             commandPacketCreator((byte) Constants.CANCEL, (byte) Constants.CANCEL);
+            transmitting = false;
 
             editTxt_Minute.setText("00");
             editTxt_Second.setText("00");
 
             d(TAG, "Finished timer");
-
-
 
             // saving data into file
             Calendar c = Calendar.getInstance();
@@ -1127,59 +1175,8 @@ public class MainActivity extends AppCompatActivity
                 //TODO enable this
                 datastream = mmTempData[0] & 0b00000111;
 
-                //TODO uncomment below
                 mHandler.obtainMessage(Constants.MESSAGE_ADD_DATA, datastream, -1, mmRetrievedData)
                         .sendToTarget();
-
-//                if(datastream == 0){    // display only DS1
-////                    Log.d(TAG, "Packaged data corresponds to datastream 1");
-//                    // for graph
-//                    mGraph_1.addData(mmRetrievedData);
-//                }
-//                //TODO delete below
-////                if(mmTempData[0] == 49){    // display only DS1
-////                    d(TAG, "Packaged data corresponds to datastream 1");
-////                    // for graph
-////                    mGraph_1.addData(mmRetrievedData);
-////                }
-//                else if(datastream == 1) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 2");
-//                    // for graph
-//                    mGraph_2.addData(mmRetrievedData);
-//                }
-//                else if(datastream == 2) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 3");
-//                    // for graph
-//                    mGraph_3.addData(mmRetrievedData);
-//                }
-//                else if(datastream == 3) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 4");
-//                    // for graph
-//                    mGraph_4.addData(mmRetrievedData);
-//                }
-//                else if(datastream == 4) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 5");
-//                    // for graph
-//                    mGraph_5.addData(mmRetrievedData);
-//                }
-//                else if(datastream == 5) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 6");
-//                    // for graph
-//                    mGraph_6.addData(mmRetrievedData);
-//                }
-//                else if(datastream == 6) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 7");
-//                    // for graph
-//                    mGraph_7.addData(mmRetrievedData);
-//                }
-//                else if(datastream == 7) {
-////                        Log.d(TAG, "Packaged data corresponds to datastream 8");
-//                    // for graph
-//                    mGraph_8.addData(mmRetrievedData);
-//                }
-//                else {
-//                    Log.e(TAG, "Received data not corresponding to any datastreams");
-//                }
             }
         }
 

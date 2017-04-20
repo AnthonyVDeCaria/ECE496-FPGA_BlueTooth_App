@@ -48,7 +48,9 @@ public class Constants {
     public static final int DS7 = 0b01000000;
     public static final int DS8 = 0b10000000;
 
-    public static final int TEMP_THRESHOLD = 35;
-
     public static final String LOG_FILE = "Log.txt";
+
+    // Analysis options
+    public static final int OPT_MIN_AND_MAX = 0;
+    public static final int OPT_SLOPE = 1;
 }

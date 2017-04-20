@@ -13,131 +13,169 @@
     </include>
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/activity_vertical_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
-        android:paddingBottom="@dimen/activity_vertical_margin">
+        android:paddingTop="@dimen/activity_vertical_margin">
 
         <LinearLayout
-            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
             <TextView
+                android:id="@+id/txt_BtStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="Bluetooth is off"
-                android:id="@+id/txt_BtStatus"/>
+                android:textColor="#000"
+                android:textSize="18sp" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/divider"/>
+                android:background="@color/divider" />
 
             <GridLayout
+                android:id="@+id/gridLayout_Channels"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="1dp"
-                android:id="@+id/gridLayout_Channels"
-                android:columnCount="3">
+                android:columnCount="3"
+                android:columnOrderPreserved="false"
+                android:elevation="1dp"
+                android:padding="1dp">
 
                 <CheckBox
-                    android:text="Channel 1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
                     android:id="@+id/checkBox_DS1"
-                    android:textSize="16sp"
-                    android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
-
-                <CheckBox
-                    android:text="Channel 2"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="Channel 1"
+                    android:textSize="16sp" />
+
+                <CheckBox
                     android:id="@+id/checkBox_DS2"
-                    android:textSize="16sp"
-                    android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
-
-                <CheckBox
-                    android:text="Channel 3"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="Channel 2"
+                    android:textSize="16sp" />
+
+                <CheckBox
                     android:id="@+id/checkBox_DS3"
-                    android:textSize="16sp"
-                    android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
-
-                <CheckBox
-                    android:text="Channel 4"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="Channel 3"
+                    android:textSize="16sp" />
+
+                <CheckBox
                     android:id="@+id/checkBox_DS4"
-                    android:textSize="16sp"
-                    android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
-
-                <CheckBox
-                    android:text="Channel 5"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="Channel 4"
+                    android:textSize="16sp" />
+
+                <CheckBox
                     android:id="@+id/checkBox_DS5"
-                    android:textSize="16sp"
-                    android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
-
-                <CheckBox
-                    android:text="Channel 6"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="Channel 5"
+                    android:textSize="16sp" />
+
+                <CheckBox
                     android:id="@+id/checkBox_DS6"
-                    android:textSize="16sp"
-                    android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
-
-                <CheckBox
-                    android:text="Channel 7"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="Channel 6"
+                    android:textSize="16sp" />
+
+                <CheckBox
                     android:id="@+id/checkBox_DS7"
-                    android:textSize="16sp"
-                    android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
-
-                <CheckBox
-                    android:text="Channel 8"
                     android:layout_width="wrap_content"
                     android:layout_height="48dp"
-                    android:id="@+id/checkBox_DS8"
-                    android:textSize="16sp"
+                    android:paddingLeft="8dp"
                     android:paddingRight="8dp"
-                    android:paddingLeft="8dp" />
+                    android:text="Channel 7"
+                    android:textSize="16sp" />
+
+                <CheckBox
+                    android:id="@+id/checkBox_DS8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:text="Channel 8"
+                    android:textSize="16sp" />
 
             </GridLayout>
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="@color/divider"/>
+                android:background="@color/divider" />
 
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_alignParentTop="true"
-                    android:layout_centerHorizontal="true">
+                    android:layout_marginRight="8dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:text="Temp"
+                        android:textColor="#000"
+                        android:textSize="18sp" />
+
+                    <EditText
+                        android:id="@+id/editText_Temp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:cursorVisible="true"
+                        android:digits="0123456789"
+                        android:inputType="number"
+                        android:paddingRight="8dp"
+                        android:text="35"
+                        android:textSize="18sp" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/divider" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:orientation="horizontal">
 
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
+                        android:layout_marginStart="8dp"
                         android:layout_marginEnd="8dp"
                         android:orientation="horizontal">
 
@@ -147,21 +185,20 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:layout_weight="1"
-                            android:inputType="number"
-                            android:digits="0123456789"
                             android:cursorVisible="true"
-                            android:textAppearance="?android:attr/textAppearanceLarge"
-                            android:text="00"/>
+                            android:digits="0123456789"
+                            android:inputType="number"
+                            android:text="00"
+                            android:textSize="18sp" />
 
                         <TextView
-                            android:id="@+id/textView"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:paddingLeft="8dp"
                             android:paddingRight="8dp"
                             android:text=":"
-                            android:textAppearance="?android:attr/textAppearanceLarge" />
+                            android:textSize="18sp" />
 
                         <EditText
                             android:id="@+id/editTxt_Second"
@@ -169,12 +206,12 @@
                             android:layout_height="wrap_content"
                             android:layout_centerVertical="true"
                             android:layout_weight="1"
-                            android:inputType="number"
-                            android:digits="0123456789"
-                            android:textDirection="anyRtl"
                             android:cursorVisible="true"
-                            android:textAppearance="?android:attr/textAppearanceLarge"
-                            android:text="00"/>
+                            android:digits="0123456789"
+                            android:inputType="number"
+                            android:text="00"
+                            android:textDirection="anyRtl"
+                            android:textSize="18sp" />
 
                     </LinearLayout>
 
@@ -182,6 +219,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:layout_marginLeft="8dp"
+                        android:layout_marginRight="8dp"
                         android:orientation="horizontal">
 
                         <Button
@@ -213,24 +251,60 @@
 
                 </LinearLayout>
 
-            </RelativeLayout>
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="match_parent"
+                    android:background="@color/divider" />
 
                 <LinearLayout
-                    android:orientation="vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginLeft="8dp"
+                    android:orientation="horizontal">
+
+                    <Spinner
+                        android:id="@+id/spinner_AnalysisOption"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginRight="8dp" />
+
+                    <Button
+                        android:id="@+id/btn_Analyze"
+                        android:layout_width="wrap_content"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginBottom="6dp"
+                        android:layout_marginTop="6dp"
+                        android:paddingLeft="16dp"
+                        android:paddingRight="16dp"
+                        android:text="Analyze"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/divider" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <LinearLayout
-                        android:orientation="horizontal"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
 
                         <fragment
                             android:id="@+id/graph_1"
@@ -240,92 +314,80 @@
                             android:layout_weight="1"
                             android:tag="Fragment1" />
                         <!--<fragment-->
-                            <!--android:id="@+id/graph_1"-->
-                            <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment_aChartEngine"-->
-                            <!--android:layout_width="0dp"-->
-                            <!--android:layout_height="match_parent"-->
-                            <!--android:layout_weight="1"-->
-                            <!--android:tag="Fragment1" />-->
+                        <!--android:id="@+id/graph_1"-->
+                        <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment_aChartEngine"-->
+                        <!--android:layout_width="0dp"-->
+                        <!--android:layout_height="match_parent"-->
+                        <!--android:layout_weight="1"-->
+                        <!--android:tag="Fragment1" />-->
 
                         <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
                             android:id="@+id/graph_2"
-                            android:tag="Fragment2"
-                            android:layout_weight="1" />
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:tag="Fragment2" />
 
                         <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
                             android:id="@+id/graph_3"
-                            android:tag="Fragment3"
-                            android:layout_weight="1" />
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:tag="Fragment3" />
 
                         <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
                             android:id="@+id/graph_4"
-                            android:tag="Fragment4"
-                            android:layout_weight="1" />
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:tag="Fragment4" />
 
 
                     </LinearLayout>
 
                     <LinearLayout
-                        android:orientation="horizontal"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
-                        android:layout_weight="1">
+                        android:layout_weight="1"
+                        android:orientation="horizontal">
 
                         <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
                             android:id="@+id/graph_5"
-                            android:tag="Fragment5"
-                            android:layout_weight="1" />
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:tag="Fragment5" />
 
                         <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
                             android:id="@+id/graph_6"
-                            android:tag="Fragment6"
-                            android:layout_weight="1" />
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:tag="Fragment6" />
 
                         <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
                             android:id="@+id/graph_7"
-                            android:tag="Fragment7"
-                            android:layout_weight="1" />
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:tag="Fragment7" />
 
                         <fragment
-                            android:layout_height="match_parent"
-                            android:layout_width="0dp"
-                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
                             android:id="@+id/graph_8"
-                            android:tag="Fragment8"
-                            android:layout_weight="1" />
+                            android:name="com.example.hannahkwon.bluetooth1.GraphFragment_MPAndroidChart"
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:tag="Fragment8" />
 
                     </LinearLayout>
                 </LinearLayout>
-
-                <!--<ScrollView-->
-                    <!--android:layout_width="0dp"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:layout_weight="1">-->
-
-                    <!--<TextView-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="wrap_content"-->
-                        <!--android:textAppearance="?android:attr/textAppearanceMedium"-->
-                        <!--android:id="@+id/txt_DataReceived" />-->
-                <!--</ScrollView>-->
 
             </LinearLayout>
 

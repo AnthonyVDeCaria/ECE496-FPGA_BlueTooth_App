@@ -17,6 +17,7 @@
     <!--BLE Status-->
     <string name="ble_not_supported">BLE is not supported</string>
     <string name="ble_not_ready">BLE is not ready for data transfer. Please wait until the status changes to "Connected to"</string>
+    <string name="ble_still_transmitting">The App is still receiving data</string>
 
     - <!--   Storage Status   -->
     <string name="failed_creating_parent_directory">Error occurred when creating parent directory</string>
@@ -63,4 +64,10 @@
     <string name="permission_read_storage">Cannot open file</string>
     <string name="permission_read_storage_rationale">The app needs read storage permission to open file.\nPress OK to set the permission at the App\'s setting screen.</string>
     <string name="btn_No_Thanks">NO THANKS</string>
+
+    <string-array name="analysis_options">
+        <item>Min/Max</item>
+        <item>Slope</item>
+    </string-array>
+
 </resources>
