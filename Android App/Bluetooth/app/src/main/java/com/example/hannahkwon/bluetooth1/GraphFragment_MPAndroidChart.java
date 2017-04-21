@@ -2,6 +2,7 @@ package com.example.hannahkwon.bluetooth1;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,11 +10,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Description;
-import com.github.mikephil.charting.components.IMarker;
 import com.github.mikephil.charting.components.MarkerView;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
@@ -41,9 +42,6 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
     private Activity activity;
 
-    private long start_time;
-    private long plotting_time;
-
 //    private GraphingThread graphingThread;
 
     private LineChart chart;
@@ -63,8 +61,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
     private boolean marked = false;
 
-    //TODO remove this
-    private float index = 0;
+    private boolean zoomed = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -122,6 +119,10 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         chart.setAutoScaleMinMaxEnabled(true);  // auto scales Y-axis
         chart.setTouchEnabled(true);
 
+        // disables highlighting at touch event
+        chart.setHighlightPerDragEnabled(false);
+        chart.setHighlightPerTapEnabled(false);
+
         XAxis xAxis = chart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setLabelRotationAngle(45);
@@ -148,7 +149,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         super.onDestroy();
     }
 
-    public synchronized void addData(float ISE1, float ISE2, float Temp) {
+    public synchronized void addData(float index, float ISE1, float ISE2, float Temp) {
         ISE1_dataset.addEntry(new Entry(index, ISE1));
         ISE2_dataset.addEntry(new Entry(index, ISE2));
 
@@ -176,8 +177,6 @@ public class GraphFragment_MPAndroidChart extends Fragment {
             }
         }
         chart.invalidate();
-
-        index++;
     }
 
     public void addDataFromFile(float[] data) {
@@ -186,8 +185,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 + data[1] + ", " + data[2]);
         ISE1_dataset.addEntry(new Entry(data[3], data[0]));
         ISE2_dataset.addEntry(new Entry(data[3], data[1]));
-        if(data[2] > temp_threshold) {
-            if (!over_threshold) {
+        if (data[2] > temp_threshold) {
+            if(!over_threshold) {
                 chart.setBackgroundColor(Color.GREEN);
                 over_threshold = true;
             }
@@ -200,18 +199,23 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         lineData.notifyDataChanged();
         chart.notifyDataSetChanged();
         chart.invalidate();
+
+        chart.fitScreen();
+
         Log.d(TAG, "Successfully updated the UI");
     }
 
     public synchronized void clear() {
-        // Removes all DataSets (and thereby Entries) from the chart.
-//        lineData.clearValues();
-
-        //TODO remove this
-        index = 0;
-
         if(marked) {    // to clear highlights and markers
+            Log.d(TAG, "Removing markers for previous graphs");
             chart.setDrawMarkers(false);
+            marked = false;
+        }
+
+        if(over_threshold) {
+            Log.d(TAG, "Changing back the background color to white");
+            chart.setBackgroundColor(Color.WHITE);
+            over_threshold = false;
         }
 
         chart.clearValues();
@@ -222,12 +226,6 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         chart.notifyDataSetChanged();
 
         d(TAG, "Before clear");
-
-//            d(TAG, "Acquired lock");
-        if(over_threshold) {
-            chart.setBackgroundColor(Color.WHITE);
-            over_threshold = false;
-        }
         chart.invalidate();
 
         d(TAG, "Successfully cleared values");
@@ -252,8 +250,6 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 lineData.addDataSet(ISE2_dataset);
             }
         }
-        start_time = System.currentTimeMillis();
-
         return;
     }
 
@@ -280,17 +276,20 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         temp = datatoSave;
         datatoSave = temp.concat("\n");
 
-
         mFileManager.saveFile(fileName, datatoSave);
         Log.d(TAG, "Successfully saved all data!");
     }
 
+    /*
+     * Data analysis - supporting only min/max and slope for now
+     */
     public synchronized void dataAnalysis(int option) {
         if (option == Constants.OPT_MIN_AND_MAX) {
             minMaxAnalysis();
         }
         else if (option == Constants.OPT_SLOPE) {
             Log.d(TAG, "Performing Slope data analysis");
+            SlopeAnalysis();
         }
         else {
             Log.e(TAG, "Wrong data analysis option");
@@ -300,6 +299,10 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     private void minMaxAnalysis() {
         if(ISE1_entries.size() != 0 && ISE2_entries.size() != 0) {
             Log.d(TAG, "Performing Min/Max data analysis");
+            if(marked) {    // to clear previous highlights and markers
+                Log.d(TAG, "Removing markers for previous graphs");
+                chart.setDrawMarkers(false);
+            }
             marked = true;
 
             boolean ISE1_min_found = false;
@@ -307,6 +310,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
             boolean ISE2_min_found = false;
             boolean ISE2_max_found = false;
             int k = 0;
+            // 0 & 1 - min/max for ISE1, 2 & 3  - min/max for ISE2
             Highlight[] highlights = new Highlight[4];
             for (int i = 0; i < 2; i++) {
                 int xMin = (int) lineData.getDataSetByIndex(i).getXMin();
@@ -349,7 +353,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                     }
                 }
             }
-            IMarker minMaxMarker = new MinMaxMarkerView(activity, R.layout.min_max_marker_layout);
+            MinMaxMarkerView minMaxMarker = new MinMaxMarkerView(activity, R.layout.min_max_marker_layout);
+            minMaxMarker.setChartView(chart);   // for bounds control
             chart.setDrawMarkers(true);
             chart.setMarker(minMaxMarker);
             chart.highlightValues(highlights);
@@ -357,12 +362,14 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     }
 
     public class MinMaxMarkerView extends MarkerView {
+        private RelativeLayout layout;
         private TextView tvContent;
 
         public MinMaxMarkerView(Context context, int layoutResource) {
             super(context, layoutResource);
 
             // find your layout components
+            layout = (RelativeLayout) findViewById(R.id.relativeLayout);
             tvContent = (TextView) findViewById(R.id.textView);
         }
 
@@ -370,7 +377,26 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         // content (user-interface)
         @Override
         public void refreshContent(Entry e, Highlight highlight) {
-            tvContent.setText("" + e.getY());
+            int dataSet = highlight.getDataSetIndex();
+            float yVal;
+            if(dataSet == 0) {  // ISE1
+                yVal = highlight.getY();
+                if(yVal == ISE1_dataset.getYMin())
+                    tvContent.setText("Min: " + e.getY());
+                else
+                    tvContent.setText("Max: " + e.getY());
+                // changing the color of background drawable to magenta
+                layout.setBackgroundColor(0xFFFF0000);
+            }
+            else if(dataSet == 1) {
+                yVal = highlight.getY();
+                if(yVal == ISE2_dataset.getYMin())
+                    tvContent.setText("Min: " + e.getY());
+                else
+                    tvContent.setText("Max: " + e.getY());
+                // changing the color of background drawable to cyan
+                layout.setBackgroundColor(0xFF0000FF);
+            }
 
             // this will perform necessary layouting
             super.refreshContent(e, highlight);
@@ -384,6 +410,23 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 mOffset = new MPPointF(-(getWidth() / 2), -getHeight());
             }
             return mOffset;
+        }
+
+        @Override
+        public void draw(Canvas canvas, float posX, float posY) {
+            super.draw(canvas, posX, posY);
+            getOffsetForDrawingAtPoint(posX, posY);
+        }
+    }
+
+    private void SlopeAnalysis() {
+        if(ISE1_entries.size() != 0 && ISE2_entries.size() != 0) {
+            Log.d(TAG, "Performing Slope data analysis");
+            if(marked) {    // to clear previous highlights and markers
+                chart.setDrawMarkers(false);
+            }
+
+            //TODO start from here
         }
     }
 }

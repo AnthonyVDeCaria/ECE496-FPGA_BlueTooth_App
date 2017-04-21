@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.content.ContextCompat;
@@ -53,6 +55,8 @@ public class MainActivity extends AppCompatActivity
         implements RepromptBtDialogFragment.RepromptBtDialogListener, NotSupportBtDialogFragment.NotSupportBtDialogListener {
 
     private static final String TAG = "MainActivity";
+
+    private boolean appCrashed = false;
 
     private android.support.v7.widget.Toolbar toolbar;
 
@@ -98,6 +102,26 @@ public class MainActivity extends AppCompatActivity
 
     private ProcessingThread mProcessingThread;
     private FileManager.LoggingThread mLoggingThread;
+
+    // used for indexing
+    //TODO delete the vars below
+    private float graphIndexing_1 = 0;
+    private float graphIndexing_2 = 0;
+    private float graphIndexing_3 = 0;
+    private float graphIndexing_4 = 0;
+    private float graphIndexing_5 = 0;
+    private float graphIndexing_6 = 0;
+    private float graphIndexing_7 = 0;
+    private float graphIndexing_8 = 0;
+    private long start_time;
+    private long plotting_time_1;
+    private long plotting_time_2;
+    private long plotting_time_3;
+    private long plotting_time_4;
+    private long plotting_time_5;
+    private long plotting_time_6;
+    private long plotting_time_7;
+    private long plotting_time_8;
 
 //    private GraphFragment mGraph_1;
     private static GraphFragment_MPAndroidChart mGraph_1;
@@ -158,7 +182,7 @@ public class MainActivity extends AppCompatActivity
                     if(datastream == 0){    // display only DS1
 //                    Log.d(TAG, "Packaged data corresponds to datastream 1");
                         // for graph
-                        mGraph_1.addData(data[0], data[1], data[2]);
+                        mGraph_1.addData(data[0], data[1], data[2], data[3]);
                     }
                     //TODO delete below
 //                if(datastream == 49){    // display only DS1
@@ -169,37 +193,37 @@ public class MainActivity extends AppCompatActivity
                     else if(datastream == 1) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 2");
                         // for graph
-                        mGraph_2.addData(data[0], data[1], data[2]);
+                        mGraph_2.addData(data[0], data[1], data[2], data[3]);
                     }
                     else if(datastream == 2) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 3");
                         // for graph
-                        mGraph_3.addData(data[0], data[1], data[2]);
+                        mGraph_3.addData(data[0], data[1], data[2], data[3]);
                     }
                     else if(datastream == 3) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 4");
                         // for graph
-                        mGraph_4.addData(data[0], data[1], data[2]);
+                        mGraph_4.addData(data[0], data[1], data[2], data[3]);
                     }
                     else if(datastream == 4) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 5");
                         // for graph
-                        mGraph_5.addData(data[0], data[1], data[2]);
+                        mGraph_5.addData(data[0], data[1], data[2], data[3]);
                     }
                     else if(datastream == 5) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 6");
                         // for graph
-                        mGraph_6.addData(data[0], data[1], data[2]);
+                        mGraph_6.addData(data[0], data[1], data[2], data[3]);
                     }
                     else if(datastream == 6) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 7");
                         // for graph
-                        mGraph_7.addData(data[0], data[1], data[2]);
+                        mGraph_7.addData(data[0], data[1], data[2], data[3]);
                     }
                     else if(datastream == 7) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 8");
                         // for graph
-                        mGraph_8.addData(data[0], data[1], data[2]);
+                        mGraph_8.addData(data[0], data[1], data[2], data[3]);
                     }
                     else {
                         Log.e(TAG, "Received data not corresponding to any datastreams");
@@ -319,8 +343,6 @@ public class MainActivity extends AppCompatActivity
         btn_Analyze = (Button) findViewById(R.id.btn_Analyze);
 
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
-//        mGraph_1 = (GraphFragment_aChartEngine) getSupportFragmentManager().findFragmentById(R.id.graph_1);
-
         mGraph_2 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_2);
         mGraph_3 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_3);
         mGraph_4 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_4);
@@ -353,12 +375,6 @@ public class MainActivity extends AppCompatActivity
 
         btn_Start.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Sends Start command using the user's selection upon the channels
-//                String commandArg;
-//                commandArg = new String(setCommandArg());
-                // encoding command arg into UTF-8
-//                commandArg = new String(setCommandArg(), 0, 1);
-//                Log.d(TAG, "Command arg is encoded into " + commandArg);
                 d(TAG, "Pressed Start");
 
                 int minute = Integer.parseInt(editTxt_Minute.getText().toString());
@@ -368,30 +384,36 @@ public class MainActivity extends AppCompatActivity
                 if (milliseconds <= 0) {
                     editTxt_Second.setError("0 seconds is not permitted!");
                 }
+                //TODO uncomment below
+                else {
+                    temp_threshold = Integer.parseInt(editText_Temp.getText().toString());
+                    Log.d(TAG, "Set temperature threshold as " + temp_threshold);
 
-                temp_threshold = Integer.parseInt(editText_Temp.getText().toString());
-                Log.d(TAG, "Set temperature threshold as " + temp_threshold);
+                    transmitting = true;
+                    start_time = System.currentTimeMillis();
 
-                transmitting = true;
+                    verifyWriteStoragePermission(MainActivity.this);
 
-                verifyWriteStoragePermission(MainActivity.this);
+                    d(TAG, "Setting up timer with " + milliseconds + " ms");
+                //TODO uncomment below
+                    if(runtimer != null)
+                        runtimer.cancel();
+                    runtimer = new RunTimer(milliseconds);
 
-                d(TAG, "Setting up timer with " + milliseconds + " ms");
-                runtimer = new RunTimer(milliseconds);
+                    //TODO delete 5
+                    int minCapacity = (minute * 60 + second) * 8 * 5;
 
-                //TODO delete 5
-                int minCapacity = (minute * 60 + second) * 8 * 5;
+                    mGraph_1.start(minCapacity);
+                    mGraph_2.start(minCapacity);
+                    mGraph_3.start(minCapacity);
+                    mGraph_4.start(minCapacity);
+                    mGraph_5.start(minCapacity);
+                    mGraph_6.start(minCapacity);
+                    mGraph_7.start(minCapacity);
+                    mGraph_8.start(minCapacity);
 
-                mGraph_1.start(minCapacity);
-                mGraph_2.start(minCapacity);
-                mGraph_3.start(minCapacity);
-                mGraph_4.start(minCapacity);
-                mGraph_5.start(minCapacity);
-                mGraph_6.start(minCapacity);
-                mGraph_7.start(minCapacity);
-                mGraph_8.start(minCapacity);
-
-                runtimer.start();
+                    runtimer.start();
+                }
             }
         });
         // Also used for clearing up the screen after opening a file
@@ -415,8 +437,11 @@ public class MainActivity extends AppCompatActivity
                 mGraph_7.clear();
                 mGraph_8.clear();
 
-                if(runtimer != null)    // in case user opened file
+                //TODO uncomment this
+                if(runtimer != null) {   // in case user opened file
+                    Log.d(TAG, "Canceling the runtimer");
                     runtimer.cancel();
+                }
             }
         });
 
@@ -435,7 +460,7 @@ public class MainActivity extends AppCompatActivity
                 String option_chosen = (String) parent.getItemAtPosition(position);
                 Log.d(TAG, "The following analysis option is chosen " + option_chosen);
                 switch (option_chosen) {
-                    case"Min/Max":
+                    case "Min/Max":
                         analysis_option = Constants.OPT_MIN_AND_MAX;
                         break;
                     case "Slope":
@@ -468,6 +493,16 @@ public class MainActivity extends AppCompatActivity
         });
 
         manager = LocalBroadcastManager.getInstance(this);
+
+        // Checking if the App crashed previously
+        boolean didUserLeft = (boolean) readSavedPreference(getString(R.string.did_user_left));
+        Log.d(TAG, "User left the App before is " + didUserLeft);
+        //TODO uncomment below
+//        appCrashed = !didUserLeft;
+////        if(appCrashed) {
+//            Log.d(TAG, "App crashed previously");
+//            mFileManager.readLogFile();
+////        }
 
         // Used to capture App abruptly terminating
         final Thread.UncaughtExceptionHandler oldHandler =
@@ -533,6 +568,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        writePreference(getString(R.string.did_user_left), false);
+
         manager.registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
         if (mBluetoothLeService != null) {
@@ -544,6 +581,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
+        writePreference(getString(R.string.did_user_left), false);
         manager.unregisterReceiver(mGattUpdateReceiver);
     }
 
@@ -561,6 +599,8 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
         d(TAG, "MainActivity is getting destroyed");
 
+        writePreference(getString(R.string.did_user_left), true);
+
         if (mBtService != null) {
             // Stops ConnectThread and ConnectedThread
             mBtService.stop();
@@ -574,9 +614,34 @@ public class MainActivity extends AppCompatActivity
             mLoggingThread.finishLog();
     }
 
+    // Called when an activity is about to go into the background as the result of user choice
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        //No call for super(). Bug on API Level > 11.
+    public void onUserLeaveHint() {
+        writePreference(getString(R.string.did_user_left), true);
+    }
+
+    private void writePreference(String key, Object value) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        if(key == getString(R.string.did_user_left)) {
+            Log.d(TAG, "Writing preference crashed");
+            editor.putBoolean(key, (boolean) value);
+            editor.commit();
+        }
+    }
+
+    private Object readSavedPreference(String key) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        if(key == getString(R.string.did_user_left)){
+            // default value of true in case this preference does not exist (meaning the App is
+            // installed for the first time)
+            Log.d(TAG, "App having did user left key is " + sharedPreferences.contains("user did left"));
+            boolean didUserLeft = sharedPreferences.getBoolean("user did left", true);
+            return didUserLeft;
+        }
+        else {
+            return null;
+        }
     }
 
     /* Gets result from the previous activity */
@@ -625,7 +690,6 @@ public class MainActivity extends AppCompatActivity
                 break;
             case Constants.REQUEST_OPEN_FILE:
                 if (resultCode == Activity.RESULT_OK){
-                    //TODO start reading file from here
                     Log.d(TAG, "User selected a file to open");
                     String fileName = data.getStringExtra(OpenFileActivity.EXTRA_FILE_NAME);
                     mFileManager.readFile(fileName);
@@ -995,8 +1059,8 @@ public class MainActivity extends AppCompatActivity
 
             // saving data into file
             Calendar c = Calendar.getInstance();
-            SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            String datetime = dateformat.format(c.getTime());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String datetime = dateFormat.format(c.getTime());
             d(TAG, "Using following date time for file name " + datetime);
 
             mGraph_1.saveAllData(datetime);
@@ -1007,6 +1071,10 @@ public class MainActivity extends AppCompatActivity
             mGraph_6.saveAllData(datetime);
             mGraph_7.saveAllData(datetime);
             mGraph_8.saveAllData(datetime);
+
+            Toast.makeText(MainActivity.this, "Saved data locally",
+                    Toast.LENGTH_SHORT).show();
+
         }
     }
 
@@ -1053,31 +1121,55 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public static void addFromFile(int datastream, float[] data) {
+    public static void addFromFile(int datastream, float[] data, boolean fromLogFile) {
         switch (datastream) {
             case 1:
-                mGraph_1.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_1.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_1.addDataFromFile(data);
                 break;
             case 2:
-                mGraph_2.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_2.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_2.addDataFromFile(data);
                 break;
             case 3:
-                mGraph_3.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_3.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_3.addDataFromFile(data);
                 break;
             case 4:
-                mGraph_4.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_4.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_4.addDataFromFile(data);
                 break;
             case 5:
-                mGraph_5.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_5.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_5.addDataFromFile(data);
                 break;
             case 6:
-                mGraph_6.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_6.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_6.addDataFromFile(data);
                 break;
             case 7:
-                mGraph_7.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_7.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_7.addDataFromFile(data);
                 break;
             case 8:
-                mGraph_8.addDataFromFile(data);
+                if(fromLogFile)
+                    mGraph_8.addData(data[0], data[1], data[2], data[3]);
+                else
+                    mGraph_8.addDataFromFile(data);
                 break;
         }
     }
@@ -1125,7 +1217,8 @@ public class MainActivity extends AppCompatActivity
         private boolean mmTestPurpose = false; // for testing graph (remove it later)
 
         private int count = 0;  // used to count number of packets for logging
-        private byte[] mmDataToLog = new byte[201];
+        // Need to store the value as it as in string
+        private byte [] mmDataToLog = new byte[251];
 
         public ProcessingThread(Handler handler) {
             d(TAG, "Creating ProcessingThread");
@@ -1144,39 +1237,93 @@ public class MainActivity extends AppCompatActivity
 
 //                    Log.d(TAG, "Retrieving data from packaged data");
                 if(!mmTestPurpose) {
-//                        mmRetrievedData = retrieveData(mmTempData);
-                    mmRetrievedData = new float[3];
-                    mmRetrievedData[2] = mmTempData[11] & 0xff;
-                    mmRetrievedData[1] = mmTempData[12] & 0xff;
-                    mmRetrievedData[0] = mmTempData[13] & 0xff;
+                    mmRetrievedData = new float[4];
+                    mmRetrievedData[3] = mmTempData[11] & 0xff;
+                    mmRetrievedData[2] = mmTempData[12] & 0xff;
+                    mmRetrievedData[1] = mmTempData[13] & 0xff;
                 }
                 else {
-                    mmRetrievedData = new float[3];
-                    mmRetrievedData[0] = mmTempData[1];
-                    mmRetrievedData[1] = mmTempData[2];
-                    mmRetrievedData[2] = mmTempData[3];
+                    mmRetrievedData = new float[4];
+                    mmRetrievedData[1] = mmTempData[1];
+                    mmRetrievedData[2] = mmTempData[2];
+                    mmRetrievedData[3] = mmTempData[3];
                 }
 
-                for(int i = 0; i < 4; i++) {
-                    if(i == 0)
-                        mmDataToLog[count * 4 + i] = (byte) mmTempData[0];
+                datastream = mmTempData[0] & 0b00000111;
+                if(datastream == 0) {
+//                    plotting_time_1 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_1;
+                    mmRetrievedData[0] = graphIndexing_1;
+                }
+                else if (datastream == 1) {
+//                    plotting_time_2 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_2;
+                    mmRetrievedData[0] = graphIndexing_2;
+                }
+                else if (datastream == 2) {
+//                    plotting_time_3 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_3;
+                    mmRetrievedData[0] = graphIndexing_3;
+                }
+                else if (datastream == 3) {
+//                    plotting_time_4 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_4;
+                    mmRetrievedData[0] = graphIndexing_4;
+                }
+                else if (datastream == 4) {
+//                    plotting_time_5 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_5;
+                    mmRetrievedData[0] = graphIndexing_5;
+                }
+                else if (datastream == 5) {
+//                    plotting_time_6 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_6;
+                    mmRetrievedData[0] = graphIndexing_6;
+                }
+                else if (datastream == 6) {
+//                    plotting_time_7 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_7;
+                    mmRetrievedData[0] = graphIndexing_7;
+                }
+                else if (datastream == 7) {
+//                    plotting_time_8 = System.currentTimeMillis() - start_time;
+//                    mmRetrievedData[0] = (float) plotting_time_8;
+                    mmRetrievedData[0] = graphIndexing_8;
+                }
+
+                for(int i = 0; i < 5; i++) {
+                    if(i == 0)  // to store datastream
+                        mmDataToLog[count * 5 + i] = (byte) mmTempData[0];
                     else
-                        mmDataToLog[count * 4 + i] = (byte) mmRetrievedData[i - 1];
+                        mmDataToLog[count * 5 + i] = (byte) mmRetrievedData[i - 1];
                 }
 
                 count++;
                 if(count == 50) {
-                    mmDataToLog[200] = (byte) 27;
+                    mmDataToLog[250] = (byte) 10;   // 10 for new line
                     mLoggingThread.log(mmDataToLog);
-                    mmDataToLog = new byte[201];
+                    mmDataToLog = new byte[251];
                     count = 0;
                 }
 
-                //TODO enable this
-                datastream = mmTempData[0] & 0b00000111;
-
                 mHandler.obtainMessage(Constants.MESSAGE_ADD_DATA, datastream, -1, mmRetrievedData)
                         .sendToTarget();
+                if(datastream == 0)
+                    graphIndexing_1++;
+                else if (datastream == 1)
+                    graphIndexing_2++;
+                else if (datastream == 2)
+                    graphIndexing_3++;
+                else if (datastream == 3)
+                    graphIndexing_4++;
+                else if (datastream == 4)
+                    graphIndexing_5++;
+                else if (datastream == 5)
+                    graphIndexing_6++;
+                else if (datastream == 6)
+                    graphIndexing_7++;
+                else if (datastream == 7)
+                    graphIndexing_8++;
             }
         }
 

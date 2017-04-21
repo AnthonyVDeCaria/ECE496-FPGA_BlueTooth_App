@@ -3,6 +3,9 @@
 
     <string name="app_name">Bluetooth1</string>
 
+    // use to detect App crashed previously
+    <string name="did_user_left">user did left</string>
+
     <!--Toolbar actions-->
     <string name='action_connect_bluetooth'>Connect to device</string>
     <string name="action_open_file">Open file</string>

@@ -29,7 +29,9 @@ public class FileManager {
         mActivity= ac;
 
         PARENT_DIR = mActivity.getString(R.string.app_name);
-//        mHandler = h;
+
+        path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + PARENT_DIR;
+        logFilePath = path + File.separator + Constants.LOG_FILE;
     }
 
     /*
@@ -48,8 +50,6 @@ public class FileManager {
     * Returns true if the parent storage is created or already exists
     */
     public static boolean createStorageDir() {
-        path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + PARENT_DIR;
-        logFilePath = path + File.separator + Constants.LOG_FILE;
 
         File file = new File(path);
         if(!file.exists()) {
@@ -154,9 +154,10 @@ public class FileManager {
                         toAdd[2] = (byte) Float.parseFloat(br.readLine());
                         Log.d(TAG, "For fragment " + datastream + " Temp data is " + toAdd[2]);
 
+                        // Need to clear graphs in case there were data on the screen
+                        MainActivity.clearGraphs(datastream);
                         // now starting adding data to graphs
                         if(!ISE1_data.isEmpty() & !ISE2_data.isEmpty()) {
-                            MainActivity.clearGraphs(datastream);
                             ISE1_data_point = ISE1_data.split("\t");
                             ISE2_data_point = ISE2_data.split("\t");
                             for (i = 0; i < ISE1_data_point.length; i++) {
@@ -167,7 +168,7 @@ public class FileManager {
                                 toAdd[3] = Float.parseFloat(ISE1_data_pair[0]);
                                 Log.d(TAG, "Adding the following to the graph" + datastream + " " + toAdd[0] + ", "
                                         + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
-                                MainActivity.addFromFile(datastream, toAdd);
+                                MainActivity.addFromFile(datastream, toAdd, false);
                             }
                             MainActivity.doneAddingFromFile(datastream);
                         }
@@ -246,6 +247,52 @@ public class FileManager {
            } catch (Exception e) {
                Log.e(TAG, "Failed clearing log file", e);
            }
+        }
+    }
+
+    public void readLogFile() {
+        Log.d(TAG, "Restoring data from Log file");
+
+        File logFile = new File(logFilePath);
+        if(logFile.exists()) {
+            int datastream = -1;
+            // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
+            float[] toAdd = new float[4];
+            byte[] dataRead;
+
+            int i, j, k;
+            try {
+                BufferedReader br = new BufferedReader(new FileReader(logFile));
+                String line = null;
+
+                while (true) {
+                    // A line is considered to be terminated by any one of a line feed ('\n'), a carriage return ('\r')
+                    line = br.readLine();
+                    if (line != null) {
+                        Log.d(TAG, "Line length is " + line.length());
+                        dataRead = line.getBytes();
+                        // line read does not include any line-termination characters
+                        k = 0;
+                        for (j = 0; j < 250; j++) {
+                            for (i = 0; i < 5; i++) {
+                                if (i == 0) {
+                                    datastream = (int) dataRead[k + i] & 0b00000111;
+                                }
+                                else
+                                    toAdd[i - 1] = dataRead[k + i];
+                            }
+                            Log.d(TAG, "Adding the following to the graph" + datastream + " " + toAdd[0] + ", "
+                                    + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
+                            MainActivity.addFromFile(datastream, toAdd, true);
+                            k += 5;
+                        }
+                    } else
+                        break;
+                }
+                br.close();
+            } catch (Exception e) {
+                Log.e(TAG, "Error occurred when reading file", e);
+            }
         }
     }
 }

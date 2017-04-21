@@ -60,6 +60,7 @@ public class BluetoothLeService extends Service {
     public final static UUID UUID_HM_RX_TX =
             UUID.fromString(SampleGattAttributes.HM_RX_TX);
 
+
     private BluetoothGattCharacteristic mcharacteristicTX = null;
     private BluetoothGattCharacteristic mcharacteristicRX = null;
     public static ReentrantLock GattLock = null;
@@ -67,6 +68,8 @@ public class BluetoothLeService extends Service {
 
     LocalBroadcastManager manager;
     private PackagingThread mPackagingThread;
+
+    private long received_time;
 
     // Implements callback methods for GATT events that the app cares about.  For example,
     // connection change and services discovered.
@@ -150,7 +153,6 @@ public class BluetoothLeService extends Service {
                                             BluetoothGattCharacteristic characteristic) {
             Log.d(TAG, "Received characteristic notification");
 //            broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
-
             mPackagingThread.add(characteristic.getValue());
         }
     };
