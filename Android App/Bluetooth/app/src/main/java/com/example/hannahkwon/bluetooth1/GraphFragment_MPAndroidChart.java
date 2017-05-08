@@ -26,7 +26,6 @@ import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.MPPointF;
 
 import java.util.ArrayList;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static android.util.Log.d;
 import static com.example.hannahkwon.bluetooth1.MainActivity.mFileManager;
@@ -42,8 +41,6 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
     private Activity activity;
 
-//    private GraphingThread graphingThread;
-
     private LineChart chart;
     private LineData lineData;  // holds ISE1_dataset & ISE2_dataset
     private LineDataSet ISE1_dataset;
@@ -56,12 +53,8 @@ public class GraphFragment_MPAndroidChart extends Fragment {
 
     private String description_txt;
 
-    //TODO remove this
-    private static ReentrantLock SavingLock = new ReentrantLock();
-
+    // used to check if highlights and markers are enabled
     private boolean marked = false;
-
-    private boolean zoomed = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -212,15 +205,24 @@ public class GraphFragment_MPAndroidChart extends Fragment {
             marked = false;
         }
 
-        if(over_threshold) {
+//        if(over_threshold) {
             Log.d(TAG, "Changing back the background color to white");
             chart.setBackgroundColor(Color.WHITE);
             over_threshold = false;
-        }
+//        }
 
-        chart.clearValues();
         ISE1_entries.clear();
         ISE2_entries.clear();
+
+        // to reset min/max of x values
+        ISE1_dataset.addEntry(new Entry(0, 0));
+        ISE2_dataset.addEntry(new Entry(0, 0));
+        ISE1_dataset.calcMinMax();
+        ISE2_dataset.calcMinMax();
+        ISE1_entries.clear();
+        ISE2_entries.clear();
+
+        chart.clearValues();
 
         lineData.notifyDataChanged();
         chart.notifyDataSetChanged();

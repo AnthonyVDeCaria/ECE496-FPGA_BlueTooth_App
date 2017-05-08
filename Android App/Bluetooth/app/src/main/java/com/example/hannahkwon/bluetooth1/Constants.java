@@ -34,9 +34,6 @@ public class Constants {
     // Control Command types
     public static final int START = 0x00; // 0
     public static final int CANCEL = 0x01;    // 1
-
-    //    public static final String WAIT = "2";
-//    public static final String READY = "3";
     public static final int ACK = 0x03;   // 3
     // Control Command Operands
     public static final int DS1 = 0b00000001;

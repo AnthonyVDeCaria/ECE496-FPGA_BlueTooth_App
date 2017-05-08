@@ -29,5 +29,4 @@ dependencies {
     compile 'com.android.support:support-fragment:24.2.1'
 
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
-    compile 'org.achartengine:achartengine:1.2.0'
 }

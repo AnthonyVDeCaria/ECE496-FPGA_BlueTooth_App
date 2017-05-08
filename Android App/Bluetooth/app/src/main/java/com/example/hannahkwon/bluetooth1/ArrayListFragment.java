@@ -16,8 +16,8 @@ import static com.example.hannahkwon.bluetooth1.MainActivity.mFileManager;
 
 /**
  * Created by HannahKwon on 2017-04-04.
+ * Used to fill out fragments in the OpenFileActivity under each SlidingTabs
  */
-
 public class ArrayListFragment extends ListFragment {
     int mNum;
     private ArrayAdapter<String> TxTFilesArrayAdapter;

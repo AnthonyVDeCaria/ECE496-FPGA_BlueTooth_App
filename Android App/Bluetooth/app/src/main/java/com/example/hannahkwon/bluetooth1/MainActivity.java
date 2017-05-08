@@ -123,10 +123,7 @@ public class MainActivity extends AppCompatActivity
     private long plotting_time_7;
     private long plotting_time_8;
 
-//    private GraphFragment mGraph_1;
     private static GraphFragment_MPAndroidChart mGraph_1;
-//    private GraphFragment_aChartEngine mGraph_1;
-
     private static GraphFragment_MPAndroidChart mGraph_2;
     private static GraphFragment_MPAndroidChart mGraph_3;
     private static GraphFragment_MPAndroidChart mGraph_4;

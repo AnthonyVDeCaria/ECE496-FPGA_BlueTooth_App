@@ -313,13 +313,6 @@
                             android:layout_height="match_parent"
                             android:layout_weight="1"
                             android:tag="Fragment1" />
-                        <!--<fragment-->
-                        <!--android:id="@+id/graph_1"-->
-                        <!--android:name="com.example.hannahkwon.bluetooth1.GraphFragment_aChartEngine"-->
-                        <!--android:layout_width="0dp"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:layout_weight="1"-->
-                        <!--android:tag="Fragment1" />-->
 
                         <fragment
                             android:id="@+id/graph_2"
