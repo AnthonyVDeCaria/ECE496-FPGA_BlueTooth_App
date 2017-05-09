@@ -23,8 +23,6 @@
 		#Wait_for_First
 */
 module handle_app_commands(
-commands, operands,
-
 		clock, reset,
 		start, uart_done,
 		uart_cpd,
@@ -59,7 +57,7 @@ commands, operands,
 	wire l_hac_timer, rn_hac_timer, hac_timer_done;
 	
 	// Analyze 
-output	wire [7:0] commands, operands;
+	wire [7:0] commands, operands;
 	wire r_r_commands, l_r_commands;
 	wire r_r_operands, l_r_operands;
 	
@@ -100,7 +98,7 @@ output	wire [7:0] commands, operands;
 	
 	assign r_r_stream_select = ~(reset | command_is_Can); 
 	
-	assign r_r_ds_sending_flag = ~reset;
+	assign r_r_ds_sending_flag = ~(reset | command_is_Can);
 	
 	/*
 		Modules

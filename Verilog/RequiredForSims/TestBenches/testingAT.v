@@ -25,11 +25,6 @@ module testingAT;
 	wire [15:0] ep23wireOut;
 	wire [15:0] ep24wireOut;
 	wire [15:0] ep25wireOut;
-	wire [15:0] ep26wireOut;
-	wire [15:0] ep27wireOut;
-	wire [15:0] ep28wireOut;
-	wire [15:0] ep29wireOut;
-	wire [15:0] ep30wireOut;
 	wire tx_done;
 
 	// Instantiate the Unit Under Test (UUT)
@@ -47,12 +42,7 @@ module testingAT;
 		.ep22wireOut(ep22wireOut),
 		.ep23wireOut(ep23wireOut),
 		.ep24wireOut(ep24wireOut), 
-		.ep25wireOut(ep25wireOut),
-		.ep26wireOut(ep26wireOut),
-		.ep27wireOut(ep27wireOut),
-		.ep28wireOut(ep28wireOut),
-		.ep29wireOut(ep29wireOut),
-		.ep30wireOut(ep30wireOut)
+		.ep25wireOut(ep25wireOut)
 	);
 	
 	UART_sender_for_testing help(

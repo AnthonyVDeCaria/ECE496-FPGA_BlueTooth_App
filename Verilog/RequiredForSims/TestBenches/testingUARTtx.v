@@ -12,9 +12,7 @@ module testingUARTtx;
 	// Outputs
 	wire fpga_txd;
 	wire done;
-	wire at_cpd;
-	wire [9:0] timer;
-	wire [9:0] n_timer;
+	wire l_tx_timer, rn_tx_timer;
 	wire [2:0] c;
 	wire [2:0] n;
 
@@ -26,12 +24,7 @@ module testingUARTtx;
 		.cycles_per_databit(cpd), 
 		.tx_line(fpga_txd), 
 		.tx_data(ep01wireIn), 
-		.tx_done(done),
-		.timer(timer), 
-		.n_timer(n_timer), 
-		.at_cpd(at_cpd), 
-		.curr(c), 
-		.next(n)
+		.tx_done(done)
 	);
 	
 	always begin
@@ -43,6 +36,7 @@ module testingUARTtx;
 		clock = 0;
 		resetn = 0;
 		ep01wireIn = 8'h00;
+		start = 0;
 
 		// Wait 100 us for global reset to finish
 		#100;

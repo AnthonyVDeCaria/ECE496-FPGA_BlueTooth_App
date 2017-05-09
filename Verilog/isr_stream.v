@@ -28,17 +28,19 @@ module isr_stream(clock, resetn, period, offset, stream_active, i_s_request);
 	output i_s_request;
 	
 	/*
-		FSM Wires
+		Wires
 	*/
+	// Timers
+	wire [15:0] a, b, timer, n_timer;
+	wire l_r_timer, r_r_timer, timer_done;
+	
+	// FSM
 	parameter Idle = 2'b00, Wait = 2'b01, Done = 2'b10;
 	reg [1:0] isrs_curr, isrs_next;
 
 	/*
 		Timers
-	*/
-	wire [15:0] a, b, timer, n_timer;
-	wire l_r_timer, r_r_timer, timer_done;
-	
+	*/	
 	assign l_r_timer = (isrs_curr == Wait) | (isrs_curr == Idle);
 	assign r_r_timer = ~( ~resetn );
 	

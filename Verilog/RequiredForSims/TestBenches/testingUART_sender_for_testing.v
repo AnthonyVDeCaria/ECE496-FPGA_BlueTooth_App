@@ -20,7 +20,7 @@ module testingUART_sender_for_testing;
 		.clock(clock),
 		.reset(reset),
 		.uart_cpd(10'd50),
-		.uart_byte_space(10'd12),
+		.uart_byte_spacing(10'd12),
 		.user_data_on_line(user_data_on_line),
 		.user_data_done(user_data_done),
 		.tx_done(tx_done),

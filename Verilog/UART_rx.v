@@ -37,25 +37,31 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_collecting_
 	output reg [7:0] rx_data;
 	
 	/*
-		FSM
+		Wires
 	*/
+	// Timer
+	wire [9:0] timer, n_timer;
+	wire l_r_timer, r_r_timer;
+	wire [8:0] half_time;
+	wire at_halftime, at_cpd;
+	
+	// i
+	wire [3:0] i, n_i;
+	wire l_r_i, r_r_i;
+	
+	// FSM
 	reg [2:0] urx_curr, urx_next;
 	parameter Idle = 3'b000, Double_Check = 3'b001, Reset_Timer = 3'b010, Wait_for_Timer = 3'b011, Update_rx_data = 3'b100, Done = 3'b101;
 	
 	/*
 		Timer 
-	*/
-	wire [9:0] timer, n_timer;
-	wire l_r_timer, r_r_timer;
-	wire at_halftime, at_cpd;
-	
+	*/	
 	assign l_r_timer = ((urx_curr == Double_Check) & (~at_halftime)) | ((urx_curr == Wait_for_Timer) & (~at_cpd));
 	assign r_r_timer = ~(~resetn | (urx_curr == Idle) | (urx_curr == Reset_Timer) ) ;
 	
 	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
 	register_10bit_enable_async r_timer(.clk(clk), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
 	
-	wire [8:0]half_time;
 	assign half_time = cycles_per_databit >> 1; //cycles_per_databit / 2
 	
 	assign at_halftime = (timer == half_time) ? 1'b1: 1'b0;
@@ -63,10 +69,7 @@ module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_collecting_
 	
 	/*
 		i
-	*/
-	wire [3:0] i, n_i;
-	wire l_r_i, r_r_i;
-	
+	*/	
 	assign l_r_i = (urx_curr == Update_rx_data);
 	assign r_r_i = ~(~resetn | (urx_curr == Idle));
 	

@@ -37,32 +37,43 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	output tx_line;
 	
 	/*
-		FSM
+		Wires
 	*/
+	// Timer
+	wire l_tx_timer, rn_tx_timer;
+	wire at_cpd;
+	
+	// i
+	wire [3:0] i, n_i;
+	wire l_r_i, r_r_i;
+	
+	// Sending
+	wire [9:0] din, dout;
+	wire l_r_safety;
+	reg current_dout;
+	wire dout_select;
+	
+	// FSM
 	reg [2:0] utx_curr, utx_next;
 	parameter Idle = 3'b000, Prepare_Data = 3'b001, Send_Data = 3'b010, Add_i = 3'b011, Done = 3'b100;
 	
 	/*
 		Timer 
-	*/
-	wire [9:0] timer, n_timer;
-	wire l_r_timer, r_r_timer;
-	wire at_cpd;
+	*/	
+	assign l_tx_timer = ((utx_curr == Send_Data) & (~at_cpd));
+	assign rn_tx_timer = ~(~resetn | (utx_curr == Idle) | (utx_curr == Add_i) ) ;
 	
-	assign l_r_timer = ((utx_curr == Send_Data) & (~at_cpd));
-	assign r_r_timer = ~(~resetn | (utx_curr == Idle) | (utx_curr == Add_i) ) ;
-	
-	adder_subtractor_10bit a_timer(.a(timer), .b(10'b0000000001), .want_subtract(1'b0), .c_out(), .s(n_timer) );
-	register_10bit_enable_async r_timer(.clk(clk), .resetn(r_r_timer), .enable(l_r_timer), .select(l_r_timer), .d(n_timer), .q(timer) );
-	
-	assign at_cpd = (timer == cycles_per_databit) ? 1'b1: 1'b0;	
+	timer_10bit tx_timer(
+		.clock(clk), 
+		.resetn_timer(rn_tx_timer), 
+		.timer_active(l_tx_timer), 
+		.timer_final_value(cycles_per_databit), 
+		.timer_done(at_cpd)
+	);
 	
 	/*
 		i
-	*/
-	wire [3:0] i, n_i;
-	wire l_r_i, r_r_i;
-	
+	*/	
 	assign l_r_i = (utx_curr == Add_i);
 	assign r_r_i = ~(~resetn | (utx_curr == Idle) );
 	
@@ -71,10 +82,7 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	
 	/*
 		Sending Data
-	*/
-	wire [9:0] din, dout;
-	wire l_r_safety;
-	
+	*/	
 	assign din[9] = 1'b1;
 	assign din[8:1] = tx_data[7:0];
 	assign din[0] = 1'b0;
@@ -83,14 +91,12 @@ module UART_tx(clk, resetn, start, cycles_per_databit, tx_line, tx_data, tx_done
 	
 	register_10bit_enable_async r_safety(.clk(clk), .resetn(resetn), .enable(l_r_safety), .select(l_r_safety), .d(din), .q(dout) );
 	
-	reg current_dout;
 	always@(*)
 	begin
 		if(utx_curr == Send_Data)
 			current_dout = dout[i];
 	end
 	
-	wire dout_select;
 	assign dout_select = (utx_curr == Send_Data) | (utx_curr == Add_i);
 	mux_2_1bit m_dout(.data0(1'b1), .data1(current_dout), .sel(dout_select), .result(tx_line) );
 	

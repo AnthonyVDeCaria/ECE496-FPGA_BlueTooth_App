@@ -53,16 +53,26 @@ module master_switch_ece496(
 	output reg select_ready;
 	
 	/*
-		FSM Wires
+		Wires
 	*/
+	// Internal Flags
+	wire shift_0_is_0_in_find, eff_i_is_1_in_find, packet_sent_in_run;
+	
+	// Shift
+	wire [7:0] shift;
+	wire r_sr_shift, e_sr_shift, s_sr_shift;
+	
+	// i
+	wire r_r_i, l_r_i;
+	wire [2:0] i, n_i;
+	
+	// FSM
 	parameter Idle = 3'b000, Load_Shift = 3'b001, Find = 3'b010, Wait = 3'b011, Run = 3'b100;
 	reg [2:0] ms_curr, ms_next;
 	
 	/*
 		Interal Flags
-	*/
-	wire shift_0_is_0_in_find, eff_i_is_1_in_find, packet_sent_in_run;
-	
+	*/	
 	assign shift_0_is_0_in_find = (ms_curr == Find) & ~shift[0];
 	assign eff_i_is_1_in_find = (ms_curr == Find) & empty_fifo_flags[i];
 	assign packet_sent_in_run = (ms_curr == Run) & packet_sent;
@@ -70,9 +80,6 @@ module master_switch_ece496(
 	/*
 		Shift Register
 	*/
-	wire [7:0] shift;
-	wire r_sr_shift, e_sr_shift, s_sr_shift;
-	
 	assign r_sr_shift = ~( ~resetn | (ms_curr == Idle) );
 	assign e_sr_shift = (ms_curr == Load_Shift) | shift_0_is_0_in_find | eff_i_is_1_in_find | packet_sent_in_run;
 	assign s_sr_shift = (ms_curr == Load_Shift);
@@ -88,10 +95,7 @@ module master_switch_ece496(
 	
 	/*
 		i
-	*/
-	wire r_r_i, l_r_i;
-	wire [2:0] i, n_i;
-	
+	*/	
 	assign r_r_i = ~( ~resetn | (ms_curr == Idle) );
 	assign l_r_i = shift_0_is_0_in_find | eff_i_is_1_in_find | packet_sent_in_run;
 	
