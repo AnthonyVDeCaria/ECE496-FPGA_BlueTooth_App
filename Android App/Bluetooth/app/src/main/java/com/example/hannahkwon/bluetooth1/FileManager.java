@@ -281,7 +281,7 @@ public class FileManager {
                                     datastream++;
                                 }
                                 else
-                                    toAdd[i - 1] = dataRead[k + i];
+                                    toAdd[i - 1] = dataRead[k + i] & 0xff;
                             }
                             Log.d(TAG, "Adding the following to the graph " + datastream + " " + toAdd[0] + ", "
                                     + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
