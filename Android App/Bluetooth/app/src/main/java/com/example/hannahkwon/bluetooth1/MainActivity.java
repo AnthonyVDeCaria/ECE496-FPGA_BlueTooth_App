@@ -369,8 +369,7 @@ public class MainActivity extends AppCompatActivity
                 if (milliseconds <= 0) {
                     editTxt_Second.setError("0 seconds is not permitted!");
                 }
-                //TODO uncomment below
-//                else {
+                else {
                     temp_threshold = Integer.parseInt(editText_Temp.getText().toString());
                     Log.d(TAG, "Set temperature threshold as " + temp_threshold);
 
@@ -380,9 +379,9 @@ public class MainActivity extends AppCompatActivity
                     verifyWriteStoragePermission(MainActivity.this);
 
                     d(TAG, "Setting up timer with " + milliseconds + " ms");
-                //TODO uncomment below
-//                    if(runtimer != null)
-//                        runtimer.cancel();
+
+                    if(runtimer != null)
+                        runtimer.cancel();
                     runtimer = new RunTimer(milliseconds);
 
                     //TODO delete 5
@@ -398,7 +397,7 @@ public class MainActivity extends AppCompatActivity
                     mGraph_8.start(minCapacity);
 
                     runtimer.start();
-//                }
+                }
             }
         });
         // Also used for clearing up the screen after opening a file
@@ -422,11 +421,10 @@ public class MainActivity extends AppCompatActivity
                 mGraph_7.clear();
                 mGraph_8.clear();
 
-                //TODO uncomment this
-//                if(runtimer != null) {   // in case user opened file
+                if(runtimer != null) {   // in case user opened file
                     Log.d(TAG, "Canceling the runtimer");
                     runtimer.cancel();
-//                }
+                }
             }
         });
 
@@ -489,8 +487,7 @@ public class MainActivity extends AppCompatActivity
                 mGraph_7.fitScreen();
                 mGraph_8.fitScreen();
             }
-                                         }
-        );
+        });
 
         manager = LocalBroadcastManager.getInstance(this);
 
@@ -498,12 +495,12 @@ public class MainActivity extends AppCompatActivity
         boolean didUserLeft = (boolean) readSavedPreference(getString(R.string.did_user_left));
         Log.d(TAG, "User left the App before is " + didUserLeft);
         appCrashed = !didUserLeft;
-        if(appCrashed) {
+//        if(appCrashed) {
             Log.d(TAG, "App crashed previously");
             mFileManager.readLogFile();
             Toast.makeText(MainActivity.this, "Data is restored",
                     Toast.LENGTH_SHORT).show();
-        }
+//        }
 
         // Used to capture App abruptly terminating
         final Thread.UncaughtExceptionHandler oldHandler =
