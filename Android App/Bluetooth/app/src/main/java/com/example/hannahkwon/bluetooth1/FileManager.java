@@ -276,7 +276,8 @@ public class FileManager {
                         for (j = 0; j < 50; j++) {
                             for (i = 0; i < 5; i++) {
                                 if (i == 0) {
-                                    datastream = (int) dataRead[k + i] & 0b00000111 + 1;
+                                    datastream = (int) dataRead[k + i] & 0b00000111;
+                                    datastream++;
                                 }
                                 else
                                     toAdd[i - 1] = dataRead[k + i];
