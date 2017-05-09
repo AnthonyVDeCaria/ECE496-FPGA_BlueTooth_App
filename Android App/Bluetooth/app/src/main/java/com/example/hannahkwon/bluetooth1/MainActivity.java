@@ -527,6 +527,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
+        d(TAG, "MainActivity is getting resumed");
         writePreference(getString(R.string.did_user_left), false);
 
         manager.registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
@@ -540,14 +541,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onPause() {
         super.onPause();
-        writePreference(getString(R.string.did_user_left), false);
+        writePreference(getString(R.string.did_user_left), true);
         manager.unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
     protected void onStop(){
         super.onStop();
-
         d(TAG, "MainActivity is getting stopped");
     }
 
@@ -570,6 +570,7 @@ public class MainActivity extends AppCompatActivity
     // Called when an activity is about to go into the background as the result of user choice
     @Override
     public void onUserLeaveHint() {
+        d(TAG, "Activity is going to background");
         writePreference(getString(R.string.did_user_left), true);
     }
 
@@ -577,7 +578,7 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = sharedPref.edit();
         if(key == getString(R.string.did_user_left)) {
-            Log.d(TAG, "Writing preference crashed");
+            Log.d(TAG, "Writing preference user did left " + (boolean) value);
             editor.putBoolean(key, (boolean) value);
             editor.commit();
         }
