@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity
 
     private Button btn_fitScreen;
 
-    private BluetoothManager mBtService = null;
+    private BluetoothManager mBtManager = null;
 
     private BluetoothLeService mBluetoothLeService;
     private boolean mBound = false;
@@ -302,13 +302,13 @@ public class MainActivity extends AppCompatActivity
         mGraph_7 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_7);
         mGraph_8 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_8);
 
-        if (mBtService == null) {
-            mBtService = new BluetoothManager(this, mHandler);
+        if (mBtManager == null) {
+            mBtManager = new BluetoothManager(this, mHandler);
         }
 
-        if (mBtService.getDeviceState()) {
+        if (mBtManager.getDeviceState()) {
             // the device supports Bluetooth
-            mBtService.enableBluetooth();
+            mBtManager.enableBluetooth();
         }
         else {
             // sets up a dialogue saying the device does not support Bluetooth and kill the app
@@ -503,7 +503,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_bluetooth_connect:
-                mBtService.enableBluetooth();
+                mBtManager.enableBluetooth();
                 return true;
             case R.id.action_open_file:
                 if(!transmitting)
@@ -609,7 +609,7 @@ public class MainActivity extends AppCompatActivity
                     txt_BtStatus.setText(R.string.bluetooth_on);
 
                     // Scan for devices
-                    mBtService.scanDevice();
+                    mBtManager.scanDevice();
                 }
                 else{ // user pressed "No"
                     d(TAG,"Bluetooth is not enabled");
@@ -874,7 +874,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onDialogConnectClick(DialogFragment dialog) {
         dialog.dismiss();
-        mBtService.enableBluetooth();
+        mBtManager.enableBluetooth();
     }
 
     @Override
@@ -1075,28 +1075,28 @@ public class MainActivity extends AppCompatActivity
     public static void addFromFile(int datastream, float[] data) {
         switch (datastream) {
             case 1:
-                    mGraph_1.addDataFromFile(data);
+                mGraph_1.addDataFromFile(data);
                 break;
             case 2:
-                    mGraph_2.addDataFromFile(data);
+                mGraph_2.addDataFromFile(data);
                 break;
             case 3:
-                    mGraph_3.addDataFromFile(data);
+                mGraph_3.addDataFromFile(data);
                 break;
             case 4:
-                    mGraph_4.addDataFromFile(data);
+                mGraph_4.addDataFromFile(data);
                 break;
             case 5:
-                    mGraph_5.addDataFromFile(data);
+                mGraph_5.addDataFromFile(data);
                 break;
             case 6:
-                    mGraph_6.addDataFromFile(data);
+                mGraph_6.addDataFromFile(data);
                 break;
             case 7:
-                    mGraph_7.addDataFromFile(data);
+                mGraph_7.addDataFromFile(data);
                 break;
             case 8:
-                    mGraph_8.addDataFromFile(data);
+                mGraph_8.addDataFromFile(data);
                 break;
         }
     }
@@ -1170,35 +1170,35 @@ public class MainActivity extends AppCompatActivity
                 datastream = mmTempData[0] & 0b00000111;
                 if(datastream == 0) {
                     plotting_time_1 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_1;
+                    mmRetrievedData[0] = (float) plotting_time_1 / 10000;
                 }
                 else if (datastream == 1) {
                     plotting_time_2 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_2;
+                    mmRetrievedData[0] = (float) plotting_time_2 / 10000;
                 }
                 else if (datastream == 2) {
                     plotting_time_3 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_3;
+                    mmRetrievedData[0] = (float) plotting_time_3 / 10000;
                 }
                 else if (datastream == 3) {
                     plotting_time_4 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_4;
+                    mmRetrievedData[0] = (float) plotting_time_4 / 10000;
                 }
                 else if (datastream == 4) {
                     plotting_time_5 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_5;
+                    mmRetrievedData[0] = (float) plotting_time_5 / 10000;
                 }
                 else if (datastream == 5) {
                     plotting_time_6 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_6;
+                    mmRetrievedData[0] = (float) plotting_time_6 / 10000;
                 }
                 else if (datastream == 6) {
                     plotting_time_7 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_7;
+                    mmRetrievedData[0] = (float) plotting_time_7 / 10000;
                 }
                 else if (datastream == 7) {
                     plotting_time_8 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_8;
+                    mmRetrievedData[0] = (float) plotting_time_8 / 10000;
                 }
 
                 for(int i = 0; i < 5; i++) {
