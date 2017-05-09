@@ -89,7 +89,7 @@ public class MainActivity extends AppCompatActivity
 
     private Button btn_fitScreen;
 
-    private BluetoothService mBtService = null;
+    private BluetoothManager mBtService = null;
 
     private BluetoothLeService mBluetoothLeService;
     private boolean mBound = false;
@@ -104,15 +104,6 @@ public class MainActivity extends AppCompatActivity
     private FileManager.LoggingThread mLoggingThread;
 
     // used for indexing
-    //TODO delete the vars below
-    private float graphIndexing_1 = 0;
-    private float graphIndexing_2 = 0;
-    private float graphIndexing_3 = 0;
-    private float graphIndexing_4 = 0;
-    private float graphIndexing_5 = 0;
-    private float graphIndexing_6 = 0;
-    private float graphIndexing_7 = 0;
-    private float graphIndexing_8 = 0;
     private long start_time;
     private long plotting_time_1;
     private long plotting_time_2;
@@ -138,35 +129,8 @@ public class MainActivity extends AppCompatActivity
             super.handleMessage(msg);
 
             switch (msg.what) {
-                //TODO delete all except the last one
                 case Constants.MESSAGE_BLUETOOTH_ON:
                     txt_BtStatus.setText(R.string.bluetooth_on);
-                    break;
-                // Shows the state of connection
-                case Constants.MESSAGE_STATE_CHANGE:
-                    switch (msg.arg1) {
-                        case BluetoothService.STATE_NONE:
-                            txt_BtStatus.setText(R.string.not_connected);
-                            break;
-                        case BluetoothService.STATE_CONNECTING:
-                            txt_BtStatus.setText(R.string.connecting);
-                            break;
-                    }
-                    break;
-                // Add data received to textview
-                case Constants.MESSAGE_READ:
-                    byte[] readBuf = (byte[]) msg.obj;
-                    mProcessingThread.add(true, readBuf);
-                    break;
-                // Device connected. Now sharing data is possible.
-                case Constants.MESSAGE_DEVICE_NAME:
-                    String deviceName = msg.getData().getString(Constants.DEVICE_NAME);
-                    txt_BtStatus.setText(getString(R.string.connected_to_device, deviceName));
-                    break;
-                // For informing any connection failure
-                case Constants.MESSAGE_TOAST:
-                    Toast.makeText(MainActivity.this, msg.getData().getString(Constants.TOAST),
-                            Toast.LENGTH_SHORT).show();
                     break;
                 case Constants.MESSAGE_ADD_DATA:
                     float[] data = (float []) msg.obj;
@@ -177,9 +141,6 @@ public class MainActivity extends AppCompatActivity
                         // for graph
                         mGraph_1.addData(data[0], data[1], data[2], data[3]);
                     }
-//                    if (datastream == 49) {
-//                        mGraph_1.addData(data[0], data[1], data[2], data[3]);
-//                    }
                     else if(datastream == 1) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 2");
                         // for graph
@@ -266,7 +227,7 @@ public class MainActivity extends AppCompatActivity
                 d(TAG, "Received data");
                 byte[] data = intent.getByteArrayExtra(EXTRA_DATA);
                 if (data != null && data.length > 0) {
-                    mProcessingThread.add(false, data);
+                    mProcessingThread.add(data);
                 }
             }
         }
@@ -342,7 +303,7 @@ public class MainActivity extends AppCompatActivity
         mGraph_8 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_8);
 
         if (mBtService == null) {
-            mBtService = new BluetoothService(this, mHandler);
+            mBtService = new BluetoothManager(this, mHandler);
         }
 
         if (mBtService.getDeviceState()) {
@@ -387,8 +348,7 @@ public class MainActivity extends AppCompatActivity
                         runtimer.cancel();
                     runtimer = new RunTimer(milliseconds);
 
-                    //TODO delete 5
-                    int minCapacity = (minute * 60 + second) * 8 * 5;
+                    int minCapacity = (minute * 60 + second) * 8;
 
                     mGraph_1.start(minCapacity);
                     mGraph_2.start(minCapacity);
@@ -498,12 +458,12 @@ public class MainActivity extends AppCompatActivity
         boolean didUserLeft = (boolean) readSavedPreference(getString(R.string.did_user_left));
         Log.d(TAG, "User left the App before is " + didUserLeft);
         appCrashed = !didUserLeft;
-//        if(appCrashed) {
+        if(appCrashed) {
             Log.d(TAG, "App crashed previously");
             mFileManager.readLogFile();
             Toast.makeText(MainActivity.this, "Data is restored",
                     Toast.LENGTH_SHORT).show();
-//        }
+        }
 
         // Used to capture App abruptly terminating
         final Thread.UncaughtExceptionHandler oldHandler =
@@ -600,10 +560,6 @@ public class MainActivity extends AppCompatActivity
 
         writePreference(getString(R.string.did_user_left), true);
 
-        if (mBtService != null) {
-            // Stops ConnectThread and ConnectedThread
-            mBtService.stop();
-        }
         if(mBound) {
             unbindService(mServiceConnection);
             mBluetoothLeService = null;
@@ -682,7 +638,8 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                     else {
-                        mBtService.getDeviceInfo(data);
+                        Toast.makeText(this, "This app only supports BLE",
+                                Toast.LENGTH_SHORT).show();
                     }
                     startProcessingAndLogging(mHandler);
                 }
@@ -815,7 +772,8 @@ public class MainActivity extends AppCompatActivity
             }
         }
         else {  // When Classic Bluetooth
-            mBtService.sendMessage(commandPacket);
+            Toast.makeText(this, "Not connected yet",
+                    Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -1183,7 +1141,6 @@ public class MainActivity extends AppCompatActivity
         private float [] mmRetrievedData = null;
         private byte [] mmTempData = null;
         private int datastream = -1;
-        private boolean mmTestPurpose = false; // for testing graph (remove it later)
 
         private int count = 0;  // used to count number of packets for logging
         // Need to store the value as it as in string
@@ -1205,63 +1162,44 @@ public class MainActivity extends AppCompatActivity
 //                    Log.d(TAG, "Processing data: " + mmTempData);
 
 //                    Log.d(TAG, "Retrieving data from packaged data");
-                if(!mmTestPurpose) {
-                    mmRetrievedData = new float[4];
-                    mmRetrievedData[3] = mmTempData[11] & 0xff;
-                    mmRetrievedData[2] = mmTempData[12] & 0xff;
-                    mmRetrievedData[1] = mmTempData[13] & 0xff;
-                }
-                else {
-                    mmRetrievedData = new float[4];
-                    mmRetrievedData[1] = mmTempData[1];
-                    mmRetrievedData[2] = mmTempData[2];
-                    mmRetrievedData[3] = mmTempData[3];
-                }
+                mmRetrievedData = new float[4];
+                mmRetrievedData[3] = mmTempData[11] & 0xff;
+                mmRetrievedData[2] = mmTempData[12] & 0xff;
+                mmRetrievedData[1] = mmTempData[13] & 0xff;
 
                 datastream = mmTempData[0] & 0b00000111;
-//                datastream = mmTempData[0];
                 if(datastream == 0) {
-//                    plotting_time_1 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_1;
-                    mmRetrievedData[0] = graphIndexing_1;
+                    plotting_time_1 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_1;
                 }
                 else if (datastream == 1) {
-//                    plotting_time_2 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_2;
-                    mmRetrievedData[0] = graphIndexing_2;
+                    plotting_time_2 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_2;
                 }
                 else if (datastream == 2) {
-//                    plotting_time_3 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_3;
-                    mmRetrievedData[0] = graphIndexing_3;
+                    plotting_time_3 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_3;
                 }
                 else if (datastream == 3) {
-//                    plotting_time_4 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_4;
-                    mmRetrievedData[0] = graphIndexing_4;
+                    plotting_time_4 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_4;
                 }
                 else if (datastream == 4) {
-//                    plotting_time_5 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_5;
-                    mmRetrievedData[0] = graphIndexing_5;
+                    plotting_time_5 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_5;
                 }
                 else if (datastream == 5) {
-//                    plotting_time_6 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_6;
-                    mmRetrievedData[0] = graphIndexing_6;
+                    plotting_time_6 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_6;
                 }
                 else if (datastream == 6) {
-//                    plotting_time_7 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_7;
-                    mmRetrievedData[0] = graphIndexing_7;
+                    plotting_time_7 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_7;
                 }
                 else if (datastream == 7) {
-//                    plotting_time_8 = System.currentTimeMillis() - start_time;
-//                    mmRetrievedData[0] = (float) plotting_time_8;
-                    mmRetrievedData[0] = graphIndexing_8;
+                    plotting_time_8 = System.currentTimeMillis() - start_time;
+                    mmRetrievedData[0] = (float) plotting_time_8;
                 }
-                else if (datastream == 49)
-                    mmRetrievedData[0] = graphIndexing_1;
 
                 for(int i = 0; i < 5; i++) {
                     if(i == 0)  // to store datastream
@@ -1280,29 +1218,10 @@ public class MainActivity extends AppCompatActivity
 
                 mHandler.obtainMessage(Constants.MESSAGE_ADD_DATA, datastream, -1, mmRetrievedData)
                         .sendToTarget();
-                if(datastream == 0)
-                    graphIndexing_1++;
-                else if (datastream == 1)
-                    graphIndexing_2++;
-                else if (datastream == 2)
-                    graphIndexing_3++;
-                else if (datastream == 3)
-                    graphIndexing_4++;
-                else if (datastream == 4)
-                    graphIndexing_5++;
-                else if (datastream == 5)
-                    graphIndexing_6++;
-                else if (datastream == 6)
-                    graphIndexing_7++;
-                else if (datastream == 7)
-                    graphIndexing_8++;
-                else if (datastream == 49)
-                    graphIndexing_1++;
             }
         }
 
-        public synchronized void add (boolean testPurpose, byte[] data) {
-            mmTestPurpose = testPurpose;
+        public synchronized void add (byte[] data) {
             Log.i(TAG, "Adding into Processing FIFO queue " + data);
             try {
                 mmFIFOQueue.put(data);

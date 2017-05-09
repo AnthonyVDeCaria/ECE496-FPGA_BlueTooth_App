@@ -115,7 +115,6 @@ public class FileManager {
         File file = new File(path + File.separator + fileName);
         int datastream = -1;
         // 0 - index, 1 - ISE1, 2 - ISE2, 3 - FinalTemp
-        // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
         float [] toAdd = new float[4];
 
         CharSequence fragment = "Fragment";

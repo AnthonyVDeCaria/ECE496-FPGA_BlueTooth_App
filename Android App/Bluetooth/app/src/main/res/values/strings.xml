@@ -39,7 +39,7 @@
     - <!--   StorageNotWorkingDialogFragment   -->
     <string name="dialog_unavailable_external_storage">This apps need external storage to save data. Please check if it is available.</string>
 
-    - <!--   BluetoothService   -->
+    - <!--   BluetoothManager   -->
     <string name="send">Send</string>
     <!--<string name="not_connected">You are not connected to a device</string>-->
     <!--<string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>-->

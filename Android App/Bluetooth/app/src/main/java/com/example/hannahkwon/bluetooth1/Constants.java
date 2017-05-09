@@ -12,18 +12,9 @@ public class Constants {
     static final int GATT_READ = 0;
     static final int GATT_WRITE = 1;
 
-    // Message types sent from the BluetoothService Handler
+    // Message types sent from the BluetoothManager Handler
     public static final int MESSAGE_BLUETOOTH_ON = 0;
-    public static final int MESSAGE_STATE_CHANGE = 1;
-    public static final int MESSAGE_READ = 2;
-    //    public static final int MESSAGE_WRITE = 3;
-    public static final int MESSAGE_DEVICE_NAME = 4;
-    public static final int MESSAGE_TOAST = 5;
     public static final int MESSAGE_ADD_DATA = 6;
-
-    // Key names received from the BluetoothService Handler
-    public static final String DEVICE_NAME = "device_name";
-    public static final String TOAST = "toast";
 
     // Permission Request Code
     public static final int PERMISSION_ACCESS_COARSE_LOCATION = 2000;
