@@ -4,20 +4,20 @@ module testingTimer;
 
 	// Inputs
 	reg clock;
-	reg l_r_timer;
-	reg r_r_timer;
+	reg l_timer;
+	reg resetn_timer;
 	
-	parameter timer_cap = 9'd12;
+	parameter timer_cap = 10'd12;
 
 	// Outputs
 	wire timer_done;
 
 	// Instantiate the Unit Under Test (UUT)
-	timer_10bit_async uut(
+	timer_10bit uut(
 		.clock(clock),
-		.l_r_timer(l_r_timer),
-		.r_r_timer(r_r_timer),
-		.timer_cap(timer_cap),
+		.resetn_timer(resetn_timer), 
+		.timer_active(l_timer),
+		.timer_final_value(timer_cap),
 		.timer_done(timer_done)
 	);
 	
@@ -28,14 +28,19 @@ module testingTimer;
 	initial begin
 		// Initialize Inputs
 		clock = 0;
-		r_r_timer = 1'b0;
-		l_r_timer = 1'b0;
+		resetn_timer = 1'b0;
+		l_timer = 1'b0;
 
 		// Wait 100 us for global reset to finish
 		#100;
         
 		// Add stimulus here
-		#100 r_r_timer = 1'b1;
+		#100 resetn_timer = 1'b1;
+		#100 l_timer = 1'b1;
+		
+		#200 l_timer = 1'b1;
+		
+		#300 resetn_timer =1'b0;
 	end
 	
 endmodule

@@ -15,11 +15,11 @@ module testingRC;
 	wire data_line;
 
 	// Outputs
-	wire tx_done;
+	wire byte_sent;
 	wire at_response_flag;
 	wire [15:0] RFIFO_out;
-	wire [12:0] RFIFO_wr_count; 
-	wire [11:0] RFIFO_rd_count; 
+	wire [7:0] RFIFO_wr_count; 
+	wire [6:0] RFIFO_rd_count; 
 	wire ds_sending_flag;
 	wire [7:0] stream_select;
 	wire [7:0] commands, operands;
@@ -38,12 +38,13 @@ module testingRC;
 		.fpga_rxd(data_line),
 		
 		.want_at(want_at),
-		.at_response_flag(at_response_flag),
+		
 		.RFIFO_rd_en(RFIFO_rd_en), 
 		.RFIFO_out(RFIFO_out), 
 		.RFIFO_wr_count(RFIFO_wr_count), 
 		.RFIFO_rd_count(RFIFO_rd_count),
 		
+		.at_response_flag(at_response_flag),
 		.stream_select(stream_select), 
 		.ds_sending_flag(ds_sending_flag),
 		
@@ -59,7 +60,7 @@ module testingRC;
 			.cycles_per_databit(cpd), 
 			.tx_line(data_line),
 			.tx_data(tx_data),
-			.tx_done(tx_done)
+			.tx_done(byte_sent)
 		);
 	
 	

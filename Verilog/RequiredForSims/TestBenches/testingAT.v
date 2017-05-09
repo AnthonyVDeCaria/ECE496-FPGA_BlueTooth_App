@@ -4,16 +4,17 @@ module testingAT;
 
 	// Inputs
 	reg clock;
-	reg resetn;
+	reg reset;
 	reg bt_state;
 	reg [15:0] ep01wireIn;
 	reg [15:0] ep02wireIn;
 	
 	parameter uart_cpd = 10'd50;
-	parameter uart_spacing_limit = 10'd12;
+	parameter uart_byte_spacing = 10'd12;
 	
-	reg [7:0] AT_response_byte;
-	reg start;
+	reg [15:0] half_word;
+	reg user_data_on_line;
+	reg user_data_done;
 
 	// Outputs
 	wire fpga_txd;
@@ -38,7 +39,7 @@ module testingAT;
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd), 
 		.uart_cpd(uart_cpd),
-		.uart_byte_spacing_limit(uart_spacing_limit),
+		.uart_byte_spacing_limit(uart_byte_spacing),
 		.ep01wireIn(ep01wireIn), 
 		.ep02wireIn(ep02wireIn),
 		.ep20wireOut(ep20wireOut), 
@@ -54,15 +55,17 @@ module testingAT;
 		.ep30wireOut(ep30wireOut)
 	);
 	
-	UART_tx santas_little_helper(
-			.clk(clock), 
-			.resetn(resetn), 
-			.start(start), 
-			.cycles_per_databit(uart_cpd), 
-			.tx_line(fpga_rxd),
-			.tx_data(AT_response_byte),
-			.tx_done(tx_done)
-		);
+	UART_sender_for_testing help(
+		.clock(clock), 
+		.reset(reset),
+		.uart_cpd(uart_cpd), 
+		.uart_byte_spacing(uart_byte_spacing),
+		.user_data_on_line(user_data_on_line), 
+		.user_data_done(user_data_done),
+		.tx_done(tx_done),
+		.half_word(half_word),
+		.tx_line(fpga_rxd)
+	);
 	
 	always begin
 		#1 clock = !clock;
@@ -71,18 +74,19 @@ module testingAT;
 	initial begin
 		// Initialize Inputs
 		clock = 0;
-		resetn = 1'b0;
+		reset = 1'b1;
 		bt_state = 0;
 		ep01wireIn = 0;
 		ep02wireIn = 0;
-		start = 1'b0;
-		AT_response_byte = 8'h00;
+		user_data_on_line = 1'b0;
+		user_data_done = 1'b0;
+		half_word = 16'h0000;
 
 		// Wait 100 us for global reset to finish
 		#100;
         
 		// Add stimulus here
-		#0 resetn = 1'b1;
+		#0 reset = 1'b0;
 		#0 ep02wireIn = 16'h0001;
 		
 		#50 ep02wireIn = 16'h0004;
@@ -112,13 +116,11 @@ module testingAT;
 		
 		#550 ep02wireIn = 16'h0034;
 		
-		#6000 AT_response_byte = "O";
-		#6000 start = 1'b1;
-		#6005 start = 1'b0;
+		#6000 half_word = "OK";
+		#6000 user_data_on_line = 1'b1;
+		#6001 user_data_on_line = 1'b0;
 		
-		#6050 AT_response_byte = "K";
-		#6050 start = 1'b1;
-		#6055 start = 1'b0;
+		#6300 user_data_done = 1'b1;
 		
 	end
 	

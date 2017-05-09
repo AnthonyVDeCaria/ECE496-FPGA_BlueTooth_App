@@ -4,16 +4,17 @@ module testingDS;
 
 	// Inputs
 	reg clock;
-	reg resetn;
+	reg reset;
 	reg bt_state;
 	reg [15:0] ep01wireIn;
 	reg [15:0] ep02wireIn;
 	
 	parameter uart_cpd = 10'd50;
-	parameter uart_spacing_limit = 10'd12;
+	parameter uart_byte_spacing = 10'd12;
 	
-	reg [7:0] App_command_byte;
-	reg start;
+	reg [15:0] half_word;
+	reg user_data_on_line;
+	reg user_data_done;
 
 	// Outputs
 	wire fpga_txd;
@@ -39,7 +40,7 @@ module testingDS;
 		.fpga_txd(fpga_txd), 
 		.fpga_rxd(fpga_rxd),
 		.uart_cpd(uart_cpd),
-		.uart_byte_spacing_limit(uart_spacing_limit),
+		.uart_byte_spacing_limit(uart_byte_spacing),
 //		.sensor_stream0(sensor_stream0), 
 //		.sensor_stream1(sensor_stream1), 
 //		.sensor_stream2(sensor_stream2), 
@@ -65,16 +66,17 @@ module testingDS;
 		.ep30wireOut(ep30wireOut)
 	);
 	
-	UART_tx santas_little_helper(
-			.clk(clock), 
-			.resetn(resetn), 
-			.start(start), 
-			.cycles_per_databit(uart_cpd), 
-			.tx_line(fpga_rxd),
-			.tx_data(App_command_byte),
-			.tx_done(tx_done)
-		);
-	
+	UART_sender_for_testing help(
+		.clock(clock), 
+		.reset(reset),
+		.uart_cpd(uart_cpd), 
+		.uart_byte_spacing(uart_byte_spacing),
+		.user_data_on_line(user_data_on_line), 
+		.user_data_done(user_data_done),
+		.tx_done(tx_done),
+		.half_word(half_word),
+		.tx_line(fpga_rxd)
+	);
 	always begin
 		#1 clock = !clock;
 	end
@@ -82,29 +84,27 @@ module testingDS;
 	initial begin
 		// Initialize Inputs
 		clock = 0;
-		resetn = 0;
+		reset = 1;
 		bt_state = 0;
 		ep01wireIn = 0;
 		ep02wireIn = 0;
-		start = 1'b0;
-		App_command_byte = 8'h00;
+		user_data_on_line = 1'b0;
+		user_data_done = 1'b0;
+		half_word = 16'h0000;
 
 		// Wait 100 us for global reset to finish
 		#100;
         
 		// Add stimulus here
-		#0 resetn = 1'b1;
+		#0 reset = 1'b0;
 		#0 ep02wireIn = 16'h0001;
 		
 		#100 ep02wireIn = 16'h0002;
 		
-		#200 App_command_byte = 8'h00;
-		#200 start = 1'b1;
-		#205 start = 1'b0;
-		
-		#600 App_command_byte = 8'hAA;
-		#600 start = 1'b1;
-		#605 start = 1'b0;
+		#200 half_word = 16'h00AA;
+		#200 user_data_on_line = 1'b1;
+		#205 user_data_on_line = 1'b0;
+		#210 user_data_done = 1'b1;
 	end
 endmodule
 

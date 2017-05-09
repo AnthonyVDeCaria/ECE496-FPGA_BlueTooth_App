@@ -25,8 +25,7 @@
 				Say in #Idle
 */
 
-module UART_rx(i, n_i,
-clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_valid);
+module UART_rx(clk, resetn, cycles_per_databit, rx_line, rx_data, rx_collecting_data, rx_data_valid);
 	/*
 		I/Os
 	*/
@@ -34,7 +33,7 @@ clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_vali
 	input [9:0] cycles_per_databit; //Allows for 1024 cycles between each databit
 	input rx_line;
 
-	output collecting_data, rx_data_valid;
+	output rx_collecting_data, rx_data_valid;
 	output reg [7:0] rx_data;
 	
 	/*
@@ -65,7 +64,7 @@ clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_vali
 	/*
 		i
 	*/
-	output wire [3:0] i, n_i;
+	wire [3:0] i, n_i;
 	wire l_r_i, r_r_i;
 	
 	assign l_r_i = (urx_curr == Update_rx_data);
@@ -165,7 +164,7 @@ clk, resetn, cycles_per_databit, rx_line, rx_data, collecting_data, rx_data_vali
 			urx_curr <= urx_next;
 	end
 	
-	assign collecting_data = ~((urx_curr == Idle) | (urx_curr == Done) | (urx_curr == Double_Check));
+	assign rx_collecting_data = ~((urx_curr == Idle) | (urx_curr == Done) | (urx_curr == Double_Check));
 	assign rx_data_valid = (urx_curr == Done);
 	
 endmodule

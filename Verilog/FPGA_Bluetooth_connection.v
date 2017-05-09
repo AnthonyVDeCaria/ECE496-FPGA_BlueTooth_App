@@ -535,19 +535,26 @@ module FPGA_Bluetooth_connection(
 	wire [6:0] RFIFO_rd_count;
 	wire RFIFO_rd_en;
 	
+	wire at_command_sent;
+	
 	assign RFIFO_rd_en = (fbc_curr == Read_RFIFO);
+	assign at_command_sent = want_at & all_data_sent & (fbc_curr == Rest_Transmission) ;
 	
 	receiver_centre Purolator(
+		.commands(ep27wireOut[15:8]),
+		.operands(ep27wireOut[7:0]),
+	
 		.clock(clock), 
 		.reset(reset),
-		
 		.fpga_rxd(fpga_rxd),
+		
+		.want_at(want_at),
+		.at_command_sent(at_command_sent),
 
 		.uart_cpd(uart_cpd),
-		.uart_spacing_limit(uart_byte_spacing_limit),
+		.uart_byte_spacing(uart_byte_spacing_limit),
 		
 		.at_response_flag(have_at_response),
-		
 		.RFIFO_rd_en(RFIFO_rd_en),
 		.RFIFO_out(RFIFO_out), 
 		.RFIFO_wr_count(RFIFO_wr_count), 
@@ -556,11 +563,7 @@ module FPGA_Bluetooth_connection(
 		.RFIFO_empty(),
 		
 		.stream_select(streams_selected),
-		.ds_sending_flag(command_from_app),
-		
-		.want_at(want_at),
-		
-		.commands(ep27wireOut[7:0]), .operands(ep27wireOut[15:8])
+		.ds_sending_flag(command_from_app)
 	);
 	
 	/*
