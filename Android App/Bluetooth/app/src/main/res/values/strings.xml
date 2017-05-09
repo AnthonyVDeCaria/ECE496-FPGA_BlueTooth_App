@@ -2,7 +2,9 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
 
     <string name="app_name">Bluetooth1</string>
-    <string name="log_file">Log.txt</string>
+
+    // use to detect App crashed previously
+    <string name="did_user_left">user did left</string>
 
     <!--Toolbar actions-->
     <string name='action_connect_bluetooth'>Connect to device</string>
@@ -18,6 +20,7 @@
     <!--BLE Status-->
     <string name="ble_not_supported">BLE is not supported</string>
     <string name="ble_not_ready">BLE is not ready for data transfer. Please wait until the status changes to "Connected to"</string>
+    <string name="ble_still_transmitting">The App is still receiving data</string>
 
     - <!--   Storage Status   -->
     <string name="failed_creating_parent_directory">Error occurred when creating parent directory</string>
@@ -36,7 +39,7 @@
     - <!--   StorageNotWorkingDialogFragment   -->
     <string name="dialog_unavailable_external_storage">This apps need external storage to save data. Please check if it is available.</string>
 
-    - <!--   BluetoothService   -->
+    - <!--   BluetoothManager   -->
     <string name="send">Send</string>
     <!--<string name="not_connected">You are not connected to a device</string>-->
     <!--<string name="bt_not_enabled_leaving">Bluetooth was not enabled. Leaving Bluetooth Chat.</string>-->
@@ -64,4 +67,10 @@
     <string name="permission_read_storage">Cannot open file</string>
     <string name="permission_read_storage_rationale">The app needs read storage permission to open file.\nPress OK to set the permission at the App\'s setting screen.</string>
     <string name="btn_No_Thanks">NO THANKS</string>
+
+    <string-array name="analysis_options">
+        <item>Min/Max</item>
+        <item>Slope</item>
+    </string-array>
+
 </resources>
