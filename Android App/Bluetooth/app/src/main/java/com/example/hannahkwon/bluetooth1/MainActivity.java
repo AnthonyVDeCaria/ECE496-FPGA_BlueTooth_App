@@ -104,15 +104,14 @@ public class MainActivity extends AppCompatActivity
     private FileManager.LoggingThread mLoggingThread;
 
     // used for indexing
-    private long start_time;
-    private long plotting_time_1;
-    private long plotting_time_2;
-    private long plotting_time_3;
-    private long plotting_time_4;
-    private long plotting_time_5;
-    private long plotting_time_6;
-    private long plotting_time_7;
-    private long plotting_time_8;
+    private float graphIndexing_1 = 0;
+    private float graphIndexing_2 = 0;
+    private float graphIndexing_3 = 0;
+    private float graphIndexing_4 = 0;
+    private float graphIndexing_5 = 0;
+    private float graphIndexing_6 = 0;
+    private float graphIndexing_7 = 0;
+    private float graphIndexing_8 = 0;
 
     private static GraphFragment_MPAndroidChart mGraph_1;
     private static GraphFragment_MPAndroidChart mGraph_2;
@@ -338,7 +337,6 @@ public class MainActivity extends AppCompatActivity
                     Log.d(TAG, "Set temperature threshold as " + temp_threshold);
 
                     transmitting = true;
-                    start_time = System.currentTimeMillis();
 
                     verifyWriteStoragePermission(MainActivity.this);
 
@@ -1169,36 +1167,28 @@ public class MainActivity extends AppCompatActivity
 
                 datastream = mmTempData[0] & 0b00000111;
                 if(datastream == 0) {
-                    plotting_time_1 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_1 / 10000;
+                    mmRetrievedData[0] = graphIndexing_1;
                 }
                 else if (datastream == 1) {
-                    plotting_time_2 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_2 / 10000;
+                    mmRetrievedData[0] = graphIndexing_2;
                 }
                 else if (datastream == 2) {
-                    plotting_time_3 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_3 / 10000;
+                    mmRetrievedData[0] = graphIndexing_3;
                 }
                 else if (datastream == 3) {
-                    plotting_time_4 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_4 / 10000;
+                    mmRetrievedData[0] = graphIndexing_4;
                 }
                 else if (datastream == 4) {
-                    plotting_time_5 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_5 / 10000;
+                    mmRetrievedData[0] = graphIndexing_5;
                 }
                 else if (datastream == 5) {
-                    plotting_time_6 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_6 / 10000;
+                    mmRetrievedData[0] = graphIndexing_6;
                 }
                 else if (datastream == 6) {
-                    plotting_time_7 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_7 / 10000;
+                    mmRetrievedData[0] = graphIndexing_7;
                 }
                 else if (datastream == 7) {
-                    plotting_time_8 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_8 / 10000;
+                    mmRetrievedData[0] = graphIndexing_8;
                 }
 
                 for(int i = 0; i < 5; i++) {
@@ -1218,6 +1208,22 @@ public class MainActivity extends AppCompatActivity
 
                 mHandler.obtainMessage(Constants.MESSAGE_ADD_DATA, datastream, -1, mmRetrievedData)
                         .sendToTarget();
+                if(datastream == 0)
+                    graphIndexing_1++;
+                else if (datastream == 1)
+                    graphIndexing_2++;
+                else if (datastream == 2)
+                    graphIndexing_3++;
+                else if (datastream == 3)
+                    graphIndexing_4++;
+                else if (datastream == 4)
+                    graphIndexing_5++;
+                else if (datastream == 5)
+                    graphIndexing_6++;
+                else if (datastream == 6)
+                    graphIndexing_7++;
+                else if (datastream == 7)
+                    graphIndexing_8++;
             }
         }
 
