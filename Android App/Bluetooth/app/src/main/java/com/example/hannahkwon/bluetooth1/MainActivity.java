@@ -1170,35 +1170,35 @@ public class MainActivity extends AppCompatActivity
                 datastream = mmTempData[0] & 0b00000111;
                 if(datastream == 0) {
                     plotting_time_1 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_1 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_1;
                 }
                 else if (datastream == 1) {
                     plotting_time_2 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_2 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_2;
                 }
                 else if (datastream == 2) {
                     plotting_time_3 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_3 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_3;
                 }
                 else if (datastream == 3) {
                     plotting_time_4 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_4 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_4;
                 }
                 else if (datastream == 4) {
                     plotting_time_5 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_5 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_5;
                 }
                 else if (datastream == 5) {
                     plotting_time_6 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_6 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_6;
                 }
                 else if (datastream == 6) {
                     plotting_time_7 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_7 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_7;
                 }
                 else if (datastream == 7) {
                     plotting_time_8 = System.currentTimeMillis() - start_time;
-                    mmRetrievedData[0] = (float) plotting_time_8 / 1000;
+                    mmRetrievedData[0] = (float) plotting_time_8;
                 }
 
                 for(int i = 0; i < 5; i++) {
