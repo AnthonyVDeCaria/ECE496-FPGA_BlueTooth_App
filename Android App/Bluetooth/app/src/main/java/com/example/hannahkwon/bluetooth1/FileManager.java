@@ -263,14 +263,16 @@ public class FileManager {
             int i, j, k;
             try {
                 BufferedReader br = new BufferedReader(new FileReader(logFile));
-                String line = null;
+                char[] line = new char[250];
+                int numCharRead = 0;
 
                 while (true) {
-                    // A line is considered to be terminated by any one of a line feed ('\n'), a carriage return ('\r')
-                    line = br.readLine();
-                    if (line != null) {
-                        Log.d(TAG, "Line length is " + line.length());
-                        dataRead = line.getBytes();
+                     numCharRead = br.read(line, 0, 250);
+                    if (numCharRead != -1) {    // end of line
+                        br.read();  // to read new line
+                        Log.d(TAG, "Char length read is " + numCharRead);
+                        dataRead = new String(line).getBytes();
+                        Log.d(TAG, "Byte length read is " + dataRead.length);
                         // line read does not include any line-termination characters
                         k = 0;
                         for (j = 0; j < 250; j++) {
@@ -281,13 +283,15 @@ public class FileManager {
                                 else
                                     toAdd[i - 1] = dataRead[k + i];
                             }
-                            Log.d(TAG, "Adding the following to the graph" + datastream + " " + toAdd[0] + ", "
+                            Log.d(TAG, "Adding the following to the graph " + datastream + " " + toAdd[0] + ", "
                                     + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
                             MainActivity.addFromFile(datastream, toAdd, true);
                             k += 5;
                         }
-                    } else
+                    } else { // done reading
+                        MainActivity.doneAddingFromFile(datastream);
                         break;
+                    }
                 }
                 br.close();
             } catch (Exception e) {

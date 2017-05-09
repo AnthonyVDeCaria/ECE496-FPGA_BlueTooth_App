@@ -250,6 +250,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 d(TAG, "Adding datasets");
                 lineData.addDataSet(ISE1_dataset);
                 lineData.addDataSet(ISE2_dataset);
+                chart.fitScreen();
             }
         }
         return;

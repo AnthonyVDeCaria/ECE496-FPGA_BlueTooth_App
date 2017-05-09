@@ -156,10 +156,6 @@ public class MainActivity extends AppCompatActivity
                 // Add data received to textview
                 case Constants.MESSAGE_READ:
                     byte[] readBuf = (byte[]) msg.obj;
-//                    String writeMessage = new String(readBuf, 0, msg.arg1);
-//                    Log.d(TAG, "Data recevied " + writeMessage);
-//                    txt_DataReceived.append(writeMessage);
-
                     mProcessingThread.add(true, readBuf);
                     break;
                 // Device connected. Now sharing data is possible.
@@ -181,12 +177,6 @@ public class MainActivity extends AppCompatActivity
                         // for graph
                         mGraph_1.addData(data[0], data[1], data[2], data[3]);
                     }
-                    //TODO delete below
-//                if(datastream == 49){    // display only DS1
-//                    d(TAG, "Packaged data corresponds to datastream 1");
-//                    // for graph
-//                    mGraph_1.addData(data[0], data[1], data[2]);
-//                }
                     else if(datastream == 1) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 2");
                         // for graph
@@ -281,7 +271,6 @@ public class MainActivity extends AppCompatActivity
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
         // Called when the connection with the service is established
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
@@ -494,12 +483,13 @@ public class MainActivity extends AppCompatActivity
         // Checking if the App crashed previously
         boolean didUserLeft = (boolean) readSavedPreference(getString(R.string.did_user_left));
         Log.d(TAG, "User left the App before is " + didUserLeft);
-        //TODO uncomment below
-//        appCrashed = !didUserLeft;
-////        if(appCrashed) {
-//            Log.d(TAG, "App crashed previously");
-//            mFileManager.readLogFile();
-////        }
+        appCrashed = !didUserLeft;
+        if(appCrashed) {
+            Log.d(TAG, "App crashed previously");
+            mFileManager.readLogFile();
+            Toast.makeText(MainActivity.this, "Data is restored",
+                    Toast.LENGTH_SHORT).show();
+        }
 
         // Used to capture App abruptly terminating
         final Thread.UncaughtExceptionHandler oldHandler =
@@ -587,8 +577,6 @@ public class MainActivity extends AppCompatActivity
         super.onStop();
 
         d(TAG, "MainActivity is getting stopped");
-        // unregister broadcast receiver
-//        unregisterReceiver(mReceiver);
     }
 
     @Override
@@ -738,8 +726,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 return;
             }
-            // other 'case' lines to check for other
-            // permissions this app might request
+            // other 'case' lines to check for other permissions this app might request
         }
     }
 
@@ -749,8 +736,6 @@ public class MainActivity extends AppCompatActivity
     private byte setCommandArg(){
         int commandArg = 0b000000000;
         byte ret;
-//        byte temp;
-//        String ret;
         if(checkBox_DS1.isChecked()) {
             d(TAG, "Check Box Channel 1 is checked");
             commandArg = commandArg | Constants.DS1;
@@ -802,9 +787,6 @@ public class MainActivity extends AppCompatActivity
             commandPacket[0] = fields[0];
             commandPacket[1] = fields[1];
         }
-//        for (String field : fields){
-//            commandPacket = commandPacket + field;
-//        }
 
         // sending the created command packet to FPGA
         d(TAG, "Command packet created is " + commandPacket);
@@ -1246,7 +1228,8 @@ public class MainActivity extends AppCompatActivity
                     mmRetrievedData[3] = mmTempData[3];
                 }
 
-                datastream = mmTempData[0] & 0b00000111;
+//                datastream = mmTempData[0] & 0b00000111;
+                datastream = mmTempData[0];
                 if(datastream == 0) {
 //                    plotting_time_1 = System.currentTimeMillis() - start_time;
 //                    mmRetrievedData[0] = (float) plotting_time_1;
