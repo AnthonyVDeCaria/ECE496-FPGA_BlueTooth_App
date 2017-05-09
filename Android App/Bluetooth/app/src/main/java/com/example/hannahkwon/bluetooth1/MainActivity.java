@@ -177,6 +177,9 @@ public class MainActivity extends AppCompatActivity
                         // for graph
                         mGraph_1.addData(data[0], data[1], data[2], data[3]);
                     }
+//                    if (datastream == 49) {
+//                        mGraph_1.addData(data[0], data[1], data[2], data[3]);
+//                    }
                     else if(datastream == 1) {
 //                        Log.d(TAG, "Packaged data corresponds to datastream 2");
                         // for graph
@@ -1240,6 +1243,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 datastream = mmTempData[0] & 0b00000111;
+//                datastream = mmTempData[0];
                 if(datastream == 0) {
 //                    plotting_time_1 = System.currentTimeMillis() - start_time;
 //                    mmRetrievedData[0] = (float) plotting_time_1;
@@ -1280,6 +1284,8 @@ public class MainActivity extends AppCompatActivity
 //                    mmRetrievedData[0] = (float) plotting_time_8;
                     mmRetrievedData[0] = graphIndexing_8;
                 }
+                else if (datastream == 49)
+                    mmRetrievedData[0] = graphIndexing_1;
 
                 for(int i = 0; i < 5; i++) {
                     if(i == 0)  // to store datastream
@@ -1314,6 +1320,8 @@ public class MainActivity extends AppCompatActivity
                     graphIndexing_7++;
                 else if (datastream == 7)
                     graphIndexing_8++;
+                else if (datastream == 49)
+                    graphIndexing_1++;
             }
         }
 

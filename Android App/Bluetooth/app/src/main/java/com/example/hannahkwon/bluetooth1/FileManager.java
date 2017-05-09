@@ -6,6 +6,7 @@ import android.util.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FilenameFilter;
@@ -258,22 +259,19 @@ public class FileManager {
             int datastream = -1;
             // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
             float[] toAdd = new float[4];
-            byte[] dataRead;
 
             int i, j, k;
             try {
-                BufferedReader br = new BufferedReader(new FileReader(logFile));
-                char[] line = new char[250];
-                int numCharRead = 0;
+                FileInputStream logfis = new FileInputStream(logFile);
+                byte[] dataRead = new byte[250];
+                int numBytesRead = 0;
 
                 while (true) {
-                     numCharRead = br.read(line, 0, 250);
-                    if (numCharRead != -1) {    // end of line
-                        br.read();  // to read new line
-                        Log.d(TAG, "Char length read is " + numCharRead);
-                        dataRead = new String(line).getBytes();
-                        Log.d(TAG, "Byte length read is " + dataRead.length);
-                        // line read does not include any line-termination characters
+                    numBytesRead = logfis.read(dataRead, 0, 250);
+                    if (numBytesRead != -1) {    // end of dataRead
+                        logfis.read();  // to read new dataRead
+                        Log.d(TAG, "Char length read is " + numBytesRead);
+                        // dataRead read does not include any dataRead-termination characters
                         k = 0;
                         for (j = 0; j < 250; j++) {
                             for (i = 0; i < 5; i++) {
@@ -293,7 +291,7 @@ public class FileManager {
                         break;
                     }
                 }
-                br.close();
+                logfis.close();
             } catch (Exception e) {
                 Log.e(TAG, "Error occurred when reading file", e);
             }
