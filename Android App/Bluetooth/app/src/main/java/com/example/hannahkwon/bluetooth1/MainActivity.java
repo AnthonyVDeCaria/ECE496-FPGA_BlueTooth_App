@@ -89,6 +89,8 @@ public class MainActivity extends AppCompatActivity
     private Button btn_Analyze;
     private static int analysis_option = -1;
 
+    private Button btn_fitScreen;
+
     private BluetoothService mBtService = null;
 
     private BluetoothLeService mBluetoothLeService;
@@ -328,6 +330,8 @@ public class MainActivity extends AppCompatActivity
         spinner_AnalysisOption = (Spinner) findViewById(R.id.spinner_AnalysisOption);
         btn_Analyze = (Button) findViewById(R.id.btn_Analyze);
 
+        btn_fitScreen = (Button) findViewById(R.id.btn_fitScreen);
+
         mGraph_1 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_1);
         mGraph_2 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_2);
         mGraph_3 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_3);
@@ -477,6 +481,21 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
+
+        btn_fitScreen.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                d(TAG, "Pressed Fit Screen");
+                mGraph_1.fitScreen();
+                mGraph_2.fitScreen();
+                mGraph_3.fitScreen();
+                mGraph_4.fitScreen();
+                mGraph_5.fitScreen();
+                mGraph_6.fitScreen();
+                mGraph_7.fitScreen();
+                mGraph_8.fitScreen();
+            }
+                                         }
+        );
 
         manager = LocalBroadcastManager.getInstance(this);
 
@@ -1228,8 +1247,7 @@ public class MainActivity extends AppCompatActivity
                     mmRetrievedData[3] = mmTempData[3];
                 }
 
-//                datastream = mmTempData[0] & 0b00000111;
-                datastream = mmTempData[0];
+                datastream = mmTempData[0] & 0b00000111;
                 if(datastream == 0) {
 //                    plotting_time_1 = System.currentTimeMillis() - start_time;
 //                    mmRetrievedData[0] = (float) plotting_time_1;

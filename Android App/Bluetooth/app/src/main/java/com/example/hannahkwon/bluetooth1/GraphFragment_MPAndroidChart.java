@@ -111,6 +111,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
         chart.setData(lineData);
         chart.setAutoScaleMinMaxEnabled(true);  // auto scales Y-axis
         chart.setTouchEnabled(true);
+        chart.setDoubleTapToZoomEnabled(true);
 
         // disables highlighting at touch event
         chart.setHighlightPerDragEnabled(false);
@@ -140,6 +141,10 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    public void fitScreen() {
+        chart.fitScreen();
     }
 
     public synchronized void addData(float index, float ISE1, float ISE2, float Temp) {
