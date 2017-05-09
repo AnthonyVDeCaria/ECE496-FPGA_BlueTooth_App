@@ -134,7 +134,7 @@ public class DeviceListActivity extends FragmentActivity {
         if (pairedDevices.size() > 0) {
             findViewById(R.id.title_paired_devices).setVisibility(View.VISIBLE);
             for (BluetoothDevice device : pairedDevices) {
-                pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getType() + "\n" + device.getAddress() );
+                pairedDevicesArrayAdapter.add(device.getName() + "\n" + device.getType() + "\n" + device.getAddress());
             }
         } else {
             String noDevices = getResources().getText(R.string.none_paired).toString();
@@ -217,9 +217,6 @@ public class DeviceListActivity extends FragmentActivity {
 
             // Get the device MAC address, which is the last 17 chars in the View
             String info = ((TextView) v).getText().toString();
-            // Splitting at new line
-//            String lines[] = info.split("\\r?\\n");
-//            String deviceName = lines[0];
             int MACAddr_Start = info.length() - 17;
             String address = info.substring(MACAddr_Start);
 

@@ -434,7 +434,7 @@ public class GraphFragment_MPAndroidChart extends Fragment {
                 chart.setDrawMarkers(false);
             }
 
-            //TODO start from here
+            //TODO start slope analysis from here
         }
     }
 }

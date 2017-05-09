@@ -338,8 +338,6 @@ public class MainActivity extends AppCompatActivity
         mGraph_7 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_7);
         mGraph_8 = (GraphFragment_MPAndroidChart) getSupportFragmentManager().findFragmentById(R.id.graph_8);
 
-        // TODO scale the gridlayout
-
         if (mBtService == null) {
             mBtService = new BluetoothService(this, mHandler);
         }
@@ -372,7 +370,7 @@ public class MainActivity extends AppCompatActivity
                     editTxt_Second.setError("0 seconds is not permitted!");
                 }
                 //TODO uncomment below
-                else {
+//                else {
                     temp_threshold = Integer.parseInt(editText_Temp.getText().toString());
                     Log.d(TAG, "Set temperature threshold as " + temp_threshold);
 
@@ -383,8 +381,8 @@ public class MainActivity extends AppCompatActivity
 
                     d(TAG, "Setting up timer with " + milliseconds + " ms");
                 //TODO uncomment below
-                    if(runtimer != null)
-                        runtimer.cancel();
+//                    if(runtimer != null)
+//                        runtimer.cancel();
                     runtimer = new RunTimer(milliseconds);
 
                     //TODO delete 5
@@ -400,7 +398,7 @@ public class MainActivity extends AppCompatActivity
                     mGraph_8.start(minCapacity);
 
                     runtimer.start();
-                }
+//                }
             }
         });
         // Also used for clearing up the screen after opening a file
@@ -425,10 +423,10 @@ public class MainActivity extends AppCompatActivity
                 mGraph_8.clear();
 
                 //TODO uncomment this
-                if(runtimer != null) {   // in case user opened file
+//                if(runtimer != null) {   // in case user opened file
                     Log.d(TAG, "Canceling the runtimer");
                     runtimer.cancel();
-                }
+//                }
             }
         });
 

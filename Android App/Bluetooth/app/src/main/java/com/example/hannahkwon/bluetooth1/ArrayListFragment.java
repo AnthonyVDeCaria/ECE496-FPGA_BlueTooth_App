@@ -80,7 +80,7 @@ public class ArrayListFragment extends ListFragment {
             }
         }
         else {
-            //TODO start from here
+            //TODO start cloud storage from here
             Log.d(TAG, "Displaying cloud storage files");
         }
     }
