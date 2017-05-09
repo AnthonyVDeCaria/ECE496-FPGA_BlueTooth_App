@@ -25,11 +25,6 @@ module testingDS;
 	wire [15:0] ep23wireOut;
 	wire [15:0] ep24wireOut;
 	wire [15:0] ep25wireOut;
-	wire [15:0] ep26wireOut;
-	wire [15:0] ep27wireOut;
-	wire [15:0] ep28wireOut;
-	wire [15:0] ep29wireOut;
-	wire [15:0] ep30wireOut;
 //	wire [127:0] sensor_stream0, sensor_stream1, sensor_stream2, sensor_stream3, sensor_stream4, sensor_stream5, sensor_stream6, sensor_stream7;
 //	wire [7:0] sensor_stream_ready;
 
@@ -58,12 +53,7 @@ module testingDS;
 		.ep22wireOut(ep22wireOut),
 		.ep23wireOut(ep23wireOut),
 		.ep24wireOut(ep24wireOut), 
-		.ep25wireOut(ep25wireOut),
-		.ep26wireOut(ep26wireOut),
-		.ep27wireOut(ep27wireOut),
-		.ep28wireOut(ep28wireOut),
-		.ep29wireOut(ep29wireOut),
-		.ep30wireOut(ep30wireOut)
+		.ep25wireOut(ep25wireOut)
 	);
 	
 	UART_sender_for_testing help(
