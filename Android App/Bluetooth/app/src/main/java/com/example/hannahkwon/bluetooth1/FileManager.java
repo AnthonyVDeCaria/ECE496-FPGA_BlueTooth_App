@@ -257,7 +257,7 @@ public class FileManager {
         File logFile = new File(logFilePath);
         if(logFile.exists()) {
             int datastream = -1;
-            // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
+            // 0 - index, 1 - ISE1, 2 - ISE2, 3 - FinalTemp
             float[] toAdd = new float[4];
 
             int i, j, k;
@@ -273,7 +273,7 @@ public class FileManager {
                         Log.d(TAG, "Char length read is " + numBytesRead);
                         // dataRead read does not include any dataRead-termination characters
                         k = 0;
-                        for (j = 0; j < 250; j++) {
+                        for (j = 0; j < 50; j++) {
                             for (i = 0; i < 5; i++) {
                                 if (i == 0) {
                                     datastream = (int) dataRead[k + i] & 0b00000111;
