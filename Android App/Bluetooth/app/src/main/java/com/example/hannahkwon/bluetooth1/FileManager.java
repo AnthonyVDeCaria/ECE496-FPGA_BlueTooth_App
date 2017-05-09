@@ -114,6 +114,7 @@ public class FileManager {
     public void readFile(String fileName) {
         File file = new File(path + File.separator + fileName);
         int datastream = -1;
+        // 0 - index, 1 - ISE1, 2 - ISE2, 3 - FinalTemp
         // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
         float [] toAdd = new float[4];
 
@@ -152,7 +153,7 @@ public class FileManager {
                         Log.d(TAG, "For fragment " + datastream + " ISE2 data is " + ISE2_data);
                     }
                     if(line.contains(Temp)) {
-                        toAdd[2] = (byte) Float.parseFloat(br.readLine());
+                        toAdd[3] = (byte) Float.parseFloat(br.readLine());
                         Log.d(TAG, "For fragment " + datastream + " Temp data is " + toAdd[2]);
 
                         // Need to clear graphs in case there were data on the screen
@@ -164,12 +165,12 @@ public class FileManager {
                             for (i = 0; i < ISE1_data_point.length; i++) {
                                 ISE1_data_pair = ISE1_data_point[i].split(",");
                                 ISE2_data_pair = ISE2_data_point[i].split(",");
-                                toAdd[0] = Float.parseFloat(ISE1_data_pair[1]);
-                                toAdd[1] = Float.parseFloat(ISE2_data_pair[1]);
-                                toAdd[3] = Float.parseFloat(ISE1_data_pair[0]);
-                                Log.d(TAG, "Adding the following to the graph" + datastream + " " + toAdd[0] + ", "
+                                toAdd[1] = Float.parseFloat(ISE1_data_pair[1]);
+                                toAdd[2] = Float.parseFloat(ISE2_data_pair[1]);
+                                toAdd[0] = Float.parseFloat(ISE1_data_pair[0]);
+                                Log.d(TAG, "Adding the following to the graph " + datastream + " " + toAdd[0] + ", "
                                         + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
-                                MainActivity.addFromFile(datastream, toAdd, false);
+                                MainActivity.addFromFile(datastream, toAdd);
                             }
                             MainActivity.doneAddingFromFile(datastream);
                         }
@@ -284,11 +285,12 @@ public class FileManager {
                             }
                             Log.d(TAG, "Adding the following to the graph " + datastream + " " + toAdd[0] + ", "
                                     + toAdd[1] + ", " + toAdd[2] + ", " + toAdd[3]);
-                            MainActivity.addFromFile(datastream, toAdd, true);
+                            MainActivity.addFromFile(datastream, toAdd);
                             k += 5;
                         }
                     } else { // done reading
-                        MainActivity.doneAddingFromFile(datastream);
+                        for(int stream = 1; stream < 9; stream++)   // to finish adding data for all graphs
+                            MainActivity.doneAddingFromFile(stream);
                         break;
                     }
                 }

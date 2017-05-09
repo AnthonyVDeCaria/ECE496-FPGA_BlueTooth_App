@@ -1114,54 +1114,30 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public static void addFromFile(int datastream, float[] data, boolean fromLogFile) {
+    public static void addFromFile(int datastream, float[] data) {
         switch (datastream) {
             case 1:
-                if(fromLogFile)
-                    mGraph_1.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_1.addDataFromFile(data);
                 break;
             case 2:
-                if(fromLogFile)
-                    mGraph_2.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_2.addDataFromFile(data);
                 break;
             case 3:
-                if(fromLogFile)
-                    mGraph_3.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_3.addDataFromFile(data);
                 break;
             case 4:
-                if(fromLogFile)
-                    mGraph_4.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_4.addDataFromFile(data);
                 break;
             case 5:
-                if(fromLogFile)
-                    mGraph_5.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_5.addDataFromFile(data);
                 break;
             case 6:
-                if(fromLogFile)
-                    mGraph_6.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_6.addDataFromFile(data);
                 break;
             case 7:
-                if(fromLogFile)
-                    mGraph_7.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_7.addDataFromFile(data);
                 break;
             case 8:
-                if(fromLogFile)
-                    mGraph_8.addData(data[0], data[1], data[2], data[3]);
-                else
                     mGraph_8.addDataFromFile(data);
                 break;
         }

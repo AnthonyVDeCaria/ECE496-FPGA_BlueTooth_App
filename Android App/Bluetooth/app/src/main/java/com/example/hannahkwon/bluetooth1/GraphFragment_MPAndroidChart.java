@@ -178,12 +178,12 @@ public class GraphFragment_MPAndroidChart extends Fragment {
     }
 
     public void addDataFromFile(float[] data) {
-        // 0 - ISE1, 1 - ISE2, 2 - finalTemp, 3 - index
+        // 0 - index, 1 - ISE1, 2 - ISE2, 3 - FinalTemp
         Log.i(TAG, "Adding into entries from file " + data[0] + ", "
                 + data[1] + ", " + data[2]);
-        ISE1_dataset.addEntry(new Entry(data[3], data[0]));
-        ISE2_dataset.addEntry(new Entry(data[3], data[1]));
-        if (data[2] > temp_threshold) {
+        ISE1_dataset.addEntry(new Entry(data[0], data[1]));
+        ISE2_dataset.addEntry(new Entry(data[0], data[2]));
+        if (data[3] > temp_threshold) {
             if(!over_threshold) {
                 chart.setBackgroundColor(Color.GREEN);
                 over_threshold = true;
