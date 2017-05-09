@@ -35,7 +35,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.GridLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -63,7 +62,6 @@ public class MainActivity extends AppCompatActivity
     // Bluetooth related
     private TextView txt_BtStatus;
 
-    private GridLayout gridLayout_Channels;
     private CheckBox checkBox_DS1;
     private CheckBox checkBox_DS2;
     private CheckBox checkBox_DS3;
@@ -310,7 +308,6 @@ public class MainActivity extends AppCompatActivity
 
         txt_BtStatus = (TextView) findViewById(R.id.txt_BtStatus);
 
-        gridLayout_Channels = (GridLayout) findViewById(R.id.gridLayout_Channels);
         checkBox_DS1 = (CheckBox) findViewById(R.id.checkBox_DS1);
         checkBox_DS2 = (CheckBox) findViewById(R.id.checkBox_DS2);
         checkBox_DS3 = (CheckBox) findViewById(R.id.checkBox_DS3);

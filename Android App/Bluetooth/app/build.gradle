@@ -29,4 +29,7 @@ dependencies {
     compile 'com.android.support:support-fragment:24.2.1'
 
     compile 'com.github.PhilJay:MPAndroidChart:v3.0.1'
+
+    // for stretching out channel selections
+    compile 'com.google.android:flexbox:0.2.5'
 }
